@@ -52,12 +52,26 @@ export default function AuthProvider({ children }) {
   };
 
   const logout = async () => {
-    setToken("");
-    setUser(null);
-    setApiKey("");
-    await AsyncStorage.removeItem("token");
-    await AsyncStorage.removeItem("api_key");
+    try {
+      console.log("Logging out...");
+
+      // Clear state first
+      setToken("");
+      setUser(null);
+      setApiKey("");
+
+      // Then clear AsyncStorage
+      await AsyncStorage.removeItem("token");
+      await AsyncStorage.removeItem("api_key");
+
+      console.log("Logout successful");
+      return true;
+    } catch (error) {
+      console.error("Logout error:", error);
+      return false;
+    }
   };
+
 
   return (
     <AuthContext.Provider
