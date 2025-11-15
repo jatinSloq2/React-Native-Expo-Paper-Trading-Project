@@ -1,6 +1,6 @@
 import { View, Text } from 'react-native';
 
-export default function FnOScreen() {
+export default function Portfolio() {
   return (
     <View className="flex-1 items-center justify-center bg-white">
       <Text className="text-xl">Portfolio Placeholder</Text>

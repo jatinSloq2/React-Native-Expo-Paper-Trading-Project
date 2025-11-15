@@ -1,28 +1,37 @@
-import { useEffect, useState, useContext } from "react";
-import {
-  View,
-  Text,
-  ActivityIndicator,
-  TouchableOpacity,
-  StyleSheet,
-  ScrollView,
-  Alert
-} from "react-native";
-import { LinearGradient } from 'expo-linear-gradient';
 import AsyncStorage from "@react-native-async-storage/async-storage";
-import axiosInstance from "../api/axiosInstance";
 import { useNavigation } from "@react-navigation/native";
+import { LinearGradient } from 'expo-linear-gradient';
+import { useContext, useEffect, useState } from "react";
+import {
+  ActivityIndicator,
+  Modal,
+  ScrollView,
+  StyleSheet,
+  Text,
+  TextInput,
+  TouchableOpacity,
+  View
+} from "react-native";
 import { AuthContext } from "../../context/AuthContext";
+import axiosInstance from "../api/axiosInstance";
 
 export default function AccountScreen() {
   const [user, setUser] = useState(null);
   const [loading, setLoading] = useState(true);
+  const [addAmount, setAddAmount] = useState("");
+  const [deductAmount, setDeductAmount] = useState("");
+  const [showAddModal, setShowAddModal] = useState(false);
+  const [showDeductModal, setShowDeductModal] = useState(false);
+  const [showResetModal, setShowResetModal] = useState(false);
+  const [showZeroModal, setShowZeroModal] = useState(false);
+  const [showLogoutModal, setShowLogoutModal] = useState(false);
+  const [showSuccessModal, setShowSuccessModal] = useState(false);
+  const [successMessage, setSuccessMessage] = useState("");
+  const [showErrorModal, setShowErrorModal] = useState(false);
+  const [errorMessage, setErrorMessage] = useState("");
+  const [actionLoading, setActionLoading] = useState(false);
   const navigation = useNavigation();
   const authContext = useContext(AuthContext);
-
-  // Debug: Check if context is available
-  console.log("AuthContext available:", !!authContext);
-  console.log("Logout function available:", !!authContext?.logout);
 
   const logout = authContext?.logout;
 
@@ -57,35 +66,137 @@ export default function AccountScreen() {
     fetchUserInfo();
   }, []);
 
-  const handleLogout = async () => {
-    console.log("Logout button pressed");
+  const getAuthHeaders = async () => {
+    const token = await AsyncStorage.getItem("token");
+    const apiKey = await AsyncStorage.getItem("api_key");
+    return {
+      Authorization: `Bearer ${token}`,
+      "X-API-Key": apiKey || "",
+    };
+  };
 
+  const showSuccess = (message) => {
+    setSuccessMessage(message);
+    setShowSuccessModal(true);
+  };
+
+  const showError = (message) => {
+    setErrorMessage(message);
+    setShowErrorModal(true);
+  };
+
+  const handleAddBalance = async () => {
+    const amount = parseFloat(addAmount);
+    if (!amount || amount <= 0) {
+      showError("Please enter a valid positive amount");
+      return;
+    }
+
+    setActionLoading(true);
     try {
+      const headers = await getAuthHeaders();
+      const res = await axiosInstance.post(
+        "/balance/add",
+        { amount, reason: "ADD_FUNDS", meta: { source: "mobile_app" } },
+        { headers }
+      );
+
+      setUser({ ...user, virtualBalance: res.data.virtualBalance });
+      setAddAmount("");
+      setShowAddModal(false);
+      showSuccess(`${user?.currency}${amount.toFixed(2)} added to your account`);
+    } catch (err) {
+      showError(err.response?.data?.message || "Failed to add balance");
+    } finally {
+      setActionLoading(false);
+    }
+  };
+
+  const handleDeductBalance = async () => {
+    const amount = parseFloat(deductAmount);
+    if (!amount || amount <= 0) {
+      showError("Please enter a valid positive amount");
+      return;
+    }
+
+    setActionLoading(true);
+    try {
+      const headers = await getAuthHeaders();
+      const res = await axiosInstance.post(
+        "/balance/deduct",
+        { amount, reason: "DEDUCT_FUNDS", meta: { source: "mobile_app" } },
+        { headers }
+      );
+
+      setUser({ ...user, virtualBalance: res.data.virtualBalance });
+      setDeductAmount("");
+      setShowDeductModal(false);
+      showSuccess(`${user?.currency}${amount.toFixed(2)} deducted from your account`);
+    } catch (err) {
+      showError(err.response?.data?.message || "Failed to deduct balance");
+    } finally {
+      setActionLoading(false);
+    }
+  };
+
+  const handleResetBalance = async () => {
+    setActionLoading(true);
+    try {
+      const headers = await getAuthHeaders();
+      const res = await axiosInstance.post("/balance/reset", {}, { headers });
+      setUser({ ...user, virtualBalance: res.data.virtualBalance });
+      setShowResetModal(false);
+      showSuccess("Balance reset to default");
+    } catch (err) {
+      showError(err.response?.data?.message || "Failed to reset balance");
+    } finally {
+      setActionLoading(false);
+    }
+  };
+
+  const handleSetBalanceZero = async () => {
+    setActionLoading(true);
+    try {
+      const headers = await getAuthHeaders();
+      const res = await axiosInstance.post("/balance/zero", {}, { headers });
+      setUser({ ...user, virtualBalance: 0 });
+      setShowZeroModal(false);
+      showSuccess("Balance set to zero");
+    } catch (err) {
+      showError(err.response?.data?.message || "Failed to set balance to zero");
+    } finally {
+      setActionLoading(false);
+    }
+  };
+
+  const handleViewHistory = () => {
+    navigation.navigate("BalanceHistory");
+  };
+
+  const handleLogout = () => {
+    setShowLogoutModal(true);
+  };
+
+  const performLogout = async () => {
+    try {
+      console.log("Performing logout...");
       if (!logout) {
         console.error("Logout function not available!");
-        Alert.alert("Error", "Logout function not available");
+        showError("Logout function not available");
         return;
       }
-
-      console.log("Calling logout from context...");
       await logout();
-      console.log("Logout from context complete");
-
-      // Clear local user state
-      console.log("Clearing local state...");
+      console.log("Logout successful, clearing user state");
       setUser(null);
-
-      // Navigate to Login screen
-      console.log("Navigating to Login...");
+      setShowLogoutModal(false);
+      console.log("Navigating to Login screen");
       navigation.reset({
         index: 0,
         routes: [{ name: 'Login' }],
       });
-
-      console.log("Logout complete!");
     } catch (error) {
       console.error("Logout error:", error);
-      Alert.alert("Error", "Failed to logout: " + error.message);
+      showError("Failed to logout. Please try again.");
     }
   };
 
@@ -95,16 +206,17 @@ export default function AccountScreen() {
       <View style={styles.loadingContainer}>
         <View style={styles.logoContainer}>
           <LinearGradient
-            colors={['#00D09C', '#00B386']}
+            colors={['#2E5CFF', '#1A3FCC']}
             style={styles.logoGradient}
             start={{ x: 0, y: 0 }}
             end={{ x: 1, y: 1 }}
           >
-            <Text style={styles.logoText}>G</Text>
+            <Text style={styles.logoEmoji}>🐂</Text>
           </LinearGradient>
+          <Text style={styles.brandName}>Paper Bull</Text>
         </View>
-        <ActivityIndicator size="large" color="#00D09C" />
-        <Text style={styles.loadingText}>Loading account...</Text>
+        <ActivityIndicator size="large" color="#2E5CFF" />
+        <Text style={styles.loadingText}>Loading your account...</Text>
       </View>
     );
   }
@@ -115,18 +227,19 @@ export default function AccountScreen() {
       <View style={styles.notLoggedInContainer}>
         <View style={styles.logoContainer}>
           <LinearGradient
-            colors={['#00D09C', '#00B386']}
+            colors={['#2E5CFF', '#1A3FCC']}
             style={styles.logoGradient}
             start={{ x: 0, y: 0 }}
             end={{ x: 1, y: 1 }}
           >
-            <Text style={styles.logoText}>G</Text>
+            <Text style={styles.logoEmoji}>🐂</Text>
           </LinearGradient>
+          <Text style={styles.brandName}>Paper Bull</Text>
         </View>
 
-        <Text style={styles.notLoggedInTitle}>Welcome to Groww</Text>
+        <Text style={styles.notLoggedInTitle}>Master Trading Skills</Text>
         <Text style={styles.notLoggedInSubtitle}>
-          Login or create an account to start investing
+          Practice trading with virtual money in a real market environment
         </Text>
 
         <View style={styles.authButtonsContainer}>
@@ -135,7 +248,7 @@ export default function AccountScreen() {
             activeOpacity={0.8}
           >
             <LinearGradient
-              colors={['#00D09C', '#00B386']}
+              colors={['#2E5CFF', '#1A3FCC']}
               style={styles.primaryButton}
               start={{ x: 0, y: 0 }}
               end={{ x: 1, y: 0 }}
@@ -154,9 +267,11 @@ export default function AccountScreen() {
         </View>
 
         <View style={styles.featuresContainer}>
-          <FeatureItem icon="📊" text="Zero commission trading" />
-          <FeatureItem icon="💰" text="Free mutual funds" />
-          <FeatureItem icon="📈" text="Real-time insights" />
+          <Text style={styles.featuresTitle}>Why Practice Trading?</Text>
+          <FeatureItem icon="📚" text="Learn without financial risk" />
+          <FeatureItem icon="📊" text="Real-time market data" />
+          <FeatureItem icon="💡" text="Build trading strategies" />
+          <FeatureItem icon="📈" text="Track your performance" />
         </View>
       </View>
     );
@@ -169,13 +284,22 @@ export default function AccountScreen() {
       contentContainerStyle={styles.scrollContent}
       showsVerticalScrollIndicator={false}
     >
-      {/* Header Section with Balance */}
+      {/* Header Section */}
       <LinearGradient
-        colors={['#00D09C', '#00B386']}
+        colors={['#2E5CFF', '#1A3FCC']}
         style={styles.headerGradient}
         start={{ x: 0, y: 0 }}
         end={{ x: 1, y: 1 }}
       >
+        <View style={styles.headerTop}>
+          <View style={styles.brandHeader}>
+            <View style={styles.smallLogo}>
+              <Text style={styles.smallLogoEmoji}>🐂</Text>
+            </View>
+            <Text style={styles.headerBrandName}>Paper Bull</Text>
+          </View>
+        </View>
+
         <View style={styles.headerContent}>
           <View>
             <Text style={styles.welcomeText}>Welcome back,</Text>
@@ -189,62 +313,385 @@ export default function AccountScreen() {
         </View>
 
         <View style={styles.balanceCard}>
-          <Text style={styles.balanceLabel}>Virtual Balance</Text>
+          <View style={styles.balanceHeader}>
+            <Text style={styles.balanceLabel}>Virtual Portfolio</Text>
+            <View style={styles.practiceTag}>
+              <Text style={styles.practiceTagText}>PRACTICE</Text>
+            </View>
+          </View>
           <Text style={styles.balanceAmount}>
             {user?.currency} {user?.virtualBalance?.toLocaleString("en-IN", {
               minimumFractionDigits: 2,
               maximumFractionDigits: 2
             })}
           </Text>
-          <View style={styles.statusBadge}>
-            <Text style={styles.statusBadgeText}>
-              {user?.isActive ? "● Active" : "○ Inactive"}
-            </Text>
-          </View>
+          <Text style={styles.balanceSubtext}>
+            Not real money • For learning purposes only
+          </Text>
         </View>
       </LinearGradient>
 
+      {/* Quick Stats */}
+      <View style={styles.statsContainer}>
+        <View style={styles.statCard}>
+          <Text style={styles.statLabel}>Account Type</Text>
+          <Text style={styles.statValue}>Paper Trading</Text>
+        </View>
+        <View style={styles.statCard}>
+          <Text style={styles.statLabel}>Status</Text>
+          <Text style={[styles.statValue, { color: user?.isActive ? '#10B981' : '#EF4444' }]}>
+            {user?.isActive ? "Active" : "Inactive"}
+          </Text>
+        </View>
+      </View>
+
       {/* Account Details Section */}
       <View style={styles.detailsSection}>
-        <Text style={styles.sectionTitle}>Account Details</Text>
+        <Text style={styles.sectionTitle}>Account Information</Text>
 
         <View style={styles.detailsCard}>
-          <DetailRow label="Email" value={user?.email} />
-          <DetailRow label="Role" value={user?.role} capitalize />
-          <DetailRow label="Currency" value={user?.currency} />
+          <DetailRow label="Email Address" value={user?.email} />
+          <DetailRow label="User ID" value={user?.role?.toUpperCase()} />
+          <DetailRow label="Trading Currency" value={user?.currency} />
           <DetailRow
             label="Member Since"
             value={new Date(user?.createdAt).toLocaleDateString("en-IN", {
               year: 'numeric',
-              month: 'long',
+              month: 'short',
               day: 'numeric'
             })}
           />
           <DetailRow
             label="Account Status"
-            value={user?.blocked ? "Blocked" : "Active"}
-            valueColor={user?.blocked ? "#FF3B30" : "#00D09C"}
+            value={user?.blocked ? "Restricted" : "Active"}
+            valueColor={user?.blocked ? "#EF4444" : "#10B981"}
+            isLast
+          />
+        </View>
+
+        {/* Balance Management */}
+        <Text style={styles.sectionTitle}>Balance Management</Text>
+        <View style={styles.balanceActionsGrid}>
+          <BalanceActionCard 
+            icon="💰" 
+            label="Add Funds" 
+            color="#10B981"
+            onPress={() => setShowAddModal(true)} 
+          />
+          <BalanceActionCard 
+            icon="💸" 
+            label="Deduct" 
+            color="#F59E0B"
+            onPress={() => setShowDeductModal(true)} 
+          />
+          <BalanceActionCard 
+            icon="🔄" 
+            label="Reset" 
+            color="#3B82F6"
+            onPress={() => setShowResetModal(true)} 
+          />
+          <BalanceActionCard 
+            icon="⚠️" 
+            label="Set Zero" 
+            color="#EF4444"
+            onPress={() => setShowZeroModal(true)} 
           />
         </View>
 
         {/* Quick Actions */}
         <Text style={styles.sectionTitle}>Quick Actions</Text>
         <View style={styles.actionsGrid}>
-          <ActionCard icon="💼" label="Portfolio" onPress={() => { }} />
-          <ActionCard icon="📊" label="Analytics" onPress={() => { }} />
-          <ActionCard icon="🔔" label="Alerts" onPress={() => { }} />
+          <ActionCard icon="📊" label="History" onPress={handleViewHistory} />
+          <ActionCard icon="📈" label="Market Watch" onPress={() => { }} />
+          <ActionCard icon="📚" label="Learning Hub" onPress={() => { }} />
           <ActionCard icon="⚙️" label="Settings" onPress={() => { }} />
+        </View>
+
+        {/* Info Banner */}
+        <View style={styles.infoBanner}>
+          <Text style={styles.infoBannerIcon}>ℹ️</Text>
+          <View style={styles.infoBannerContent}>
+            <Text style={styles.infoBannerTitle}>Practice Trading Only</Text>
+            <Text style={styles.infoBannerText}>
+              This is a simulation environment. All trades use virtual money for learning purposes.
+            </Text>
+          </View>
         </View>
 
         {/* Logout Button */}
         <TouchableOpacity
           onPress={handleLogout}
           style={styles.logoutButton}
-          activeOpacity={0.8}
+          activeOpacity={0.7}
         >
-          <Text style={styles.logoutButtonText}>Logout</Text>
+          <Text style={styles.logoutButtonText}>🚪 Logout</Text>
         </TouchableOpacity>
       </View>
+
+      {/* Add Balance Modal */}
+      <Modal
+        visible={showAddModal}
+        transparent={true}
+        animationType="fade"
+        onRequestClose={() => setShowAddModal(false)}
+      >
+        <View style={styles.modalOverlay}>
+          <View style={styles.modalContent}>
+            <Text style={styles.modalTitle}>Add Virtual Funds</Text>
+            <Text style={styles.modalSubtitle}>
+              Enter the amount you want to add to your virtual balance
+            </Text>
+            
+            <View style={styles.modalInputContainer}>
+              <Text style={styles.modalInputLabel}>Amount ({user?.currency})</Text>
+              <TextInput
+                style={styles.modalInput}
+                placeholder="0.00"
+                keyboardType="decimal-pad"
+                value={addAmount}
+                onChangeText={setAddAmount}
+              />
+            </View>
+
+            <View style={styles.modalButtons}>
+              <TouchableOpacity
+                style={[styles.modalButton, styles.modalButtonCancel]}
+                onPress={() => {
+                  setShowAddModal(false);
+                  setAddAmount("");
+                }}
+              >
+                <Text style={styles.modalButtonTextCancel}>Cancel</Text>
+              </TouchableOpacity>
+              
+              <TouchableOpacity
+                style={[styles.modalButton, styles.modalButtonConfirm]}
+                onPress={handleAddBalance}
+                disabled={actionLoading}
+              >
+                {actionLoading ? (
+                  <ActivityIndicator color="#FFFFFF" size="small" />
+                ) : (
+                  <Text style={styles.modalButtonTextConfirm}>Add Funds</Text>
+                )}
+              </TouchableOpacity>
+            </View>
+          </View>
+        </View>
+      </Modal>
+
+      {/* Deduct Balance Modal */}
+      <Modal
+        visible={showDeductModal}
+        transparent={true}
+        animationType="fade"
+        onRequestClose={() => setShowDeductModal(false)}
+      >
+        <View style={styles.modalOverlay}>
+          <View style={styles.modalContent}>
+            <Text style={styles.modalTitle}>Deduct Virtual Funds</Text>
+            <Text style={styles.modalSubtitle}>
+              Enter the amount you want to deduct from your virtual balance
+            </Text>
+            
+            <View style={styles.modalInputContainer}>
+              <Text style={styles.modalInputLabel}>Amount ({user?.currency})</Text>
+              <TextInput
+                style={styles.modalInput}
+                placeholder="0.00"
+                keyboardType="decimal-pad"
+                value={deductAmount}
+                onChangeText={setDeductAmount}
+              />
+            </View>
+
+            <View style={styles.modalButtons}>
+              <TouchableOpacity
+                style={[styles.modalButton, styles.modalButtonCancel]}
+                onPress={() => {
+                  setShowDeductModal(false);
+                  setDeductAmount("");
+                }}
+              >
+                <Text style={styles.modalButtonTextCancel}>Cancel</Text>
+              </TouchableOpacity>
+              
+              <TouchableOpacity
+                style={[styles.modalButton, styles.modalButtonConfirm]}
+                onPress={handleDeductBalance}
+                disabled={actionLoading}
+              >
+                {actionLoading ? (
+                  <ActivityIndicator color="#FFFFFF" size="small" />
+                ) : (
+                  <Text style={styles.modalButtonTextConfirm}>Deduct</Text>
+                )}
+              </TouchableOpacity>
+            </View>
+          </View>
+        </View>
+      </Modal>
+
+      {/* Reset Balance Confirmation Modal */}
+      <Modal
+        visible={showResetModal}
+        transparent={true}
+        animationType="fade"
+        onRequestClose={() => setShowResetModal(false)}
+      >
+        <View style={styles.modalOverlay}>
+          <View style={styles.modalContent}>
+            <Text style={styles.modalTitle}>Reset Balance</Text>
+            <Text style={styles.modalSubtitle}>
+              Are you sure you want to reset your balance to the default amount?
+            </Text>
+
+            <View style={styles.modalButtons}>
+              <TouchableOpacity
+                style={[styles.modalButton, styles.modalButtonCancel]}
+                onPress={() => setShowResetModal(false)}
+                disabled={actionLoading}
+              >
+                <Text style={styles.modalButtonTextCancel}>Cancel</Text>
+              </TouchableOpacity>
+              
+              <TouchableOpacity
+                style={[styles.modalButton, styles.modalButtonConfirm]}
+                onPress={handleResetBalance}
+                disabled={actionLoading}
+              >
+                {actionLoading ? (
+                  <ActivityIndicator color="#FFFFFF" size="small" />
+                ) : (
+                  <Text style={styles.modalButtonTextConfirm}>Reset</Text>
+                )}
+              </TouchableOpacity>
+            </View>
+          </View>
+        </View>
+      </Modal>
+
+      {/* Set Balance to Zero Confirmation Modal */}
+      <Modal
+        visible={showZeroModal}
+        transparent={true}
+        animationType="fade"
+        onRequestClose={() => setShowZeroModal(false)}
+      >
+        <View style={styles.modalOverlay}>
+          <View style={styles.modalContent}>
+            <Text style={styles.modalTitle}>Set Balance to Zero</Text>
+            <Text style={styles.modalSubtitle}>
+              Are you sure you want to set your balance to {user?.currency}0? This action cannot be undone.
+            </Text>
+
+            <View style={styles.modalButtons}>
+              <TouchableOpacity
+                style={[styles.modalButton, styles.modalButtonCancel]}
+                onPress={() => setShowZeroModal(false)}
+                disabled={actionLoading}
+              >
+                <Text style={styles.modalButtonTextCancel}>Cancel</Text>
+              </TouchableOpacity>
+              
+              <TouchableOpacity
+                style={[styles.modalButton, styles.modalButtonDanger]}
+                onPress={handleSetBalanceZero}
+                disabled={actionLoading}
+              >
+                {actionLoading ? (
+                  <ActivityIndicator color="#FFFFFF" size="small" />
+                ) : (
+                  <Text style={styles.modalButtonTextConfirm}>Set to Zero</Text>
+                )}
+              </TouchableOpacity>
+            </View>
+          </View>
+        </View>
+      </Modal>
+
+      {/* Logout Confirmation Modal */}
+      <Modal
+        visible={showLogoutModal}
+        transparent={true}
+        animationType="fade"
+        onRequestClose={() => setShowLogoutModal(false)}
+      >
+        <View style={styles.modalOverlay}>
+          <View style={styles.modalContent}>
+            <Text style={styles.modalTitle}>Logout</Text>
+            <Text style={styles.modalSubtitle}>
+              Are you sure you want to logout from your account?
+            </Text>
+
+            <View style={styles.modalButtons}>
+              <TouchableOpacity
+                style={[styles.modalButton, styles.modalButtonCancel]}
+                onPress={() => setShowLogoutModal(false)}
+              >
+                <Text style={styles.modalButtonTextCancel}>Cancel</Text>
+              </TouchableOpacity>
+              
+              <TouchableOpacity
+                style={[styles.modalButton, styles.modalButtonDanger]}
+                onPress={performLogout}
+              >
+                <Text style={styles.modalButtonTextConfirm}>Logout</Text>
+              </TouchableOpacity>
+            </View>
+          </View>
+        </View>
+      </Modal>
+
+      {/* Success Modal */}
+      <Modal
+        visible={showSuccessModal}
+        transparent={true}
+        animationType="fade"
+        onRequestClose={() => setShowSuccessModal(false)}
+      >
+        <View style={styles.modalOverlay}>
+          <View style={styles.modalContent}>
+            <View style={styles.successIcon}>
+              <Text style={styles.successIconText}>✓</Text>
+            </View>
+            <Text style={styles.modalTitle}>Success</Text>
+            <Text style={styles.modalSubtitle}>{successMessage}</Text>
+
+            <TouchableOpacity
+              style={[styles.modalButton, styles.modalButtonConfirm, { width: '100%' }]}
+              onPress={() => setShowSuccessModal(false)}
+            >
+              <Text style={styles.modalButtonTextConfirm}>OK</Text>
+            </TouchableOpacity>
+          </View>
+        </View>
+      </Modal>
+
+      {/* Error Modal */}
+      <Modal
+        visible={showErrorModal}
+        transparent={true}
+        animationType="fade"
+        onRequestClose={() => setShowErrorModal(false)}
+      >
+        <View style={styles.modalOverlay}>
+          <View style={styles.modalContent}>
+            <View style={styles.errorIcon}>
+              <Text style={styles.errorIconText}>✕</Text>
+            </View>
+            <Text style={styles.modalTitle}>Error</Text>
+            <Text style={styles.modalSubtitle}>{errorMessage}</Text>
+
+            <TouchableOpacity
+              style={[styles.modalButton, styles.modalButtonDanger, { width: '100%' }]}
+              onPress={() => setShowErrorModal(false)}
+            >
+              <Text style={styles.modalButtonTextConfirm}>OK</Text>
+            </TouchableOpacity>
+          </View>
+        </View>
+      </Modal>
     </ScrollView>
   );
 }
@@ -252,19 +699,20 @@ export default function AccountScreen() {
 function FeatureItem({ icon, text }) {
   return (
     <View style={styles.featureItem}>
-      <Text style={styles.featureIcon}>{icon}</Text>
+      <View style={styles.featureIconContainer}>
+        <Text style={styles.featureIcon}>{icon}</Text>
+      </View>
       <Text style={styles.featureText}>{text}</Text>
     </View>
   );
 }
 
-function DetailRow({ label, value, capitalize, valueColor }) {
+function DetailRow({ label, value, valueColor, isLast }) {
   return (
-    <View style={styles.detailRow}>
+    <View style={[styles.detailRow, isLast && styles.detailRowLast]}>
       <Text style={styles.detailLabel}>{label}</Text>
       <Text style={[
         styles.detailValue,
-        capitalize && styles.capitalize,
         valueColor && { color: valueColor }
       ]}>
         {value}
@@ -280,8 +728,25 @@ function ActionCard({ icon, label, onPress }) {
       onPress={onPress}
       activeOpacity={0.7}
     >
-      <Text style={styles.actionIcon}>{icon}</Text>
+      <View style={styles.actionIconContainer}>
+        <Text style={styles.actionIcon}>{icon}</Text>
+      </View>
       <Text style={styles.actionLabel}>{label}</Text>
+    </TouchableOpacity>
+  );
+}
+
+function BalanceActionCard({ icon, label, color, onPress }) {
+  return (
+    <TouchableOpacity
+      style={styles.balanceActionCard}
+      onPress={onPress}
+      activeOpacity={0.7}
+    >
+      <View style={[styles.balanceActionIconContainer, { backgroundColor: `${color}15` }]}>
+        <Text style={styles.balanceActionIcon}>{icon}</Text>
+      </View>
+      <Text style={styles.balanceActionLabel}>{label}</Text>
     </TouchableOpacity>
   );
 }
@@ -289,7 +754,7 @@ function ActionCard({ icon, label, onPress }) {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#F8F9FA',
+    backgroundColor: '#F5F7FA',
   },
   scrollContent: {
     paddingBottom: 40,
@@ -301,29 +766,35 @@ const styles = StyleSheet.create({
     backgroundColor: '#FFFFFF',
   },
   logoContainer: {
-    marginBottom: 24,
+    alignItems: 'center',
+    marginBottom: 32,
   },
   logoGradient: {
-    width: 64,
-    height: 64,
-    borderRadius: 16,
+    width: 80,
+    height: 80,
+    borderRadius: 20,
     alignItems: 'center',
     justifyContent: 'center',
-    shadowColor: '#00D09C',
-    shadowOffset: { width: 0, height: 4 },
+    shadowColor: '#2E5CFF',
+    shadowOffset: { width: 0, height: 8 },
     shadowOpacity: 0.3,
-    shadowRadius: 8,
+    shadowRadius: 12,
     elevation: 8,
+    marginBottom: 16,
   },
-  logoText: {
-    fontSize: 32,
-    fontWeight: 'bold',
-    color: '#FFFFFF',
+  logoEmoji: {
+    fontSize: 42,
+  },
+  brandName: {
+    fontSize: 24,
+    fontWeight: '700',
+    color: '#1A1A1A',
+    letterSpacing: 0.5,
   },
   loadingText: {
     marginTop: 16,
-    fontSize: 16,
-    color: '#666666',
+    fontSize: 15,
+    color: '#6B7280',
   },
   notLoggedInContainer: {
     flex: 1,
@@ -336,77 +807,122 @@ const styles = StyleSheet.create({
     fontSize: 28,
     fontWeight: '700',
     color: '#1A1A1A',
-    marginBottom: 8,
+    marginBottom: 12,
+    textAlign: 'center',
   },
   notLoggedInSubtitle: {
-    fontSize: 15,
-    color: '#666666',
+    fontSize: 16,
+    color: '#6B7280',
     textAlign: 'center',
-    marginBottom: 32,
+    marginBottom: 40,
+    lineHeight: 24,
+    paddingHorizontal: 20,
   },
   authButtonsContainer: {
     width: '100%',
-    gap: 16,
+    gap: 14,
     marginBottom: 48,
   },
   primaryButton: {
     height: 56,
-    borderRadius: 12,
+    borderRadius: 14,
     alignItems: 'center',
     justifyContent: 'center',
-    shadowColor: '#00D09C',
+    shadowColor: '#2E5CFF',
     shadowOffset: { width: 0, height: 4 },
-    shadowOpacity: 0.2,
+    shadowOpacity: 0.3,
     shadowRadius: 8,
     elevation: 4,
   },
   primaryButtonText: {
     color: '#FFFFFF',
     fontSize: 16,
-    fontWeight: '700',
+    fontWeight: '600',
     letterSpacing: 0.5,
   },
   secondaryButton: {
     height: 56,
-    borderRadius: 12,
+    borderRadius: 14,
     alignItems: 'center',
     justifyContent: 'center',
     borderWidth: 2,
-    borderColor: '#00D09C',
+    borderColor: '#2E5CFF',
     backgroundColor: '#FFFFFF',
   },
   secondaryButtonText: {
-    color: '#00D09C',
+    color: '#2E5CFF',
     fontSize: 16,
-    fontWeight: '700',
+    fontWeight: '600',
     letterSpacing: 0.5,
   },
   featuresContainer: {
     width: '100%',
-    gap: 16,
+  },
+  featuresTitle: {
+    fontSize: 18,
+    fontWeight: '600',
+    color: '#1A1A1A',
+    marginBottom: 16,
   },
   featureItem: {
     flexDirection: 'row',
     alignItems: 'center',
-    backgroundColor: '#F7F7F7',
+    backgroundColor: '#F9FAFB',
     padding: 16,
     borderRadius: 12,
+    marginBottom: 12,
+    borderWidth: 1,
+    borderColor: '#E5E7EB',
+  },
+  featureIconContainer: {
+    width: 40,
+    height: 40,
+    borderRadius: 10,
+    backgroundColor: '#FFFFFF',
+    alignItems: 'center',
+    justifyContent: 'center',
+    marginRight: 14,
   },
   featureIcon: {
-    fontSize: 24,
-    marginRight: 16,
+    fontSize: 20,
   },
   featureText: {
     fontSize: 15,
-    color: '#1A1A1A',
+    color: '#374151',
     fontWeight: '500',
+    flex: 1,
   },
   headerGradient: {
     paddingTop: 60,
     paddingBottom: 32,
-    paddingHorizontal: 24,
-    borderBottomLeftRadius: 24,
-    borderBottomRightRadius: 24,
+    paddingHorizontal: 20,
+    borderBottomLeftRadius: 28,
+    borderBottomRightRadius: 28,
+  },
+  headerTop: {
+    marginBottom: 24,
+  },
+  brandHeader: {
+    flexDirection: 'row',
+    alignItems: 'center',
+  },
+  smallLogo: {
+    width: 32,
+    height: 32,
+    backgroundColor: 'rgba(255, 255, 255, 0.2)',
+    borderRadius: 8,
+    alignItems: 'center',
+    justifyContent: 'center',
+    marginRight: 10,
+  },
+  smallLogoEmoji: {
+    fontSize: 18,
+  },
+  headerBrandName: {
+    fontSize: 18,
+    fontWeight: '700',
+    color: '#FFFFFF',
+    letterSpacing: 0.5,
   },
   headerContent: {
     flexDirection: 'row',
@@ -417,89 +933,129 @@ const styles = StyleSheet.create({
   welcomeText: {
     fontSize: 14,
     color: '#FFFFFF',
-    opacity: 0.9,
+    opacity: 0.85,
   },
   userName: {
-    fontSize: 24,
+    fontSize: 26,
     fontWeight: '700',
     color: '#FFFFFF',
     marginTop: 4,
   },
   avatarCircle: {
-    width: 48,
-    height: 48,
-    borderRadius: 24,
-    backgroundColor: 'rgba(255, 255, 255, 0.2)',
+    width: 52,
+    height: 52,
+    borderRadius: 26,
+    backgroundColor: 'rgba(255, 255, 255, 0.25)',
     alignItems: 'center',
     justifyContent: 'center',
+    borderWidth: 2,
+    borderColor: 'rgba(255, 255, 255, 0.3)',
   },
   avatarText: {
-    fontSize: 20,
+    fontSize: 22,
     fontWeight: '700',
     color: '#FFFFFF',
   },
   balanceCard: {
-    backgroundColor: 'rgba(255, 255, 255, 0.15)',
-    borderRadius: 16,
-    padding: 20,
-    backdropFilter: 'blur(10px)',
+    backgroundColor: 'rgba(255, 255, 255, 0.18)',
+    borderRadius: 18,
+    padding: 24,
+    borderWidth: 1,
+    borderColor: 'rgba(255, 255, 255, 0.2)',
+  },
+  balanceHeader: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    marginBottom: 12,
   },
   balanceLabel: {
     fontSize: 14,
     color: '#FFFFFF',
     opacity: 0.9,
-    marginBottom: 8,
+    fontWeight: '500',
+  },
+  practiceTag: {
+    backgroundColor: 'rgba(255, 255, 255, 0.25)',
+    paddingHorizontal: 10,
+    paddingVertical: 4,
+    borderRadius: 12,
+  },
+  practiceTagText: {
+    fontSize: 10,
+    color: '#FFFFFF',
+    fontWeight: '700',
+    letterSpacing: 1,
   },
   balanceAmount: {
-    fontSize: 32,
+    fontSize: 36,
     fontWeight: '700',
     color: '#FFFFFF',
-    marginBottom: 12,
+    marginBottom: 8,
   },
-  statusBadge: {
-    alignSelf: 'flex-start',
-    backgroundColor: 'rgba(255, 255, 255, 0.2)',
-    paddingHorizontal: 12,
-    paddingVertical: 6,
-    borderRadius: 20,
-  },
-  statusBadgeText: {
+  balanceSubtext: {
     fontSize: 12,
     color: '#FFFFFF',
+    opacity: 0.75,
+    fontWeight: '500',
+  },
+  statsContainer: {
+    flexDirection: 'row',
+    paddingHorizontal: 20,
+    paddingTop: 20,
+    gap: 12,
+  },
+  statCard: {
+    flex: 1,
+    backgroundColor: '#FFFFFF',
+    borderRadius: 14,
+    padding: 16,
+    borderWidth: 1,
+    borderColor: '#E5E7EB',
+  },
+  statLabel: {
+    fontSize: 13,
+    color: '#6B7280',
+    marginBottom: 6,
+    fontWeight: '500',
+  },
+  statValue: {
+    fontSize: 16,
     fontWeight: '600',
+    color: '#1A1A1A',
   },
   detailsSection: {
-    paddingHorizontal: 24,
-    paddingTop: 24,
+    paddingHorizontal: 20,
+    paddingTop: 28,
   },
   sectionTitle: {
     fontSize: 18,
     fontWeight: '700',
     color: '#1A1A1A',
-    marginBottom: 16,
+    marginBottom: 14,
   },
   detailsCard: {
     backgroundColor: '#FFFFFF',
     borderRadius: 16,
     padding: 20,
-    marginBottom: 32,
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.05,
-    shadowRadius: 8,
-    elevation: 2,
+    marginBottom: 28,
+    borderWidth: 1,
+    borderColor: '#E5E7EB',
   },
   detailRow: {
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
-    paddingVertical: 12,
+    paddingVertical: 14,
     borderBottomWidth: 1,
-    borderBottomColor: '#F0F0F0',
+    borderBottomColor: '#F3F4F6',
+  },
+  detailRowLast: {
+    borderBottomWidth: 0,
   },
   detailLabel: {
     fontSize: 15,
-    color: '#666666',
+    color: '#6B7280',
     fontWeight: '500',
   },
   detailValue: {
@@ -509,14 +1065,43 @@ const styles = StyleSheet.create({
     flex: 1,
     textAlign: 'right',
   },
-  capitalize: {
-    textTransform: 'capitalize',
+  balanceActionsGrid: {
+    flexDirection: 'row',
+    flexWrap: 'wrap',
+    gap: 12,
+    marginBottom: 28,
+  },
+  balanceActionCard: {
+    backgroundColor: '#FFFFFF',
+    borderRadius: 14,
+    padding: 18,
+    width: '48%',
+    alignItems: 'center',
+    borderWidth: 1,
+    borderColor: '#E5E7EB',
+  },
+  balanceActionIconContainer: {
+    width: 50,
+    height: 50,
+    borderRadius: 12,
+    alignItems: 'center',
+    justifyContent: 'center',
+    marginBottom: 10,
+  },
+  balanceActionIcon: {
+    fontSize: 26,
+  },
+  balanceActionLabel: {
+    fontSize: 13,
+    color: '#1A1A1A',
+    fontWeight: '600',
+    textAlign: 'center',
   },
   actionsGrid: {
     flexDirection: 'row',
     flexWrap: 'wrap',
     gap: 12,
-    marginBottom: 32,
+    marginBottom: 28,
   },
   actionCard: {
     backgroundColor: '#FFFFFF',
@@ -524,34 +1109,175 @@ const styles = StyleSheet.create({
     padding: 20,
     width: '48%',
     alignItems: 'center',
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.05,
-    shadowRadius: 8,
-    elevation: 2,
+    borderWidth: 1,
+    borderColor: '#E5E7EB',
+  },
+  actionIconContainer: {
+    width: 48,
+    height: 48,
+    borderRadius: 12,
+    backgroundColor: '#F0F4FF',
+    alignItems: 'center',
+    justifyContent: 'center',
+    marginBottom: 12,
   },
   actionIcon: {
-    fontSize: 32,
-    marginBottom: 8,
+    fontSize: 24,
   },
   actionLabel: {
     fontSize: 14,
     color: '#1A1A1A',
     fontWeight: '600',
+    textAlign: 'center',
+  },
+  infoBanner: {
+    flexDirection: 'row',
+    backgroundColor: '#EFF6FF',
+    borderRadius: 14,
+    padding: 16,
+    marginBottom: 24,
+    borderWidth: 1,
+    borderColor: '#DBEAFE',
+  },
+  infoBannerIcon: {
+    fontSize: 20,
+    marginRight: 12,
+  },
+  infoBannerContent: {
+    flex: 1,
+  },
+  infoBannerTitle: {
+    fontSize: 14,
+    fontWeight: '600',
+    color: '#1E40AF',
+    marginBottom: 4,
+  },
+  infoBannerText: {
+    fontSize: 13,
+    color: '#3B82F6',
+    lineHeight: 18,
   },
   logoutButton: {
-    height: 56,
+    height: 54,
+    borderRadius: 14,
+    alignItems: 'center',
+    justifyContent: 'center',
+    backgroundColor: '#FEF2F2',
+    borderWidth: 1,
+    borderColor: '#FEE2E2',
+  },
+  logoutButtonText: {
+    color: '#DC2626',
+    fontSize: 16,
+    fontWeight: '600',
+    letterSpacing: 0.5,
+  },
+  modalOverlay: {
+    flex: 1,
+    backgroundColor: 'rgba(0, 0, 0, 0.5)',
+    justifyContent: 'center',
+    alignItems: 'center',
+    padding: 20,
+  },
+  modalContent: {
+    backgroundColor: '#FFFFFF',
+    borderRadius: 20,
+    padding: 24,
+    width: '100%',
+    maxWidth: 400,
+  },
+  modalTitle: {
+    fontSize: 22,
+    fontWeight: '700',
+    color: '#1A1A1A',
+    marginBottom: 8,
+  },
+  modalSubtitle: {
+    fontSize: 14,
+    color: '#6B7280',
+    marginBottom: 24,
+    lineHeight: 20,
+  },
+  modalInputContainer: {
+    marginBottom: 24,
+  },
+  modalInputLabel: {
+    fontSize: 14,
+    fontWeight: '600',
+    color: '#374151',
+    marginBottom: 8,
+  },
+  modalInput: {
+    height: 52,
+    backgroundColor: '#F9FAFB',
+    borderWidth: 1,
+    borderColor: '#E5E7EB',
+    borderRadius: 12,
+    paddingHorizontal: 16,
+    fontSize: 18,
+    color: '#1A1A1A',
+    fontWeight: '600',
+  },
+  modalButtons: {
+    flexDirection: 'row',
+    gap: 12,
+  },
+  modalButton: {
+    flex: 1,
+    height: 50,
     borderRadius: 12,
     alignItems: 'center',
     justifyContent: 'center',
-    borderWidth: 2,
-    borderColor: '#FF3B30',
-    backgroundColor: '#FFFFFF',
   },
-  logoutButtonText: {
-    color: '#FF3B30',
-    fontSize: 16,
+  modalButtonCancel: {
+    backgroundColor: '#F3F4F6',
+    borderWidth: 1,
+    borderColor: '#E5E7EB',
+  },
+  modalButtonConfirm: {
+    backgroundColor: '#2E5CFF',
+  },
+  modalButtonDanger: {
+    backgroundColor: '#DC2626',
+  },
+  modalButtonTextCancel: {
+    fontSize: 15,
+    fontWeight: '600',
+    color: '#374151',
+  },
+  modalButtonTextConfirm: {
+    fontSize: 15,
+    fontWeight: '600',
+    color: '#FFFFFF',
+  },
+  successIcon: {
+    width: 60,
+    height: 60,
+    borderRadius: 30,
+    backgroundColor: '#D1FAE5',
+    alignItems: 'center',
+    justifyContent: 'center',
+    alignSelf: 'center',
+    marginBottom: 16,
+  },
+  successIconText: {
+    fontSize: 32,
+    color: '#10B981',
     fontWeight: '700',
-    letterSpacing: 0.5,
   },
-});
+  errorIcon: {
+    width: 60,
+    height: 60,
+    borderRadius: 30,
+    backgroundColor: '#FEE2E2',
+    alignItems: 'center',
+    justifyContent: 'center',
+    alignSelf: 'center',
+    marginBottom: 16,
+  },
+  errorIconText: {
+    fontSize: 32,
+    color: '#DC2626',
+    fontWeight: '700',
+  },
+})

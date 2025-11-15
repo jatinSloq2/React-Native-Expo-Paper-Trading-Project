@@ -9,14 +9,25 @@ import AccountScreen from "./screens/AccountScreen";
 import StocksScreen from "./screens/StocksScreen";
 import MutualFundsScreen from "./screens/MutualFundsScreen";
 import FnoScreen from "./screens/FnOScreen";
+import Portfolio from "./screens/Portfolio";
+import BalanceHistoryScreen from "./screens/BalanceHistory";
 
 const Tab = createBottomTabNavigator();
 const Stack = createNativeStackNavigator();
 
+// Auth Stack for Login/Register
 const AuthStack = () => (
-    <Stack.Navigator>
+    <Stack.Navigator screenOptions={{ headerShown: false }}>
         <Stack.Screen name="Login" component={LoginScreen} />
         <Stack.Screen name="Register" component={RegisterScreen} />
+    </Stack.Navigator>
+);
+
+// Account Stack with nested screens
+const AccountStack = () => (
+    <Stack.Navigator screenOptions={{ headerShown: false }}>
+        <Stack.Screen name="AccountMain" component={AccountScreen} />
+        <Stack.Screen name="BalanceHistory" component={BalanceHistoryScreen} />
     </Stack.Navigator>
 );
 
@@ -26,15 +37,12 @@ export default function MainNavigator() {
     return (
         <Tab.Navigator screenOptions={{ headerShown: false }}>
             <Tab.Screen name="Stocks" component={StocksScreen} />
-
             <Tab.Screen name="MutualFunds" component={MutualFundsScreen} />
-
             <Tab.Screen name="F&O" component={FnoScreen} />
-            <Tab.Screen name="Portfolio" component={FnoScreen} />
-
+            <Tab.Screen name="Portfolio" component={Portfolio} />
             <Tab.Screen
                 name="Account"
-                component={user ? AccountScreen : AuthStack}
+                component={user ? AccountStack : AuthStack}
                 options={{ title: "Account" }}
             />
         </Tab.Navigator>

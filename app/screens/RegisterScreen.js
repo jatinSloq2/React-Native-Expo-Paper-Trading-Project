@@ -1,13 +1,14 @@
 import { useState } from "react";
-import { 
-  View, 
-  Text, 
-  TextInput, 
-  TouchableOpacity, 
+import {
+  View,
+  Text,
+  TextInput,
+  TouchableOpacity,
   StyleSheet,
   KeyboardAvoidingView,
   Platform,
-  ScrollView
+  ScrollView,
+  ActivityIndicator
 } from "react-native";
 import { LinearGradient } from 'expo-linear-gradient';
 import axiosInstance from "../api/axiosInstance";
@@ -43,164 +44,174 @@ export default function RegisterScreen({ navigation }) {
   };
 
   return (
-    <KeyboardAvoidingView 
+    <KeyboardAvoidingView
       behavior={Platform.OS === "ios" ? "padding" : "height"}
       style={styles.container}
     >
-      <ScrollView 
+      <ScrollView
         contentContainerStyle={styles.scrollContent}
         keyboardShouldPersistTaps="handled"
         showsVerticalScrollIndicator={false}
       >
-        {/* Header Section */}
-        <View style={styles.headerSection}>
+        {/* Header Section with Gradient */}
+        <LinearGradient
+          colors={['#2E5CFF', '#1A3FCC']}
+          style={styles.headerGradient}
+          start={{ x: 0, y: 0 }}
+          end={{ x: 1, y: 1 }}
+        >
           <View style={styles.logoContainer}>
-            <LinearGradient
-              colors={['#00D09C', '#00B386']}
-              style={styles.logoGradient}
-              start={{ x: 0, y: 0 }}
-              end={{ x: 1, y: 1 }}
-            >
-              <Text style={styles.logoText}>G</Text>
-            </LinearGradient>
+            <View style={styles.logoCircle}>
+              <Text style={styles.logoEmoji}>🐂</Text>
+            </View>
+            <Text style={styles.brandName}>Paper Bull</Text>
           </View>
-          <Text style={styles.title}>Create Account</Text>
-          <Text style={styles.subtitle}>Start your investment journey today</Text>
-        </View>
+          
+          <Text style={styles.welcomeTitle}>Create Account</Text>
+          <Text style={styles.welcomeSubtitle}>
+            Master the markets with virtual trading
+          </Text>
+        </LinearGradient>
 
         {/* Form Section */}
         <View style={styles.formSection}>
-          {/* Name Input */}
-          <View style={styles.inputContainer}>
-            <Text style={styles.inputLabel}>Full Name</Text>
-            <TextInput
-              placeholder="Enter your full name"
-              placeholderTextColor="#8A8A8A"
-              value={name}
-              onChangeText={setName}
-              onFocus={() => setFocusedInput('name')}
-              onBlur={() => setFocusedInput(null)}
-              autoCapitalize="words"
-              style={[
-                styles.input,
-                focusedInput === 'name' && styles.inputFocused
-              ]}
-            />
-          </View>
+          {/* Register Card */}
+          <View style={styles.formCard}>
+            <Text style={styles.sectionTitle}>Get Started</Text>
 
-          {/* Email Input */}
-          <View style={styles.inputContainer}>
-            <Text style={styles.inputLabel}>Email</Text>
-            <TextInput
-              placeholder="Enter your email"
-              placeholderTextColor="#8A8A8A"
-              value={email}
-              onChangeText={setEmail}
-              onFocus={() => setFocusedInput('email')}
-              onBlur={() => setFocusedInput(null)}
-              keyboardType="email-address"
-              autoCapitalize="none"
-              style={[
-                styles.input,
-                focusedInput === 'email' && styles.inputFocused
-              ]}
-            />
-          </View>
-
-          {/* Password Input */}
-          <View style={styles.inputContainer}>
-            <Text style={styles.inputLabel}>Password</Text>
-            <TextInput
-              placeholder="Create a strong password"
-              placeholderTextColor="#8A8A8A"
-              secureTextEntry
-              value={password}
-              onChangeText={setPassword}
-              onFocus={() => setFocusedInput('password')}
-              onBlur={() => setFocusedInput(null)}
-              style={[
-                styles.input,
-                focusedInput === 'password' && styles.inputFocused
-              ]}
-            />
-            <Text style={styles.passwordHint}>
-              Must be at least 8 characters
-            </Text>
-          </View>
-
-          {/* Error/Success Messages */}
-          {error ? (
-            <View style={styles.errorContainer}>
-              <Text style={styles.errorText}>{error}</Text>
+            {/* Name Input */}
+            <View style={styles.inputContainer}>
+              <Text style={styles.inputLabel}>Full Name</Text>
+              <TextInput
+                placeholder="John Doe"
+                placeholderTextColor="#9CA3AF"
+                value={name}
+                onChangeText={setName}
+                onFocus={() => setFocusedInput('name')}
+                onBlur={() => setFocusedInput(null)}
+                autoCapitalize="words"
+                style={[
+                  styles.input,
+                  focusedInput === 'name' && styles.inputFocused
+                ]}
+              />
             </View>
-          ) : null}
-          
-          {success ? (
-            <View style={styles.successContainer}>
-              <Text style={styles.successText}>{success}</Text>
-            </View>
-          ) : null}
 
-          {/* Register Button */}
-          <TouchableOpacity
-            onPress={handleRegister}
-            disabled={isLoading}
-            activeOpacity={0.8}
-          >
-            <LinearGradient
-              colors={isLoading ? ['#9E9E9E', '#757575'] : ['#00D09C', '#00B386']}
-              style={styles.registerButton}
-              start={{ x: 0, y: 0 }}
-              end={{ x: 1, y: 0 }}
+            {/* Email Input */}
+            <View style={styles.inputContainer}>
+              <Text style={styles.inputLabel}>Email Address</Text>
+              <TextInput
+                placeholder="john.doe@example.com"
+                placeholderTextColor="#9CA3AF"
+                value={email}
+                onChangeText={setEmail}
+                onFocus={() => setFocusedInput('email')}
+                onBlur={() => setFocusedInput(null)}
+                keyboardType="email-address"
+                autoCapitalize="none"
+                style={[
+                  styles.input,
+                  focusedInput === 'email' && styles.inputFocused
+                ]}
+              />
+            </View>
+
+            {/* Password Input */}
+            <View style={styles.inputContainer}>
+              <Text style={styles.inputLabel}>Password</Text>
+              <TextInput
+                placeholder="Minimum 8 characters"
+                placeholderTextColor="#9CA3AF"
+                secureTextEntry
+                value={password}
+                onChangeText={setPassword}
+                onFocus={() => setFocusedInput('password')}
+                onBlur={() => setFocusedInput(null)}
+                style={[
+                  styles.input,
+                  focusedInput === 'password' && styles.inputFocused
+                ]}
+              />
+            </View>
+
+            {/* Error/Success Messages */}
+            {error ? (
+              <View style={styles.errorContainer}>
+                <Text style={styles.errorIcon}>⚠️</Text>
+                <Text style={styles.errorText}>{error}</Text>
+              </View>
+            ) : null}
+
+            {success ? (
+              <View style={styles.successContainer}>
+                <Text style={styles.successIcon}>✓</Text>
+                <Text style={styles.successText}>{success}</Text>
+              </View>
+            ) : null}
+
+            {/* Register Button */}
+            <TouchableOpacity
+              onPress={handleRegister}
+              disabled={isLoading}
+              activeOpacity={0.8}
             >
-              <Text style={styles.registerButtonText}>
-                {isLoading ? "Creating Account..." : "Create Account"}
-              </Text>
-            </LinearGradient>
-          </TouchableOpacity>
+              <LinearGradient
+                colors={isLoading ? ['#9CA3AF', '#6B7280'] : ['#2E5CFF', '#1A3FCC']}
+                style={styles.registerButton}
+                start={{ x: 0, y: 0 }}
+                end={{ x: 1, y: 0 }}
+              >
+                {isLoading ? (
+                  <ActivityIndicator color="#FFFFFF" size="small" />
+                ) : (
+                  <Text style={styles.registerButtonText}>Create Account</Text>
+                )}
+              </LinearGradient>
+            </TouchableOpacity>
+          </View>
 
-          {/* Benefits Section */}
-          <View style={styles.benefitsSection}>
-            <Text style={styles.benefitsTitle}>Why join us?</Text>
-            <View style={styles.benefitsList}>
-              <BenefitItem text="Zero commission on equity delivery" />
-              <BenefitItem text="Free mutual fund investments" />
-              <BenefitItem text="Real-time market insights" />
+          {/* Features Grid */}
+          <View style={styles.featuresContainer}>
+            <Text style={styles.featuresTitle}>Why Paper Bull?</Text>
+            <View style={styles.featuresGrid}>
+              <FeatureCard icon="📚" label="Learn Risk-Free" />
+              <FeatureCard icon="📊" label="Real-time Data" />
+              <FeatureCard icon="💡" label="Build Strategies" />
+              <FeatureCard icon="📈" label="Track Progress" />
             </View>
           </View>
 
-          {/* Divider */}
-          <View style={styles.dividerContainer}>
-            <View style={styles.divider} />
+          {/* Info Banner */}
+          <View style={styles.infoBanner}>
+            <Text style={styles.infoBannerIcon}>ℹ️</Text>
+            <View style={styles.infoBannerContent}>
+              <Text style={styles.infoBannerTitle}>100% Virtual Money</Text>
+              <Text style={styles.infoBannerText}>
+                Practice trading without any financial risk. All funds are virtual.
+              </Text>
+            </View>
           </View>
 
           {/* Login Link */}
           <View style={styles.loginContainer}>
-            <Text style={styles.loginText}>Already have an account? </Text>
+            <Text style={styles.loginText}>Already have an account?</Text>
             <TouchableOpacity onPress={() => navigation.navigate("Login")}>
-              <Text style={styles.loginLink}>Login</Text>
+              <Text style={styles.loginLink}>Sign In</Text>
             </TouchableOpacity>
           </View>
-        </View>
-
-        {/* Footer */}
-        <View style={styles.footer}>
-          <Text style={styles.footerText}>
-            By creating an account, you agree to our Terms & Privacy Policy
-          </Text>
         </View>
       </ScrollView>
     </KeyboardAvoidingView>
   );
 }
 
-function BenefitItem({ text }) {
+function FeatureCard({ icon, label }) {
   return (
-    <View style={styles.benefitItem}>
-      <View style={styles.checkmark}>
-        <Text style={styles.checkmarkText}>✓</Text>
+    <View style={styles.featureCard}>
+      <View style={styles.featureIconContainer}>
+        <Text style={styles.featureIcon}>{icon}</Text>
       </View>
-      <Text style={styles.benefitText}>{text}</Text>
+      <Text style={styles.featureLabel}>{label}</Text>
     </View>
   );
 }
@@ -208,51 +219,73 @@ function BenefitItem({ text }) {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#FFFFFF',
+    backgroundColor: '#F5F7FA',
   },
   scrollContent: {
     flexGrow: 1,
-    paddingHorizontal: 24,
-    paddingTop: 60,
     paddingBottom: 40,
   },
-  headerSection: {
-    alignItems: 'center',
-    marginBottom: 40,
+  headerGradient: {
+    paddingTop: 60,
+    paddingBottom: 40,
+    paddingHorizontal: 20,
+    borderBottomLeftRadius: 28,
+    borderBottomRightRadius: 28,
   },
   logoContainer: {
-    marginBottom: 24,
+    alignItems: 'center',
+    marginBottom: 32,
   },
-  logoGradient: {
-    width: 64,
-    height: 64,
-    borderRadius: 16,
+  logoCircle: {
+    width: 80,
+    height: 80,
+    borderRadius: 20,
+    backgroundColor: 'rgba(255, 255, 255, 0.2)',
     alignItems: 'center',
     justifyContent: 'center',
-    shadowColor: '#00D09C',
-    shadowOffset: { width: 0, height: 4 },
-    shadowOpacity: 0.3,
-    shadowRadius: 8,
-    elevation: 8,
+    marginBottom: 16,
+    borderWidth: 2,
+    borderColor: 'rgba(255, 255, 255, 0.3)',
   },
-  logoText: {
-    fontSize: 32,
-    fontWeight: 'bold',
+  logoEmoji: {
+    fontSize: 42,
+  },
+  brandName: {
+    fontSize: 24,
+    fontWeight: '700',
     color: '#FFFFFF',
+    letterSpacing: 0.5,
   },
-  title: {
+  welcomeTitle: {
     fontSize: 28,
     fontWeight: '700',
-    color: '#1A1A1A',
+    color: '#FFFFFF',
+    textAlign: 'center',
     marginBottom: 8,
   },
-  subtitle: {
+  welcomeSubtitle: {
     fontSize: 15,
-    color: '#666666',
+    color: '#FFFFFF',
+    opacity: 0.9,
     textAlign: 'center',
   },
   formSection: {
-    flex: 1,
+    paddingHorizontal: 20,
+    paddingTop: 24,
+  },
+  formCard: {
+    backgroundColor: '#FFFFFF',
+    borderRadius: 16,
+    padding: 24,
+    marginBottom: 20,
+    borderWidth: 1,
+    borderColor: '#E5E7EB',
+  },
+  sectionTitle: {
+    fontSize: 20,
+    fontWeight: '700',
+    color: '#1A1A1A',
+    marginBottom: 24,
   },
   inputContainer: {
     marginBottom: 20,
@@ -260,137 +293,164 @@ const styles = StyleSheet.create({
   inputLabel: {
     fontSize: 14,
     fontWeight: '600',
-    color: '#1A1A1A',
+    color: '#374151',
     marginBottom: 8,
   },
   input: {
-    height: 56,
-    backgroundColor: '#F7F7F7',
+    height: 52,
+    backgroundColor: '#F9FAFB',
+    borderWidth: 1,
+    borderColor: '#E5E7EB',
     borderRadius: 12,
     paddingHorizontal: 16,
-    fontSize: 16,
+    fontSize: 15,
     color: '#1A1A1A',
-    borderWidth: 2,
-    borderColor: 'transparent',
   },
   inputFocused: {
+    borderColor: '#2E5CFF',
     backgroundColor: '#FFFFFF',
-    borderColor: '#00D09C',
-  },
-  passwordHint: {
-    fontSize: 12,
-    color: '#8A8A8A',
-    marginTop: 6,
-    marginLeft: 4,
   },
   errorContainer: {
-    backgroundColor: '#FFE5E5',
-    padding: 12,
-    borderRadius: 8,
-    marginBottom: 16,
-    borderLeftWidth: 4,
-    borderLeftColor: '#FF3B30',
+    flexDirection: 'row',
+    alignItems: 'center',
+    backgroundColor: '#FEF2F2',
+    borderRadius: 12,
+    padding: 14,
+    marginBottom: 20,
+    borderWidth: 1,
+    borderColor: '#FEE2E2',
+  },
+  errorIcon: {
+    fontSize: 16,
+    marginRight: 10,
   },
   errorText: {
-    color: '#D32F2F',
+    flex: 1,
     fontSize: 14,
+    color: '#DC2626',
     fontWeight: '500',
   },
   successContainer: {
-    backgroundColor: '#E8F8F5',
-    padding: 12,
-    borderRadius: 8,
-    marginBottom: 16,
-    borderLeftWidth: 4,
-    borderLeftColor: '#00D09C',
+    flexDirection: 'row',
+    alignItems: 'center',
+    backgroundColor: '#F0FDF4',
+    borderRadius: 12,
+    padding: 14,
+    marginBottom: 20,
+    borderWidth: 1,
+    borderColor: '#DCFCE7',
+  },
+  successIcon: {
+    fontSize: 16,
+    marginRight: 10,
+    color: '#16A34A',
   },
   successText: {
-    color: '#00A67E',
+    flex: 1,
     fontSize: 14,
+    color: '#16A34A',
     fontWeight: '500',
   },
   registerButton: {
     height: 56,
-    borderRadius: 12,
+    borderRadius: 14,
     alignItems: 'center',
     justifyContent: 'center',
-    shadowColor: '#00D09C',
+    shadowColor: '#2E5CFF',
     shadowOffset: { width: 0, height: 4 },
-    shadowOpacity: 0.2,
+    shadowOpacity: 0.3,
     shadowRadius: 8,
     elevation: 4,
   },
   registerButtonText: {
     color: '#FFFFFF',
     fontSize: 16,
-    fontWeight: '700',
+    fontWeight: '600',
     letterSpacing: 0.5,
   },
-  benefitsSection: {
-    marginTop: 32,
-    marginBottom: 24,
+  featuresContainer: {
+    marginBottom: 20,
   },
-  benefitsTitle: {
-    fontSize: 16,
+  featuresTitle: {
+    fontSize: 18,
     fontWeight: '700',
     color: '#1A1A1A',
-    marginBottom: 16,
+    marginBottom: 14,
   },
-  benefitsList: {
+  featuresGrid: {
+    flexDirection: 'row',
+    flexWrap: 'wrap',
     gap: 12,
   },
-  benefitItem: {
-    flexDirection: 'row',
+  featureCard: {
+    width: '48%',
+    backgroundColor: '#FFFFFF',
+    borderRadius: 14,
+    padding: 16,
     alignItems: 'center',
+    borderWidth: 1,
+    borderColor: '#E5E7EB',
   },
-  checkmark: {
-    width: 24,
-    height: 24,
+  featureIconContainer: {
+    width: 44,
+    height: 44,
     borderRadius: 12,
-    backgroundColor: '#E8F8F5',
+    backgroundColor: '#F0F4FF',
     alignItems: 'center',
     justifyContent: 'center',
+    marginBottom: 10,
+  },
+  featureIcon: {
+    fontSize: 22,
+  },
+  featureLabel: {
+    fontSize: 13,
+    color: '#1A1A1A',
+    fontWeight: '600',
+    textAlign: 'center',
+  },
+  infoBanner: {
+    flexDirection: 'row',
+    backgroundColor: '#EFF6FF',
+    borderRadius: 14,
+    padding: 16,
+    marginBottom: 24,
+    borderWidth: 1,
+    borderColor: '#DBEAFE',
+  },
+  infoBannerIcon: {
+    fontSize: 20,
     marginRight: 12,
   },
-  checkmarkText: {
-    color: '#00D09C',
-    fontSize: 14,
-    fontWeight: 'bold',
-  },
-  benefitText: {
-    fontSize: 14,
-    color: '#666666',
+  infoBannerContent: {
     flex: 1,
   },
-  dividerContainer: {
-    marginVertical: 24,
+  infoBannerTitle: {
+    fontSize: 14,
+    fontWeight: '600',
+    color: '#1E40AF',
+    marginBottom: 4,
   },
-  divider: {
-    height: 1,
-    backgroundColor: '#E0E0E0',
+  infoBannerText: {
+    fontSize: 13,
+    color: '#3B82F6',
+    lineHeight: 18,
   },
   loginContainer: {
     flexDirection: 'row',
     justifyContent: 'center',
     alignItems: 'center',
+    gap: 8,
+    paddingVertical: 16,
   },
   loginText: {
     fontSize: 15,
-    color: '#666666',
+    color: '#6B7280',
+    fontWeight: '500',
   },
   loginLink: {
     fontSize: 15,
     fontWeight: '700',
-    color: '#00D09C',
-  },
-  footer: {
-    marginTop: 32,
-    alignItems: 'center',
-  },
-  footerText: {
-    fontSize: 12,
-    color: '#999999',
-    textAlign: 'center',
-    lineHeight: 18,
+    color: '#2E5CFF',
   },
 });

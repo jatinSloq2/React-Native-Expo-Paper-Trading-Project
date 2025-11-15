@@ -8,7 +8,7 @@ import {
   KeyboardAvoidingView,
   Platform,
   ScrollView,
-  Animated
+  ActivityIndicator
 } from "react-native";
 import { LinearGradient } from 'expo-linear-gradient';
 import axiosInstance from "../api/axiosInstance";
@@ -60,118 +60,140 @@ export default function LoginScreen({ navigation }) {
         keyboardShouldPersistTaps="handled"
         showsVerticalScrollIndicator={false}
       >
-        {/* Header Section */}
-        <View style={styles.headerSection}>
+        {/* Header Section with Gradient */}
+        <LinearGradient
+          colors={['#2E5CFF', '#1A3FCC']}
+          style={styles.headerGradient}
+          start={{ x: 0, y: 0 }}
+          end={{ x: 1, y: 1 }}
+        >
           <View style={styles.logoContainer}>
-            <LinearGradient
-              colors={['#00D09C', '#00B386']}
-              style={styles.logoGradient}
-              start={{ x: 0, y: 0 }}
-              end={{ x: 1, y: 1 }}
-            >
-              <Text style={styles.logoText}>G</Text>
-            </LinearGradient>
+            <View style={styles.logoCircle}>
+              <Text style={styles.logoEmoji}>🐂</Text>
+            </View>
+            <Text style={styles.brandName}>Paper Bull</Text>
           </View>
-          <Text style={styles.title}>Welcome back</Text>
-          <Text style={styles.subtitle}>Login to continue your investment journey</Text>
-        </View>
+          
+          <Text style={styles.welcomeTitle}>Welcome Back</Text>
+          <Text style={styles.welcomeSubtitle}>
+            Continue your trading journey
+          </Text>
+        </LinearGradient>
 
         {/* Form Section */}
         <View style={styles.formSection}>
-          {/* Email Input */}
-          <View style={styles.inputContainer}>
-            <Text style={styles.inputLabel}>Email</Text>
-            <TextInput
-              placeholder="Enter your email"
-              placeholderTextColor="#8A8A8A"
-              value={email}
-              onChangeText={setEmail}
-              onFocus={() => setFocusedInput('email')}
-              onBlur={() => setFocusedInput(null)}
-              keyboardType="email-address"
-              autoCapitalize="none"
-              style={[
-                styles.input,
-                focusedInput === 'email' && styles.inputFocused
-              ]}
-            />
-          </View>
+          {/* Login Card */}
+          <View style={styles.formCard}>
+            <Text style={styles.sectionTitle}>Sign In</Text>
 
-          {/* Password Input */}
-          <View style={styles.inputContainer}>
-            <Text style={styles.inputLabel}>Password</Text>
-            <TextInput
-              placeholder="Enter your password"
-              placeholderTextColor="#8A8A8A"
-              secureTextEntry
-              value={password}
-              onChangeText={setPassword}
-              onFocus={() => setFocusedInput('password')}
-              onBlur={() => setFocusedInput(null)}
-              style={[
-                styles.input,
-                focusedInput === 'password' && styles.inputFocused
-              ]}
-            />
-          </View>
-
-          {/* Forgot Password */}
-          <TouchableOpacity style={styles.forgotPassword}>
-            <Text style={styles.forgotPasswordText}>Forgot Password?</Text>
-          </TouchableOpacity>
-
-          {/* Error/Success Messages */}
-          {error ? (
-            <View style={styles.errorContainer}>
-              <Text style={styles.errorText}>{error}</Text>
+            {/* Email Input */}
+            <View style={styles.inputContainer}>
+              <Text style={styles.inputLabel}>Email Address</Text>
+              <TextInput
+                placeholder="john.doe@example.com"
+                placeholderTextColor="#9CA3AF"
+                value={email}
+                onChangeText={setEmail}
+                onFocus={() => setFocusedInput('email')}
+                onBlur={() => setFocusedInput(null)}
+                keyboardType="email-address"
+                autoCapitalize="none"
+                style={[
+                  styles.input,
+                  focusedInput === 'email' && styles.inputFocused
+                ]}
+              />
             </View>
-          ) : null}
-          
-          {success ? (
-            <View style={styles.successContainer}>
-              <Text style={styles.successText}>{success}</Text>
-            </View>
-          ) : null}
 
-          {/* Login Button */}
-          <TouchableOpacity
-            onPress={handleLogin}
-            disabled={isLoading}
-            activeOpacity={0.8}
-          >
-            <LinearGradient
-              colors={isLoading ? ['#9E9E9E', '#757575'] : ['#00D09C', '#00B386']}
-              style={styles.loginButton}
-              start={{ x: 0, y: 0 }}
-              end={{ x: 1, y: 0 }}
+            {/* Password Input */}
+            <View style={styles.inputContainer}>
+              <Text style={styles.inputLabel}>Password</Text>
+              <TextInput
+                placeholder="Enter your password"
+                placeholderTextColor="#9CA3AF"
+                secureTextEntry
+                value={password}
+                onChangeText={setPassword}
+                onFocus={() => setFocusedInput('password')}
+                onBlur={() => setFocusedInput(null)}
+                style={[
+                  styles.input,
+                  focusedInput === 'password' && styles.inputFocused
+                ]}
+              />
+            </View>
+
+            {/* Forgot Password */}
+            <TouchableOpacity style={styles.forgotPassword}>
+              <Text style={styles.forgotPasswordText}>Forgot Password?</Text>
+            </TouchableOpacity>
+
+            {/* Error/Success Messages */}
+            {error ? (
+              <View style={styles.errorContainer}>
+                <Text style={styles.errorIcon}>⚠️</Text>
+                <Text style={styles.errorText}>{error}</Text>
+              </View>
+            ) : null}
+            
+            {success ? (
+              <View style={styles.successContainer}>
+                <Text style={styles.successIcon}>✓</Text>
+                <Text style={styles.successText}>{success}</Text>
+              </View>
+            ) : null}
+
+            {/* Login Button */}
+            <TouchableOpacity
+              onPress={handleLogin}
+              disabled={isLoading}
+              activeOpacity={0.8}
             >
-              <Text style={styles.loginButtonText}>
-                {isLoading ? "Logging in..." : "Login"}
-              </Text>
-            </LinearGradient>
-          </TouchableOpacity>
+              <LinearGradient
+                colors={isLoading ? ['#9CA3AF', '#6B7280'] : ['#2E5CFF', '#1A3FCC']}
+                style={styles.loginButton}
+                start={{ x: 0, y: 0 }}
+                end={{ x: 1, y: 0 }}
+              >
+                {isLoading ? (
+                  <ActivityIndicator color="#FFFFFF" size="small" />
+                ) : (
+                  <Text style={styles.loginButtonText}>Sign In</Text>
+                )}
+              </LinearGradient>
+            </TouchableOpacity>
+          </View>
 
-          {/* Divider */}
-          <View style={styles.dividerContainer}>
-            <View style={styles.divider} />
-            <Text style={styles.dividerText}>OR</Text>
-            <View style={styles.divider} />
+          {/* Stats Section */}
+          <View style={styles.statsContainer}>
+            <View style={styles.statCard}>
+              <Text style={styles.statNumber}>10K+</Text>
+              <Text style={styles.statLabel}>Active Traders</Text>
+            </View>
+            <View style={styles.statCard}>
+              <Text style={styles.statNumber}>$50M+</Text>
+              <Text style={styles.statLabel}>Virtual Volume</Text>
+            </View>
+          </View>
+
+          {/* Info Banner */}
+          <View style={styles.infoBanner}>
+            <Text style={styles.infoBannerIcon}>ℹ️</Text>
+            <View style={styles.infoBannerContent}>
+              <Text style={styles.infoBannerTitle}>Practice Trading</Text>
+              <Text style={styles.infoBannerText}>
+                All trades use virtual money for learning purposes
+              </Text>
+            </View>
           </View>
 
           {/* Sign Up Link */}
           <View style={styles.signupContainer}>
-            <Text style={styles.signupText}>Don't have an account? </Text>
+            <Text style={styles.signupText}>New to Paper Bull?</Text>
             <TouchableOpacity onPress={() => navigation.navigate("Register")}>
               <Text style={styles.signupLink}>Create Account</Text>
             </TouchableOpacity>
           </View>
-        </View>
-
-        {/* Footer */}
-        <View style={styles.footer}>
-          <Text style={styles.footerText}>
-            By continuing, you agree to our Terms & Privacy Policy
-          </Text>
         </View>
       </ScrollView>
     </KeyboardAvoidingView>
@@ -181,51 +203,73 @@ export default function LoginScreen({ navigation }) {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#FFFFFF',
+    backgroundColor: '#F5F7FA',
   },
   scrollContent: {
     flexGrow: 1,
-    paddingHorizontal: 24,
-    paddingTop: 60,
     paddingBottom: 40,
   },
-  headerSection: {
-    alignItems: 'center',
-    marginBottom: 40,
+  headerGradient: {
+    paddingTop: 60,
+    paddingBottom: 40,
+    paddingHorizontal: 20,
+    borderBottomLeftRadius: 28,
+    borderBottomRightRadius: 28,
   },
   logoContainer: {
-    marginBottom: 24,
+    alignItems: 'center',
+    marginBottom: 32,
   },
-  logoGradient: {
-    width: 64,
-    height: 64,
-    borderRadius: 16,
+  logoCircle: {
+    width: 80,
+    height: 80,
+    borderRadius: 20,
+    backgroundColor: 'rgba(255, 255, 255, 0.2)',
     alignItems: 'center',
     justifyContent: 'center',
-    shadowColor: '#00D09C',
-    shadowOffset: { width: 0, height: 4 },
-    shadowOpacity: 0.3,
-    shadowRadius: 8,
-    elevation: 8,
+    marginBottom: 16,
+    borderWidth: 2,
+    borderColor: 'rgba(255, 255, 255, 0.3)',
   },
-  logoText: {
-    fontSize: 32,
-    fontWeight: 'bold',
+  logoEmoji: {
+    fontSize: 42,
+  },
+  brandName: {
+    fontSize: 24,
+    fontWeight: '700',
     color: '#FFFFFF',
+    letterSpacing: 0.5,
   },
-  title: {
+  welcomeTitle: {
     fontSize: 28,
     fontWeight: '700',
-    color: '#1A1A1A',
+    color: '#FFFFFF',
+    textAlign: 'center',
     marginBottom: 8,
   },
-  subtitle: {
+  welcomeSubtitle: {
     fontSize: 15,
-    color: '#666666',
+    color: '#FFFFFF',
+    opacity: 0.9,
     textAlign: 'center',
   },
   formSection: {
-    flex: 1,
+    paddingHorizontal: 20,
+    paddingTop: 24,
+  },
+  formCard: {
+    backgroundColor: '#FFFFFF',
+    borderRadius: 16,
+    padding: 24,
+    marginBottom: 20,
+    borderWidth: 1,
+    borderColor: '#E5E7EB',
+  },
+  sectionTitle: {
+    fontSize: 20,
+    fontWeight: '700',
+    color: '#1A1A1A',
+    marginBottom: 24,
   },
   inputContainer: {
     marginBottom: 20,
@@ -233,22 +277,22 @@ const styles = StyleSheet.create({
   inputLabel: {
     fontSize: 14,
     fontWeight: '600',
-    color: '#1A1A1A',
+    color: '#374151',
     marginBottom: 8,
   },
   input: {
-    height: 56,
-    backgroundColor: '#F7F7F7',
+    height: 52,
+    backgroundColor: '#F9FAFB',
+    borderWidth: 1,
+    borderColor: '#E5E7EB',
     borderRadius: 12,
     paddingHorizontal: 16,
-    fontSize: 16,
+    fontSize: 15,
     color: '#1A1A1A',
-    borderWidth: 2,
-    borderColor: 'transparent',
   },
   inputFocused: {
+    borderColor: '#2E5CFF',
     backgroundColor: '#FFFFFF',
-    borderColor: '#00D09C',
   },
   forgotPassword: {
     alignSelf: 'flex-end',
@@ -257,89 +301,133 @@ const styles = StyleSheet.create({
   forgotPasswordText: {
     fontSize: 14,
     fontWeight: '600',
-    color: '#00D09C',
+    color: '#2E5CFF',
   },
   errorContainer: {
-    backgroundColor: '#FFE5E5',
-    padding: 12,
-    borderRadius: 8,
-    marginBottom: 16,
-    borderLeftWidth: 4,
-    borderLeftColor: '#FF3B30',
+    flexDirection: 'row',
+    alignItems: 'center',
+    backgroundColor: '#FEF2F2',
+    borderRadius: 12,
+    padding: 14,
+    marginBottom: 20,
+    borderWidth: 1,
+    borderColor: '#FEE2E2',
+  },
+  errorIcon: {
+    fontSize: 16,
+    marginRight: 10,
   },
   errorText: {
-    color: '#D32F2F',
+    flex: 1,
     fontSize: 14,
+    color: '#DC2626',
     fontWeight: '500',
   },
   successContainer: {
-    backgroundColor: '#E8F8F5',
-    padding: 12,
-    borderRadius: 8,
-    marginBottom: 16,
-    borderLeftWidth: 4,
-    borderLeftColor: '#00D09C',
+    flexDirection: 'row',
+    alignItems: 'center',
+    backgroundColor: '#F0FDF4',
+    borderRadius: 12,
+    padding: 14,
+    marginBottom: 20,
+    borderWidth: 1,
+    borderColor: '#DCFCE7',
+  },
+  successIcon: {
+    fontSize: 16,
+    marginRight: 10,
+    color: '#16A34A',
   },
   successText: {
-    color: '#00A67E',
+    flex: 1,
     fontSize: 14,
+    color: '#16A34A',
     fontWeight: '500',
   },
   loginButton: {
     height: 56,
-    borderRadius: 12,
+    borderRadius: 14,
     alignItems: 'center',
     justifyContent: 'center',
-    shadowColor: '#00D09C',
+    shadowColor: '#2E5CFF',
     shadowOffset: { width: 0, height: 4 },
-    shadowOpacity: 0.2,
+    shadowOpacity: 0.3,
     shadowRadius: 8,
     elevation: 4,
   },
   loginButtonText: {
     color: '#FFFFFF',
     fontSize: 16,
-    fontWeight: '700',
+    fontWeight: '600',
     letterSpacing: 0.5,
   },
-  dividerContainer: {
+  statsContainer: {
     flexDirection: 'row',
-    alignItems: 'center',
-    marginVertical: 32,
+    gap: 12,
+    marginBottom: 20,
   },
-  divider: {
+  statCard: {
     flex: 1,
-    height: 1,
-    backgroundColor: '#E0E0E0',
+    backgroundColor: '#FFFFFF',
+    borderRadius: 14,
+    padding: 20,
+    alignItems: 'center',
+    borderWidth: 1,
+    borderColor: '#E5E7EB',
   },
-  dividerText: {
-    marginHorizontal: 16,
-    fontSize: 14,
-    color: '#8A8A8A',
+  statNumber: {
+    fontSize: 24,
+    fontWeight: '700',
+    color: '#1A1A1A',
+    marginBottom: 4,
+  },
+  statLabel: {
+    fontSize: 13,
+    color: '#6B7280',
     fontWeight: '500',
+  },
+  infoBanner: {
+    flexDirection: 'row',
+    backgroundColor: '#EFF6FF',
+    borderRadius: 14,
+    padding: 16,
+    marginBottom: 24,
+    borderWidth: 1,
+    borderColor: '#DBEAFE',
+  },
+  infoBannerIcon: {
+    fontSize: 20,
+    marginRight: 12,
+  },
+  infoBannerContent: {
+    flex: 1,
+  },
+  infoBannerTitle: {
+    fontSize: 14,
+    fontWeight: '600',
+    color: '#1E40AF',
+    marginBottom: 4,
+  },
+  infoBannerText: {
+    fontSize: 13,
+    color: '#3B82F6',
+    lineHeight: 18,
   },
   signupContainer: {
     flexDirection: 'row',
     justifyContent: 'center',
     alignItems: 'center',
+    gap: 8,
+    paddingVertical: 16,
   },
   signupText: {
     fontSize: 15,
-    color: '#666666',
+    color: '#6B7280',
+    fontWeight: '500',
   },
   signupLink: {
     fontSize: 15,
     fontWeight: '700',
-    color: '#00D09C',
-  },
-  footer: {
-    marginTop: 32,
-    alignItems: 'center',
-  },
-  footerText: {
-    fontSize: 12,
-    color: '#999999',
-    textAlign: 'center',
-    lineHeight: 18,
+    color: '#2E5CFF',
   },
 });
