@@ -1,4 +1,4 @@
-import { Feather } from '@expo/vector-icons';
+import { Feather, MaterialIcons } from '@expo/vector-icons';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { useNavigation } from '@react-navigation/native';
 import { LinearGradient } from 'expo-linear-gradient';
@@ -226,7 +226,7 @@ export default function SettingsScreen() {
           <Text style={styles.sectionTitle}>App Settings</Text>
 
           <SettingsToggle
-            icon="bell"
+            icon="notifications"
             label="Push Notifications"
             subtitle="Receive important updates and alerts"
             value={notifications}
@@ -241,7 +241,7 @@ export default function SettingsScreen() {
             disabled={!notifications}
           />
           <SettingsToggle
-            icon="moon"
+            icon="dark-mode"
             label="Dark Mode"
             subtitle="Coming soon"
             value={darkMode}
@@ -372,7 +372,7 @@ function SettingsToggle({ icon, label, value, onValueChange, subtitle, disabled 
     <View style={[styles.settingsItem, disabled && styles.settingsItemDisabled]}>
       <View style={styles.settingsItemLeft}>
         <View style={[styles.settingsIcon, disabled && styles.settingsIconDisabled]}>
-          <Feather name={icon} size={20} color={disabled ? "#9CA3AF" : "#2E5CFF"} />
+          <MaterialIcons name={icon} size={20} color={disabled ? "#9CA3AF" : "#2E5CFF"} />
         </View>
         <View style={{ flex: 1 }}>
           <Text style={[styles.settingsLabel, disabled && styles.settingsLabelDisabled]}>
