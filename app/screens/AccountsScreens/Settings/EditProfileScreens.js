@@ -117,10 +117,6 @@ export default function EditProfileScreen() {
               {name?.charAt(0).toUpperCase() || 'U'}
             </Text>
           </View>
-          <TouchableOpacity style={styles.changePhotoButton}>
-            <Feather name="camera" size={16} color="#2E5CFF" />
-            <Text style={styles.changePhotoText}>Change Photo</Text>
-          </TouchableOpacity>
         </View>
 
         {/* Form Section */}
@@ -254,10 +250,12 @@ const styles = StyleSheet.create({
   },
   avatarSection: {
     alignItems: 'center',
-    paddingVertical: 32,
+    paddingVertical: 20,
     backgroundColor: '#FFFFFF',
     borderBottomWidth: 1,
     borderBottomColor: '#E5E7EB',
+     borderBottomLeftRadius: 28,
+    borderBottomRightRadius: 28,
   },
   avatarLarge: {
     width: 100,

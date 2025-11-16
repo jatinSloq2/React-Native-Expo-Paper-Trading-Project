@@ -23,8 +23,8 @@ export default function SettingsScreen() {
   const [biometric, setBiometric] = useState(false);
 
   return (
-    <ScrollView style={styles.container} showsVerticalScrollIndicator={false}>
-      {/* Header */}
+    <View style={styles.container}>
+      {/* Fixed Header */}
       <LinearGradient
         colors={['#2E5CFF', '#1A3FCC']}
         style={styles.header}
@@ -32,16 +32,21 @@ export default function SettingsScreen() {
         end={{ x: 1, y: 1 }}
       >
         <TouchableOpacity
-          onPress={() => navigation.goBack()}
           style={styles.backButton}
+          onPress={() => navigation.goBack()}
         >
           <Feather name="arrow-left" size={24} color="#FFFFFF" />
         </TouchableOpacity>
         <Text style={styles.headerTitle}>Settings</Text>
-        <View style={{ width: 24 }} />
+        <View style={styles.headerRight} />
       </LinearGradient>
 
-      <View style={styles.content}>
+      {/* Scrollable Content */}
+      <ScrollView
+        style={styles.scrollView}
+        contentContainerStyle={styles.scrollContent}
+        showsVerticalScrollIndicator={false}
+      >
         {/* Account Settings */}
         <View style={styles.section}>
           <Text style={styles.sectionTitle}>Account</Text>
@@ -87,7 +92,7 @@ export default function SettingsScreen() {
             subtitle="Coming soon"
           />
           <SettingsToggle
-            icon="shield"
+            icon="fingerprint"
             label="Biometric Login"
             value={biometric}
             onValueChange={setBiometric}
@@ -159,8 +164,8 @@ export default function SettingsScreen() {
             onPress={() => Alert.alert('Rate Us', 'Thank you for your support!')}
           />
         </View>
-      </View>
-    </ScrollView>
+      </ScrollView>
+    </View>
   );
 }
 
@@ -228,7 +233,7 @@ const styles = StyleSheet.create({
   backButton: {
     width: 40,
     height: 40,
-    borderRadius: 20,
+    borderRadius: 12,
     backgroundColor: 'rgba(255, 255, 255, 0.2)',
     alignItems: 'center',
     justifyContent: 'center',
@@ -238,8 +243,15 @@ const styles = StyleSheet.create({
     fontWeight: '700',
     color: '#FFFFFF',
   },
-  content: {
+  headerRight: {
+    width: 40,
+  },
+  scrollView: {
+    flex: 1,
+  },
+  scrollContent: {
     padding: 20,
+    paddingBottom: 40,
   },
   section: {
     marginBottom: 32,

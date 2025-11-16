@@ -5,7 +5,8 @@ import {
   StyleSheet,
   ScrollView,
   TouchableOpacity,
-  TextInput
+  TextInput,
+  Modal
 } from 'react-native';
 import { Feather } from '@expo/vector-icons';
 import { LinearGradient } from 'expo-linear-gradient';
@@ -15,6 +16,7 @@ export default function HelpCenterScreen() {
   const navigation = useNavigation();
   const [searchQuery, setSearchQuery] = useState('');
   const [expandedFaq, setExpandedFaq] = useState(null);
+  const [showUserGuide, setShowUserGuide] = useState(false);
 
   const faqs = [
     {
@@ -191,12 +193,13 @@ export default function HelpCenterScreen() {
               icon="book-open"
               title="User Guide"
               description="Complete guide to using Paper Bull"
-              onPress={() => {}}
+              onPress={() => setShowUserGuide(true)}
             />
             <QuickHelpCard
               icon="video"
               title="Video Tutorials"
-              description="Learn through video lessons"
+              description="We're improving your experience"
+              comingSoon={true}
               onPress={() => {}}
             />
           </View>
@@ -246,18 +249,33 @@ export default function HelpCenterScreen() {
           </TouchableOpacity>
         </View>
       </ScrollView>
+
+      {/* User Guide Modal */}
+      <UserGuideModal 
+        visible={showUserGuide} 
+        onClose={() => setShowUserGuide(false)} 
+      />
     </View>
   );
 }
 
-function QuickHelpCard({ icon, title, description, onPress }) {
+function QuickHelpCard({ icon, title, description, comingSoon, onPress }) {
   return (
-    <TouchableOpacity style={styles.quickHelpCard} onPress={onPress}>
+    <TouchableOpacity 
+      style={styles.quickHelpCard} 
+      onPress={onPress}
+      disabled={comingSoon}
+    >
       <View style={styles.quickHelpIcon}>
         <Feather name={icon} size={24} color="#2E5CFF" />
       </View>
       <Text style={styles.quickHelpTitle}>{title}</Text>
       <Text style={styles.quickHelpDescription}>{description}</Text>
+      {comingSoon && (
+        <View style={styles.comingSoonBadge}>
+          <Text style={styles.comingSoonText}>Coming Soon</Text>
+        </View>
+      )}
     </TouchableOpacity>
   );
 }
@@ -289,6 +307,168 @@ function FAQItem({ faq, isExpanded, onPress }) {
   );
 }
 
+function UserGuideModal({ visible, onClose }) {
+  const [currentStep, setCurrentStep] = useState(0);
+
+  const guideSteps = [
+    {
+      title: "Welcome to Paper Bull! 🎉",
+      icon: "smile",
+      content: "Learn how to get started with virtual trading and master the platform step by step.",
+      color: "#2E5CFF"
+    },
+    {
+      title: "Step 1: Registration",
+      icon: "user-plus",
+      content: "• Tap on 'Account' tab at the bottom\n• Click 'Create Account' or 'Register'\n• Fill in your details:\n  - Full Name\n  - Email Address\n  - Strong Password\n• Verify your email\n• Login with your credentials\n\nYou'll start with ₹1,00,000 virtual money!",
+      color: "#10B981"
+    },
+    {
+      title: "Step 2: Adding Funds",
+      icon: "plus-circle",
+      content: "To add more virtual funds:\n\n• Go to Account Tab\n• Tap on your balance card\n• Select 'Add Funds'\n• Enter the amount you want to add\n• Confirm the transaction\n\nNote: This is virtual money for practice. You can add as much as you need for your trading simulations!",
+      color: "#8B5CF6"
+    },
+    {
+      title: "Step 3: Deducting Funds",
+      icon: "minus-circle",
+      content: "To deduct virtual funds:\n\n• Go to Account Tab\n• Tap on your balance card\n• Select 'Deduct Funds'\n• Enter the amount to deduct\n• Confirm the transaction\n\nUseful for simulating different capital scenarios or challenging yourself with limited funds.",
+      color: "#F59E0B"
+    },
+    {
+      title: "Step 4: Exploring Stocks",
+      icon: "trending-up",
+      content: "• Navigate to 'Stocks' tab\n• Browse trending stocks or search\n• Tap on any stock to view:\n  - Real-time price\n  - Price charts\n  - Company details\n  - News & updates\n• Use filters to find stocks by sector",
+      color: "#06B6D4"
+    },
+    {
+      title: "Step 5: Placing Your First Trade",
+      icon: "shopping-cart",
+      content: "To buy stocks:\n\n• Select a stock from the list\n• Tap 'Buy' button\n• Enter quantity to purchase\n• Review order details\n• Confirm your order\n\nTo sell:\n• Go to Portfolio tab\n• Select your holding\n• Tap 'Sell' and enter quantity\n• Confirm the sale",
+      color: "#EF4444"
+    },
+    {
+      title: "Step 6: Managing Portfolio",
+      icon: "briefcase",
+      content: "Your Portfolio shows:\n\n• Current holdings & quantities\n• Investment value\n• Current market value\n• Profit/Loss (P&L)\n• Total returns percentage\n\nTrack performance with:\n• Daily P&L charts\n• Sector allocation\n• Top gainers/losers",
+      color: "#EC4899"
+    },
+    {
+      title: "Step 7: Market Watch",
+      icon: "eye",
+      content: "• Add stocks to watchlist\n• Set price alerts\n• Monitor multiple stocks\n• Quick buy/sell access\n• View live price updates\n\nTip: Build watchlists for different sectors to stay organized!",
+      color: "#14B8A6"
+    },
+    {
+      title: "Step 8: F&O Trading",
+      icon: "bar-chart-2",
+      content: "Futures & Options:\n\n• Navigate to F&O tab\n• Choose Futures or Options\n• Select underlying stock\n• Pick expiry date\n• For Options: Select Call/Put\n• Choose strike price\n• Enter quantity (lots)\n• Place your order\n\nWarning: F&O requires understanding of derivatives!",
+      color: "#F97316"
+    },
+    {
+      title: "Step 9: Learning Hub",
+      icon: "book",
+      content: "Improve your trading skills:\n\n• Trading basics\n• Technical analysis\n• Fundamental analysis\n• Risk management\n• F&O strategies\n• Market psychology\n\nAccess from Account > Learning Hub",
+      color: "#6366F1"
+    },
+    {
+      title: "Step 10: Settings & Security",
+      icon: "settings",
+      content: "Manage your account:\n\n• Edit profile information\n• Change password\n• Privacy settings\n• Enable notifications\n• Reset virtual balance\n• Review terms & policies\n\nAccess: Account > Settings",
+      color: "#64748B"
+    },
+    {
+      title: "You're All Set! 🚀",
+      icon: "check-circle",
+      content: "You now know how to:\n\n✓ Register and manage funds\n✓ Browse and trade stocks\n✓ Track your portfolio\n✓ Use F&O features\n✓ Learn and improve\n\nStart trading and practice risk-free!\n\nRemember: This is a simulation. Practice strategies before real trading.",
+      color: "#10B981"
+    }
+  ];
+
+  const currentGuide = guideSteps[currentStep];
+
+  return (
+    <Modal
+      visible={visible}
+      animationType="slide"
+      transparent={true}
+      onRequestClose={onClose}
+    >
+      <View style={styles.modalOverlay}>
+        <View style={styles.modalContent}>
+          {/* Header */}
+          <View style={styles.modalHeader}>
+            <Text style={styles.modalTitle}>Complete User Guide</Text>
+            <TouchableOpacity onPress={onClose}>
+              <Feather name="x" size={24} color="#6B7280" />
+            </TouchableOpacity>
+          </View>
+
+          {/* Progress Indicator */}
+          <View style={styles.progressContainer}>
+            <View style={styles.progressBar}>
+              <View 
+                style={[
+                  styles.progressFill, 
+                  { width: `${((currentStep + 1) / guideSteps.length) * 100}%` }
+                ]} 
+              />
+            </View>
+            <Text style={styles.progressText}>
+              Step {currentStep + 1} of {guideSteps.length}
+            </Text>
+          </View>
+
+          {/* Content */}
+          <ScrollView 
+            style={styles.guideContent}
+            showsVerticalScrollIndicator={false}
+          >
+            <View style={[styles.guideIconContainer, { backgroundColor: currentGuide.color + '15' }]}>
+              <Feather name={currentGuide.icon} size={48} color={currentGuide.color} />
+            </View>
+            
+            <Text style={styles.guideTitle}>{currentGuide.title}</Text>
+            <Text style={styles.guideText}>{currentGuide.content}</Text>
+          </ScrollView>
+
+          {/* Navigation Buttons */}
+          <View style={styles.modalFooter}>
+            <TouchableOpacity
+              style={[styles.navButton, currentStep === 0 && styles.navButtonDisabled]}
+              onPress={() => setCurrentStep(Math.max(0, currentStep - 1))}
+              disabled={currentStep === 0}
+            >
+              <Feather name="arrow-left" size={20} color={currentStep === 0 ? "#9CA3AF" : "#2E5CFF"} />
+              <Text style={[styles.navButtonText, currentStep === 0 && styles.navButtonTextDisabled]}>
+                Previous
+              </Text>
+            </TouchableOpacity>
+
+            {currentStep === guideSteps.length - 1 ? (
+              <TouchableOpacity
+                style={styles.finishButton}
+                onPress={onClose}
+              >
+                <Text style={styles.finishButtonText}>Finish</Text>
+                <Feather name="check" size={20} color="#FFFFFF" />
+              </TouchableOpacity>
+            ) : (
+              <TouchableOpacity
+                style={styles.nextButton}
+                onPress={() => setCurrentStep(Math.min(guideSteps.length - 1, currentStep + 1))}
+              >
+                <Text style={styles.nextButtonText}>Next</Text>
+                <Feather name="arrow-right" size={20} color="#FFFFFF" />
+              </TouchableOpacity>
+            )}
+          </View>
+        </View>
+      </View>
+    </Modal>
+  );
+}
+
 const styles = StyleSheet.create({
   container: {
     flex: 1,
@@ -298,7 +478,7 @@ const styles = StyleSheet.create({
     paddingTop: 60,
     paddingBottom: 24,
     paddingHorizontal: 20,
-     borderBottomLeftRadius: 28,
+    borderBottomLeftRadius: 28,
     borderBottomRightRadius: 28,
   },
   headerTop: {
@@ -389,6 +569,7 @@ const styles = StyleSheet.create({
     padding: 20,
     borderWidth: 1,
     borderColor: '#E5E7EB',
+    position: 'relative',
   },
   quickHelpIcon: {
     width: 48,
@@ -409,6 +590,20 @@ const styles = StyleSheet.create({
     fontSize: 12,
     color: '#6B7280',
     lineHeight: 18,
+  },
+  comingSoonBadge: {
+    position: 'absolute',
+    top: 12,
+    right: 12,
+    backgroundColor: '#FEF3C7',
+    paddingHorizontal: 8,
+    paddingVertical: 4,
+    borderRadius: 6,
+  },
+  comingSoonText: {
+    fontSize: 10,
+    fontWeight: '600',
+    color: '#D97706',
   },
   faqSection: {
     padding: 20,
@@ -478,6 +673,7 @@ const styles = StyleSheet.create({
     backgroundColor: '#FFFFFF',
     margin: 20,
     marginTop: 0,
+    marginBottom: 40,
     padding: 24,
     borderRadius: 16,
     alignItems: 'center',
@@ -519,5 +715,141 @@ const styles = StyleSheet.create({
     fontSize: 14,
     fontWeight: '600',
     color: '#2E5CFF',
+  },
+  // Modal Styles
+  modalOverlay: {
+    flex: 1,
+    backgroundColor: 'rgba(0, 0, 0, 0.5)',
+    justifyContent: 'flex-end',
+  },
+  modalContent: {
+    backgroundColor: '#FFFFFF',
+    borderTopLeftRadius: 24,
+    borderTopRightRadius: 24,
+    height: '90%',
+    paddingTop: 20,
+  },
+  modalHeader: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    paddingHorizontal: 20,
+    marginBottom: 20,
+  },
+  modalTitle: {
+    fontSize: 20,
+    fontWeight: '700',
+    color: '#1A1A1A',
+  },
+  progressContainer: {
+    paddingHorizontal: 20,
+    marginBottom: 24,
+  },
+  progressBar: {
+    height: 6,
+    backgroundColor: '#E5E7EB',
+    borderRadius: 3,
+    overflow: 'hidden',
+    marginBottom: 8,
+  },
+  progressFill: {
+    height: '100%',
+    backgroundColor: '#2E5CFF',
+    borderRadius: 3,
+  },
+  progressText: {
+    fontSize: 12,
+    color: '#6B7280',
+    fontWeight: '600',
+  },
+  guideContent: {
+    flex: 1,
+    paddingHorizontal: 20,
+  },
+  guideIconContainer: {
+    width: 96,
+    height: 96,
+    borderRadius: 48,
+    alignItems: 'center',
+    justifyContent: 'center',
+    alignSelf: 'center',
+    marginBottom: 20,
+  },
+  guideTitle: {
+    fontSize: 24,
+    fontWeight: '700',
+    color: '#1A1A1A',
+    textAlign: 'center',
+    marginBottom: 16,
+  },
+  guideText: {
+    fontSize: 15,
+    color: '#4B5563',
+    lineHeight: 24,
+    marginBottom: 24,
+  },
+  modalFooter: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    paddingHorizontal: 20,
+    paddingVertical: 20,
+    borderTopWidth: 1,
+    borderTopColor: '#E5E7EB',
+    gap: 12,
+  },
+  navButton: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    paddingHorizontal: 20,
+    paddingVertical: 12,
+    borderRadius: 12,
+    borderWidth: 1,
+    borderColor: '#2E5CFF',
+    gap: 8,
+    flex: 1,
+    justifyContent: 'center',
+  },
+  navButtonDisabled: {
+    borderColor: '#E5E7EB',
+  },
+  navButtonText: {
+    fontSize: 15,
+    fontWeight: '600',
+    color: '#2E5CFF',
+  },
+  navButtonTextDisabled: {
+    color: '#9CA3AF',
+  },
+  nextButton: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    paddingHorizontal: 20,
+    paddingVertical: 12,
+    borderRadius: 12,
+    backgroundColor: '#2E5CFF',
+    gap: 8,
+    flex: 1,
+    justifyContent: 'center',
+  },
+  nextButtonText: {
+    fontSize: 15,
+    fontWeight: '600',
+    color: '#FFFFFF',
+  },
+  finishButton: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    paddingHorizontal: 20,
+    paddingVertical: 12,
+    borderRadius: 12,
+    backgroundColor: '#10B981',
+    gap: 8,
+    flex: 1,
+    justifyContent: 'center',
+  },
+  finishButtonText: {
+    fontSize: 15,
+    fontWeight: '600',
+    color: '#FFFFFF',
   },
 });
