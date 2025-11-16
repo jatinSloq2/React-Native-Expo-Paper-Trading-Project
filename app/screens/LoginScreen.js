@@ -1,9 +1,9 @@
 import { useState, useContext } from "react";
-import { 
-  View, 
-  Text, 
-  TextInput, 
-  TouchableOpacity, 
+import {
+  View,
+  Text,
+  TextInput,
+  TouchableOpacity,
   StyleSheet,
   KeyboardAvoidingView,
   Platform,
@@ -13,6 +13,7 @@ import {
 import { LinearGradient } from 'expo-linear-gradient';
 import axiosInstance from "../api/axiosInstance";
 import { AuthContext } from "../../context/AuthContext";
+import { Feather } from '@expo/vector-icons';
 
 export default function LoginScreen({ navigation }) {
   const { login } = useContext(AuthContext);
@@ -131,7 +132,6 @@ export default function LoginScreen({ navigation }) {
             {/* Error/Success Messages */}
             {error ? (
               <View style={styles.errorContainer}>
-                <Text style={styles.errorIcon}>⚠️</Text>
                 <Text style={styles.errorText}>{error}</Text>
               </View>
             ) : null}
@@ -178,7 +178,9 @@ export default function LoginScreen({ navigation }) {
 
           {/* Info Banner */}
           <View style={styles.infoBanner}>
-            <Text style={styles.infoBannerIcon}>ℹ️</Text>
+            <View style={styles.infoBannerIconContainer}>
+              <Feather name="info" size={20} color="#3B82F6" />
+            </View>
             <View style={styles.infoBannerContent}>
               <Text style={styles.infoBannerTitle}>Practice Trading</Text>
               <Text style={styles.infoBannerText}>
@@ -219,6 +221,9 @@ const styles = StyleSheet.create({
   logoContainer: {
     alignItems: 'center',
     marginBottom: 32,
+  },
+  infoBannerIconContainer: {
+    marginRight: 12,
   },
   logoCircle: {
     width: 80,

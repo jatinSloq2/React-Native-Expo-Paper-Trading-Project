@@ -1,5 +1,4 @@
 import { Feather } from '@expo/vector-icons';
-import { useNavigation } from '@react-navigation/native';
 import { LinearGradient } from 'expo-linear-gradient';
 import { useState } from 'react';
 import {
@@ -7,92 +6,61 @@ import {
   StyleSheet,
   Text,
   TouchableOpacity,
-  View
+  View,
+  Modal
 } from 'react-native';
+import { courses, keyTradingPoints } from '../../../constants/learningCourses';
 
 export default function LearningHubScreen() {
-  const navigation = useNavigation();
   const [selectedCategory, setSelectedCategory] = useState('all');
+  const [selectedCourse, setSelectedCourse] = useState(null);
+  const [selectedLesson, setSelectedLesson] = useState(null);
+  const [showKeyPoints, setShowKeyPoints] = useState(false);
 
   const categories = [
     { id: 'all', label: 'All', icon: 'grid' },
     { id: 'basics', label: 'Basics', icon: 'book' },
     { id: 'stocks', label: 'Stocks', icon: 'trending-up' },
     { id: 'fno', label: 'F&O', icon: 'bar-chart-2' },
+    { id: 'mf', label: 'Mutual Funds', icon: 'briefcase' },
     { id: 'analysis', label: 'Analysis', icon: 'pie-chart' },
   ];
 
-  const courses = [
-    {
-      id: 1,
-      title: 'Stock Market Fundamentals',
-      subtitle: 'Learn the basics of stock trading',
-      lessons: 12,
-      duration: '2h 30m',
-      difficulty: 'Beginner',
-      category: 'basics',
-      progress: 0,
-      color: '#10B981'
-    },
-    {
-      id: 2,
-      title: 'Technical Analysis Masterclass',
-      subtitle: 'Master charts and indicators',
-      lessons: 18,
-      duration: '4h 15m',
-      difficulty: 'Intermediate',
-      category: 'analysis',
-      progress: 35,
-      color: '#F59E0B'
-    },
-    {
-      id: 3,
-      title: 'Options Trading Strategies',
-      subtitle: 'Advanced F&O trading techniques',
-      lessons: 15,
-      duration: '3h 45m',
-      difficulty: 'Advanced',
-      category: 'fno',
-      progress: 0,
-      color: '#DC2626'
-    },
-    {
-      id: 4,
-      title: 'Fundamental Analysis',
-      subtitle: 'Evaluate companies like a pro',
-      lessons: 10,
-      duration: '2h 0m',
-      difficulty: 'Intermediate',
-      category: 'stocks',
-      progress: 60,
-      color: '#8B5CF6'
-    },
-    {
-      id: 5,
-      title: 'Risk Management Essentials',
-      subtitle: 'Protect your capital effectively',
-      lessons: 8,
-      duration: '1h 45m',
-      difficulty: 'Beginner',
-      category: 'basics',
-      progress: 100,
-      color: '#06B6D4'
-    },
-  ];
 
-  const articles = [
-    { title: '10 Trading Mistakes to Avoid', readTime: '5 min' },
-    { title: 'Understanding Market Volatility', readTime: '7 min' },
-    { title: 'Building a Diversified Portfolio', readTime: '6 min' },
-  ];
+
+
 
   const filteredCourses = selectedCategory === 'all'
     ? courses
     : courses.filter(course => course.category === selectedCategory);
 
+  if (selectedLesson) {
+    const currentLessonIndex = selectedCourse?.modules.findIndex(m => m.title === selectedLesson.title) || 0;
+
+    return (
+      <LessonView
+        lesson={selectedLesson}
+        courseTitle={selectedCourse?.title}
+        course={selectedCourse}
+        currentLessonIndex={currentLessonIndex}
+        onBack={() => setSelectedLesson(null)}
+        onSelectLesson={(lesson) => setSelectedLesson(lesson)}
+      />
+    );
+  }
+
+  if (selectedCourse) {
+    return (
+      <CourseDetailView
+        course={selectedCourse}
+        onBack={() => setSelectedCourse(null)}
+        onSelectLesson={(lesson) => setSelectedLesson(lesson)}
+      />
+    );
+  }
+
   return (
     <View style={styles.container}>
-      {/* Header */}
       <LinearGradient
         colors={['#2E5CFF', '#1A3FCC']}
         style={styles.header}
@@ -100,25 +68,20 @@ export default function LearningHubScreen() {
         end={{ x: 1, y: 1 }}
       >
         <View style={styles.headerTop}>
-          <TouchableOpacity
-            onPress={() => navigation.goBack()}
-            style={styles.backButton}
-          >
-            <Feather name="arrow-left" size={24} color="#FFFFFF" />
-          </TouchableOpacity>
+          <View style={styles.backButton}>
+            <Feather name="book-open" size={24} color="#FFFFFF" />
+          </View>
           <Text style={styles.headerTitle}>Learning Hub</Text>
-          <TouchableOpacity style={styles.backButton}>
-            <Feather name="search" size={24} color="#FFFFFF" />
-          </TouchableOpacity>
+          <View style={styles.backButton}>
+            <Feather name="award" size={24} color="#FFFFFF" />
+          </View>
         </View>
-
         <Text style={styles.headerSubtitle}>
-          Master trading skills at your own pace
+          Complete trading education from basics to advanced
         </Text>
       </LinearGradient>
 
       <ScrollView style={styles.content} showsVerticalScrollIndicator={false}>
-        {/* Stats Banner */}
         <LinearGradient
           colors={['#10B981', '#059669']}
           style={styles.statsBanner}
@@ -126,22 +89,24 @@ export default function LearningHubScreen() {
           end={{ x: 1, y: 1 }}
         >
           <View style={styles.statItem}>
-            <Text style={styles.statValue}>3</Text>
-            <Text style={styles.statLabel}>Courses In Progress</Text>
+            <Feather name="book" size={24} color="#FFFFFF" />
+            <Text style={styles.statValue}>60+</Text>
+            <Text style={styles.statLabel}>Detailed Lessons</Text>
           </View>
           <View style={styles.statDivider} />
           <View style={styles.statItem}>
-            <Text style={styles.statValue}>1</Text>
-            <Text style={styles.statLabel}>Completed</Text>
+            <Feather name="clock" size={24} color="#FFFFFF" />
+            <Text style={styles.statValue}>15h+</Text>
+            <Text style={styles.statLabel}>Content</Text>
           </View>
           <View style={styles.statDivider} />
           <View style={styles.statItem}>
-            <Text style={styles.statValue}>8h</Text>
-            <Text style={styles.statLabel}>Learning Time</Text>
+            <Feather name="trending-up" size={24} color="#FFFFFF" />
+            <Text style={styles.statValue}>100%</Text>
+            <Text style={styles.statLabel}>Free</Text>
           </View>
         </LinearGradient>
 
-        {/* Categories */}
         <ScrollView
           horizontal
           showsHorizontalScrollIndicator={false}
@@ -172,71 +137,79 @@ export default function LearningHubScreen() {
           ))}
         </ScrollView>
 
-        {/* Courses Section */}
         <View style={styles.section}>
-          <Text style={styles.sectionTitle}>Available Courses</Text>
+          <Text style={styles.sectionTitle}>📚 Complete Courses</Text>
           {filteredCourses.map((course) => (
-            <CourseCard key={course.id} course={course} />
+            <CourseCard
+              key={course.id}
+              course={course}
+              onPress={() => setSelectedCourse(course)}
+            />
           ))}
         </View>
 
-        {/* Quick Articles */}
         <View style={styles.section}>
-          <View style={styles.sectionHeader}>
-            <Text style={styles.sectionTitle}>Quick Reads</Text>
-            <TouchableOpacity>
-              <Text style={styles.seeAll}>See all</Text>
-            </TouchableOpacity>
-          </View>
+          <TouchableOpacity
+            style={styles.sectionHeaderButton}
+            onPress={() => setShowKeyPoints(!showKeyPoints)}
+          >
+            <Text style={styles.sectionTitle}>💡 Essential Trading Rules</Text>
+            <Feather
+              name={showKeyPoints ? 'chevron-up' : 'chevron-down'}
+              size={20}
+              color="#2E5CFF"
+            />
+          </TouchableOpacity>
 
-          {articles.map((article, index) => (
-            <ArticleCard key={index} article={article} />
-          ))}
+          {showKeyPoints && (
+            <View style={styles.keyPointsContainer}>
+              {keyTradingPoints.map((point, index) => (
+                <View key={index} style={styles.keyPointCard}>
+                  <View style={styles.keyPointIcon}>
+                    <Feather name={point.icon} size={20} color="#2E5CFF" />
+                  </View>
+                  <View style={styles.keyPointContent}>
+                    <Text style={styles.keyPointTitle}>{point.title}</Text>
+                    <Text style={styles.keyPointDescription}>{point.description}</Text>
+                  </View>
+                </View>
+              ))}
+            </View>
+          )}
         </View>
 
-        {/* Practice Section */}
-        <TouchableOpacity style={styles.practiceCard}>
+        <View style={styles.practiceCard}>
           <View style={styles.practiceIconContainer}>
             <Feather name="target" size={28} color="#2E5CFF" />
           </View>
           <View style={styles.practiceContent}>
-            <Text style={styles.practiceTitle}>Practice Trading</Text>
+            <Text style={styles.practiceTitle}>Ready to Practice?</Text>
             <Text style={styles.practiceSubtitle}>
-              Apply what you've learned in a risk-free environment
+              Apply your knowledge in risk-free paper trading
             </Text>
           </View>
-          <Feather name="chevron-right" size={24} color="#9CA3AF" />
-        </TouchableOpacity>
+          <Feather name="arrow-right" size={24} color="#2E5CFF" />
+        </View>
       </ScrollView>
     </View>
   );
 }
 
-function CourseCard({ course }) {
-  const getDifficultyColor = (difficulty) => {
-    switch (difficulty) {
-      case 'Beginner': return '#10B981';
-      case 'Intermediate': return '#F59E0B';
-      case 'Advanced': return '#DC2626';
-      default: return '#6B7280';
-    }
-  };
-
+function CourseCard({ course, onPress }) {
   return (
-    <TouchableOpacity style={styles.courseCard} activeOpacity={0.7}>
-      <View style={[styles.courseColorBar, { backgroundColor: course.color }]} />
+    <TouchableOpacity style={styles.courseCard} activeOpacity={0.7} onPress={onPress}>
+      <LinearGradient
+        colors={[course.color, course.color + 'DD']}
+        style={styles.courseGradient}
+        start={{ x: 0, y: 0 }}
+        end={{ x: 1, y: 0 }}
+      />
 
       <View style={styles.courseContent}>
         <View style={styles.courseHeader}>
           <Text style={styles.courseTitle}>{course.title}</Text>
-          <View style={[
-            styles.difficultyBadge,
-            { backgroundColor: `${getDifficultyColor(course.difficulty)}15` }
-          ]}>
-            <Text style={[
-              styles.difficultyText,
-              { color: getDifficultyColor(course.difficulty) }
-            ]}>
+          <View style={[styles.difficultyBadge, { backgroundColor: course.color + '20' }]}>
+            <Text style={[styles.difficultyText, { color: course.color }]}>
               {course.difficulty}
             </Text>
           </View>
@@ -254,35 +227,213 @@ function CourseCard({ course }) {
             <Text style={styles.courseInfoText}>{course.duration}</Text>
           </View>
         </View>
+      </View>
 
-        {course.progress > 0 && (
-          <View style={styles.progressContainer}>
-            <View style={styles.progressBar}>
-              <View style={[styles.progressFill, { width: `${course.progress}%` }]} />
-            </View>
-            <Text style={styles.progressText}>{course.progress}% complete</Text>
-          </View>
-        )}
+      <View style={styles.courseArrow}>
+        <Feather name="chevron-right" size={24} color={course.color} />
       </View>
     </TouchableOpacity>
   );
 }
 
-function ArticleCard({ article }) {
+function CourseDetailView({ course, onBack, onSelectLesson }) {
+  const [expandedModule, setExpandedModule] = useState(0);
+
   return (
-    <TouchableOpacity style={styles.articleCard} activeOpacity={0.7}>
-      <View style={styles.articleIcon}>
-        <Feather name="file-text" size={20} color="#2E5CFF" />
-      </View>
-      <View style={styles.articleContent}>
-        <Text style={styles.articleTitle}>{article.title}</Text>
-        <View style={styles.articleMeta}>
-          <Feather name="clock" size={12} color="#9CA3AF" />
-          <Text style={styles.articleReadTime}>{article.readTime} read</Text>
+    <View style={styles.container}>
+      <LinearGradient
+        colors={[course.color, course.color + 'CC']}
+        style={styles.detailHeader}
+        start={{ x: 0, y: 0 }}
+        end={{ x: 1, y: 1 }}
+      >
+        <TouchableOpacity onPress={onBack} style={styles.detailBackButton}>
+          <Feather name="arrow-left" size={24} color="#FFFFFF" />
+        </TouchableOpacity>
+
+        <Text style={styles.detailHeaderTitle}>{course.title}</Text>
+        <Text style={styles.detailHeaderSubtitle}>{course.subtitle}</Text>
+
+        <View style={styles.detailStats}>
+          <View style={styles.detailStatItem}>
+            <Feather name="book-open" size={18} color="#FFFFFF" />
+            <Text style={styles.detailStatText}>{course.lessons} Lessons</Text>
+          </View>
+          <View style={styles.detailStatItem}>
+            <Feather name="clock" size={18} color="#FFFFFF" />
+            <Text style={styles.detailStatText}>{course.duration}</Text>
+          </View>
+          <View style={styles.detailStatItem}>
+            <Feather name="award" size={18} color="#FFFFFF" />
+            <Text style={styles.detailStatText}>{course.difficulty}</Text>
+          </View>
+        </View>
+      </LinearGradient>
+
+      <ScrollView style={styles.detailContent} showsVerticalScrollIndicator={false}>
+        <View style={styles.detailSection}>
+          <Text style={styles.detailSectionTitle}>📖 Course Modules</Text>
+          <Text style={styles.detailSectionSubtitle}>
+            Click any module to start learning
+          </Text>
+
+          {course.modules.map((module, index) => (
+            <TouchableOpacity
+              key={index}
+              style={[
+                styles.moduleCard,
+                expandedModule === index && styles.moduleCardExpanded
+              ]}
+              onPress={() => {
+                setExpandedModule(expandedModule === index ? null : index);
+                if (expandedModule !== index) {
+                  onSelectLesson(module);
+                }
+              }}
+            >
+              <View style={[styles.moduleNumber, { backgroundColor: course.color + '20' }]}>
+                <Text style={[styles.moduleNumberText, { color: course.color }]}>
+                  {index + 1}
+                </Text>
+              </View>
+
+              <View style={styles.moduleContent}>
+                <Text style={styles.moduleTitle}>{module.title}</Text>
+                <View style={styles.moduleMeta}>
+                  <Feather name="clock" size={12} color="#6B7280" />
+                  <Text style={styles.moduleMetaText}>{module.duration}</Text>
+                </View>
+              </View>
+
+              <Feather name="play-circle" size={24} color={course.color} />
+            </TouchableOpacity>
+          ))}
+        </View>
+
+        <View style={styles.courseFeatures}>
+          <Text style={styles.featuresTitle}>✨ What You'll Learn</Text>
+          <View style={styles.featureItem}>
+            <Feather name="check-circle" size={18} color="#10B981" />
+            <Text style={styles.featureText}>Complete practical knowledge</Text>
+          </View>
+          <View style={styles.featureItem}>
+            <Feather name="check-circle" size={18} color="#10B981" />
+            <Text style={styles.featureText}>Real-world examples and scenarios</Text>
+          </View>
+          <View style={styles.featureItem}>
+            <Feather name="check-circle" size={18} color="#10B981" />
+            <Text style={styles.featureText}>Step-by-step guidance</Text>
+          </View>
+          <View style={styles.featureItem}>
+            <Feather name="check-circle" size={18} color="#10B981" />
+            <Text style={styles.featureText}>Trading strategies and tips</Text>
+          </View>
+        </View>
+
+        <TouchableOpacity
+          style={[styles.startCourseButton, { backgroundColor: course.color }]}
+          onPress={() => onSelectLesson(course.modules[0])}
+        >
+          <Text style={styles.startCourseButtonText}>Start Learning</Text>
+          <Feather name="arrow-right" size={20} color="#FFFFFF" />
+        </TouchableOpacity>
+      </ScrollView>
+    </View>
+  );
+}
+
+function LessonView({ lesson, courseTitle, onBack, course, currentLessonIndex, onSelectLesson }) {
+  const [bookmarked, setBookmarked] = useState(false);
+
+  const handleNextLesson = () => {
+    if (course && currentLessonIndex < course.modules.length - 1) {
+      const nextLesson = course.modules[currentLessonIndex + 1];
+      onSelectLesson(nextLesson);
+    }
+  };
+
+  const isLastLesson = !course || currentLessonIndex >= course.modules.length - 1;
+
+  return (
+    <View style={styles.container}>
+      <View style={styles.lessonHeader}>
+        <View style={styles.lessonHeaderTop}>
+          <TouchableOpacity onPress={onBack} style={styles.lessonBackButton}>
+            <Feather name="arrow-left" size={24} color="#1A1A1A" />
+          </TouchableOpacity>
+
+          <TouchableOpacity
+            style={styles.bookmarkButton}
+            onPress={() => setBookmarked(!bookmarked)}
+          >
+            <Feather
+              name={bookmarked ? "bookmark" : "bookmark"}
+              size={24}
+              color={bookmarked ? "#2E5CFF" : "#6B7280"}
+              fill={bookmarked ? "#2E5CFF" : "transparent"}
+            />
+          </TouchableOpacity>
+        </View>
+
+        <Text style={styles.lessonCourse}>{courseTitle}</Text>
+        <Text style={styles.lessonTitle}>{lesson.title}</Text>
+
+        <View style={styles.lessonMeta}>
+          <View style={styles.lessonMetaItem}>
+            <Feather name="clock" size={16} color="#6B7280" />
+            <Text style={styles.lessonMetaText}>{lesson.duration}</Text>
+          </View>
+          {course && (
+            <View style={styles.lessonMetaItem}>
+              <Feather name="book-open" size={16} color="#6B7280" />
+              <Text style={styles.lessonMetaText}>
+                Lesson {currentLessonIndex + 1} of {course.modules.length}
+              </Text>
+            </View>
+          )}
         </View>
       </View>
-      <Feather name="chevron-right" size={20} color="#9CA3AF" />
-    </TouchableOpacity>
+
+      <ScrollView
+        style={styles.lessonContent}
+        showsVerticalScrollIndicator={false}
+        contentContainerStyle={styles.lessonContentContainer}
+      >
+        <Text style={styles.lessonBody}>{lesson.content}</Text>
+
+        <View style={styles.lessonActions}>
+          <TouchableOpacity style={styles.lessonActionButton}>
+            <Feather name="message-circle" size={20} color="#2E5CFF" />
+            <Text style={styles.lessonActionText}>Ask Question</Text>
+          </TouchableOpacity>
+
+          <TouchableOpacity style={styles.lessonActionButton}>
+            <Feather name="share-2" size={20} color="#2E5CFF" />
+            <Text style={styles.lessonActionText}>Share</Text>
+          </TouchableOpacity>
+        </View>
+
+        {!isLastLesson && (
+          <TouchableOpacity
+            style={styles.nextLessonButton}
+            onPress={handleNextLesson}
+          >
+            <Text style={styles.nextLessonText}>Next Lesson</Text>
+            <Feather name="arrow-right" size={20} color="#FFFFFF" />
+          </TouchableOpacity>
+        )}
+
+        {isLastLesson && (
+          <TouchableOpacity
+            style={[styles.nextLessonButton, { backgroundColor: '#10B981' }]}
+            onPress={onBack}
+          >
+            <Feather name="check-circle" size={20} color="#FFFFFF" />
+            <Text style={styles.nextLessonText}>Course Complete!</Text>
+          </TouchableOpacity>
+        )}
+      </ScrollView>
+    </View>
   );
 }
 
@@ -319,7 +470,7 @@ const styles = StyleSheet.create({
   },
   headerSubtitle: {
     fontSize: 14,
-    color: 'rgba(255, 255, 255, 0.85)',
+    color: 'rgba(255, 255, 255, 0.9)',
     marginTop: 4,
   },
   content: {
@@ -336,21 +487,21 @@ const styles = StyleSheet.create({
   },
   statItem: {
     alignItems: 'center',
+    gap: 6,
   },
   statValue: {
-    fontSize: 24,
+    fontSize: 20,
     fontWeight: '700',
     color: '#FFFFFF',
-    marginBottom: 4,
   },
   statLabel: {
     fontSize: 11,
-    color: 'rgba(255, 255, 255, 0.85)',
+    color: 'rgba(255, 255, 255, 0.9)',
     textAlign: 'center',
   },
   statDivider: {
     width: 1,
-    height: 40,
+    height: 50,
     backgroundColor: 'rgba(255, 255, 255, 0.3)',
   },
   categoriesContainer: {
@@ -386,35 +537,34 @@ const styles = StyleSheet.create({
   section: {
     padding: 20,
   },
-  sectionHeader: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-    marginBottom: 16,
-  },
   sectionTitle: {
     fontSize: 18,
     fontWeight: '700',
     color: '#1A1A1A',
     marginBottom: 16,
   },
-  seeAll: {
-    fontSize: 14,
-    fontWeight: '600',
-    color: '#2E5CFF',
+  sectionHeaderButton: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    marginBottom: 16,
   },
   courseCard: {
     backgroundColor: '#FFFFFF',
     borderRadius: 16,
     marginBottom: 16,
     overflow: 'hidden',
+    flexDirection: 'row',
+    alignItems: 'center',
     borderWidth: 1,
     borderColor: '#E5E7EB',
   },
-  courseColorBar: {
-    height: 4,
+  courseGradient: {
+    width: 6,
+    height: '100%',
   },
   courseContent: {
+    flex: 1,
     padding: 20,
   },
   courseHeader: {
@@ -447,6 +597,7 @@ const styles = StyleSheet.create({
   courseInfo: {
     flexDirection: 'row',
     gap: 16,
+    flexWrap: 'wrap',
   },
   courseInfoItem: {
     flexDirection: 'row',
@@ -458,37 +609,22 @@ const styles = StyleSheet.create({
     color: '#6B7280',
     fontWeight: '500',
   },
-  progressContainer: {
-    marginTop: 16,
+  courseArrow: {
+    paddingRight: 16,
   },
-  progressBar: {
-    height: 6,
-    backgroundColor: '#E5E7EB',
-    borderRadius: 3,
-    overflow: 'hidden',
-    marginBottom: 6,
+  keyPointsContainer: {
+    marginTop: 8,
   },
-  progressFill: {
-    height: '100%',
-    backgroundColor: '#10B981',
-    borderRadius: 3,
-  },
-  progressText: {
-    fontSize: 12,
-    color: '#6B7280',
-    fontWeight: '600',
-  },
-  articleCard: {
+  keyPointCard: {
     flexDirection: 'row',
-    alignItems: 'center',
     backgroundColor: '#FFFFFF',
     padding: 16,
     borderRadius: 12,
-    marginBottom: 10,
+    marginBottom: 12,
     borderWidth: 1,
     borderColor: '#E5E7EB',
   },
-  articleIcon: {
+  keyPointIcon: {
     width: 40,
     height: 40,
     borderRadius: 10,
@@ -497,23 +633,19 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     marginRight: 12,
   },
-  articleContent: {
+  keyPointContent: {
     flex: 1,
   },
-  articleTitle: {
+  keyPointTitle: {
     fontSize: 15,
-    fontWeight: '600',
+    fontWeight: '700',
     color: '#1A1A1A',
     marginBottom: 4,
   },
-  articleMeta: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 4,
-  },
-  articleReadTime: {
-    fontSize: 12,
-    color: '#9CA3AF',
+  keyPointDescription: {
+    fontSize: 13,
+    color: '#6B7280',
+    lineHeight: 18,
   },
   practiceCard: {
     flexDirection: 'row',
@@ -548,5 +680,254 @@ const styles = StyleSheet.create({
     fontSize: 13,
     color: '#6B7280',
     lineHeight: 18,
+  },
+  detailHeader: {
+    paddingTop: 60,
+    paddingBottom: 32,
+    paddingHorizontal: 20,
+    borderBottomLeftRadius: 28,
+    borderBottomRightRadius: 28,
+  },
+  detailBackButton: {
+    width: 40,
+    height: 40,
+    borderRadius: 12,
+    backgroundColor: 'rgba(255, 255, 255, 0.2)',
+    alignItems: 'center',
+    justifyContent: 'center',
+    marginBottom: 20,
+  },
+  detailHeaderTitle: {
+    fontSize: 24,
+    fontWeight: '700',
+    color: '#FFFFFF',
+    marginBottom: 8,
+  },
+  detailHeaderSubtitle: {
+    fontSize: 15,
+    color: 'rgba(255, 255, 255, 0.9)',
+    marginBottom: 24,
+  },
+  detailStats: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+  },
+  detailStatItem: {
+    alignItems: 'center',
+    gap: 6,
+  },
+  detailStatText: {
+    fontSize: 13,
+    color: '#FFFFFF',
+    fontWeight: '600',
+  },
+  detailContent: {
+    flex: 1,
+    backgroundColor: '#F5F7FA',
+  },
+  detailSection: {
+    padding: 20,
+  },
+  detailSectionTitle: {
+    fontSize: 18,
+    fontWeight: '700',
+    color: '#1A1A1A',
+    marginBottom: 8,
+  },
+  detailSectionSubtitle: {
+    fontSize: 14,
+    color: '#6B7280',
+    marginBottom: 16,
+  },
+  moduleCard: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    backgroundColor: '#FFFFFF',
+    padding: 16,
+    borderRadius: 12,
+    marginBottom: 12,
+    borderWidth: 1,
+    borderColor: '#E5E7EB',
+  },
+  moduleCardExpanded: {
+    borderColor: '#2E5CFF',
+    borderWidth: 2,
+  },
+  moduleNumber: {
+    width: 36,
+    height: 36,
+    borderRadius: 10,
+    alignItems: 'center',
+    justifyContent: 'center',
+    marginRight: 12,
+  },
+  moduleNumberText: {
+    fontSize: 15,
+    fontWeight: '700',
+  },
+  moduleContent: {
+    flex: 1,
+  },
+  moduleTitle: {
+    fontSize: 15,
+    fontWeight: '600',
+    color: '#1A1A1A',
+    marginBottom: 4,
+  },
+  moduleMeta: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 4,
+  },
+  moduleMetaText: {
+    fontSize: 12,
+    color: '#6B7280',
+  },
+  courseFeatures: {
+    backgroundColor: '#FFFFFF',
+    padding: 20,
+    borderRadius: 16,
+    marginHorizontal: 20,
+    marginBottom: 20,
+    borderWidth: 1,
+    borderColor: '#E5E7EB',
+  },
+  featuresTitle: {
+    fontSize: 16,
+    fontWeight: '700',
+    color: '#1A1A1A',
+    marginBottom: 16,
+  },
+  featureItem: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 12,
+    marginBottom: 12,
+  },
+  featureText: {
+    fontSize: 14,
+    color: '#374151',
+  },
+  startCourseButton: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    marginHorizontal: 20,
+    marginBottom: 32,
+    padding: 18,
+    borderRadius: 16,
+    gap: 8,
+  },
+  startCourseButtonText: {
+    fontSize: 16,
+    fontWeight: '700',
+    color: '#FFFFFF',
+  },
+  lessonHeader: {
+    backgroundColor: '#FFFFFF',
+    paddingTop: 60,
+    paddingHorizontal: 20,
+    paddingBottom: 20,
+    borderBottomWidth: 1,
+    borderBottomColor: '#E5E7EB',
+  },
+  lessonHeaderTop: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    marginBottom: 16,
+  },
+  lessonBackButton: {
+    width: 40,
+    height: 40,
+    borderRadius: 12,
+    backgroundColor: '#F5F7FA',
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  bookmarkButton: {
+    width: 40,
+    height: 40,
+    borderRadius: 12,
+    backgroundColor: '#F5F7FA',
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  lessonCourse: {
+    fontSize: 13,
+    color: '#2E5CFF',
+    fontWeight: '600',
+    marginBottom: 8,
+  },
+  lessonTitle: {
+    fontSize: 22,
+    fontWeight: '700',
+    color: '#1A1A1A',
+    marginBottom: 12,
+  },
+  lessonMeta: {
+    flexDirection: 'row',
+    gap: 16,
+  },
+  lessonMetaItem: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 6,
+  },
+  lessonMetaText: {
+    fontSize: 14,
+    color: '#6B7280',
+    fontWeight: '500',
+  },
+  lessonContent: {
+    flex: 1,
+    backgroundColor: '#FFFFFF',
+  },
+  lessonContentContainer: {
+    padding: 20,
+  },
+  lessonBody: {
+    fontSize: 16,
+    color: '#374151',
+    lineHeight: 26,
+    marginBottom: 32,
+  },
+  lessonActions: {
+    flexDirection: 'row',
+    justifyContent: 'space-around',
+    paddingVertical: 20,
+    borderTopWidth: 1,
+    borderBottomWidth: 1,
+    borderColor: '#E5E7EB',
+    marginBottom: 24,
+  },
+  lessonActionButton: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 8,
+    paddingVertical: 10,
+    paddingHorizontal: 20,
+    borderRadius: 12,
+    backgroundColor: '#F0F4FF',
+  },
+  lessonActionText: {
+    fontSize: 14,
+    fontWeight: '600',
+    color: '#2E5CFF',
+  },
+  nextLessonButton: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    backgroundColor: '#2E5CFF',
+    padding: 18,
+    borderRadius: 16,
+    gap: 8,
+    marginBottom: 20,
+  },
+  nextLessonText: {
+    fontSize: 16,
+    fontWeight: '700',
+    color: '#FFFFFF',
   },
 });

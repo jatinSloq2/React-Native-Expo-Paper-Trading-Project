@@ -406,7 +406,6 @@ export default function AccountScreen() {
           style={styles.logoutButton}
           activeOpacity={0.7}
         >
-          <Feather name="log-out" size={20} color="#DC2626" style={{ marginRight: 8 }} />
           <Text style={styles.logoutButtonText}>Logout</Text>
         </TouchableOpacity>
       </View>
