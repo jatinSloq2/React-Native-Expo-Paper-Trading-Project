@@ -112,15 +112,6 @@ export default function MainNavigator() {
                 component={FnoScreen}
                 options={{ title: 'F&O' }}
             />
-
-            {user &&
-                <Tab.Screen
-                    name="Portfolio"
-                    component={Portfolio}
-                    options={{ title: 'Portfolio' }}
-                />
-
-            }
             <Tab.Screen
                 name="Account"
                 component={user ? AccountStack : AuthStack}

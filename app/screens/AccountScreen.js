@@ -295,7 +295,6 @@ export default function AccountScreen() {
                 resizeMode="contain"
               />
             </View>
-            {/* <Text style={styles.headerBrandName}>Paper Bull</Text> */}
           </View>
         </View>
 
@@ -674,6 +673,19 @@ function BalanceActionCard({ icon, label, color, onPress }) {
 }
 
 const styles = StyleSheet.create({
+  headerTop: {
+    width: "100%",
+    alignItems: "center",
+    justifyContent: "center",
+    paddingTop: 10,
+    paddingBottom: 10
+  },
+
+  brandHeader: {
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "center",
+  },
   container: {
     flex: 1,
     backgroundColor: '#F5F7FA',
@@ -821,9 +833,6 @@ const styles = StyleSheet.create({
     borderBottomLeftRadius: 28,
     borderBottomRightRadius: 28,
   },
-  headerTop: {
-    marginBottom: 24,
-  },
   brandHeader: {
     flexDirection: 'row',
     alignItems: 'center',
@@ -835,7 +844,6 @@ const styles = StyleSheet.create({
   smallLogo: {
     width: 32,
     height: 32,
-    borderRadius: 8,
     alignItems: 'between',
     justifyContent: 'center',
     marginRight: 10,
