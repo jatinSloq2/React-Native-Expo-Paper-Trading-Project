@@ -368,7 +368,7 @@ export default function AccountScreen() {
         <Text style={styles.sectionTitle}>Quick Actions</Text>
         <View style={styles.actionsGrid}>
           <ActionCard
-            icon="list"
+            icon="briefcase"
             label="History"
             onPress={handleViewHistory}
           />

@@ -87,7 +87,7 @@ export default function SettingsScreen() {
             subtitle="Coming soon"
           />
           <SettingsToggle
-            icon="fingerprint"
+            icon="shield"
             label="Biometric Login"
             value={biometric}
             onValueChange={setBiometric}
@@ -122,7 +122,7 @@ export default function SettingsScreen() {
             onPress={() => navigation.navigate('HelpCenter')}
           />
           <SettingsItem
-            icon="help-circle"
+            icon="life-buoy"
             label="See Your Tickets"
             onPress={() => navigation.navigate('YourTickets')}
           />
