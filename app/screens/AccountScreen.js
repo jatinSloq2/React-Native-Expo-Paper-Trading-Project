@@ -295,7 +295,7 @@ export default function AccountScreen() {
                 resizeMode="contain"
               />
             </View>
-            <Text style={styles.headerBrandName}>Paper Bull</Text>
+            {/* <Text style={styles.headerBrandName}>Paper Bull</Text> */}
           </View>
         </View>
 
@@ -828,11 +828,15 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
   },
+  logoContainer: {
+    alignItems: 'center',
+    marginBottom: 32,
+  },
   smallLogo: {
     width: 32,
     height: 32,
     borderRadius: 8,
-    alignItems: 'center',
+    alignItems: 'between',
     justifyContent: 'center',
     marginRight: 10,
   },
@@ -1132,8 +1136,8 @@ const styles = StyleSheet.create({
     marginBottom: 8,
   },
   smallLogoImage: {
-    width: 40,
-    height: 40,
+    width: 50,
+    height: 50,
   },
   modalInput: {
     height: 52,

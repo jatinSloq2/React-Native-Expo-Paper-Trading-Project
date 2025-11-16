@@ -31,8 +31,18 @@ export default function LoginScreen({ navigation }) {
   const handleLogin = async () => {
     setError("");
     setSuccess("");
+    
+    if (!email?.trim()) {
+      setError("A valid email is required");
+      return;
+    }
+    
+    if (!password) {
+      setError("Password must be at least 6 characters long");
+      return;
+    }
+    
     setIsLoading(true);
-
     try {
       const apiKey = "your_api_key_here";
 
