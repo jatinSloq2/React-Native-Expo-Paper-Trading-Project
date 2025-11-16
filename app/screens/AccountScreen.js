@@ -17,24 +17,27 @@ import { AuthContext } from "../../context/AuthContext";
 import axiosInstance from "../api/axiosInstance";
 
 export default function AccountScreen() {
-  const [user, setUser] = useState(null);
-  const [loading, setLoading] = useState(true);
+  const {
+    user,
+    token,
+    apiKey,
+    loading,
+    logout
+  } = useContext(AuthContext);
+
+  const navigation = useNavigation();
+
+  // Local UI states only
   const [addAmount, setAddAmount] = useState("");
   const [deductAmount, setDeductAmount] = useState("");
   const [showAddModal, setShowAddModal] = useState(false);
   const [showDeductModal, setShowDeductModal] = useState(false);
-  const [showResetModal, setShowResetModal] = useState(false);
-  const [showZeroModal, setShowZeroModal] = useState(false);
   const [showLogoutModal, setShowLogoutModal] = useState(false);
   const [showSuccessModal, setShowSuccessModal] = useState(false);
   const [successMessage, setSuccessMessage] = useState("");
   const [showErrorModal, setShowErrorModal] = useState(false);
   const [errorMessage, setErrorMessage] = useState("");
   const [actionLoading, setActionLoading] = useState(false);
-  const navigation = useNavigation();
-  const authContext = useContext(AuthContext);
-
-  const logout = authContext?.logout;
 
   const fetchUserInfo = async () => {
     try {
@@ -67,15 +70,8 @@ export default function AccountScreen() {
     fetchUserInfo();
   }, []);
 
-  const getAuthHeaders = async () => {
-    const token = await AsyncStorage.getItem("token");
-    const apiKey = await AsyncStorage.getItem("api_key");
-    return {
-      Authorization: `Bearer ${token}`,
-      "X-API-Key": apiKey || "",
-    };
-  };
 
+  // SUCCESS / ERROR MODALS
   const showSuccess = (message) => {
     setSuccessMessage(message);
     setShowSuccessModal(true);
@@ -86,6 +82,13 @@ export default function AccountScreen() {
     setShowErrorModal(true);
   };
 
+  // AUTH HEADERS DIRECTLY FROM CONTEXT
+  const getAuthHeaders = () => ({
+    Authorization: `Bearer ${token}`,
+    "X-API-Key": apiKey || "",
+  });
+
+  // ADD BALANCE
   const handleAddBalance = async () => {
     const amount = parseFloat(addAmount);
     if (!amount || amount <= 0) {
@@ -94,18 +97,20 @@ export default function AccountScreen() {
     }
 
     setActionLoading(true);
+
     try {
-      const headers = await getAuthHeaders();
       const res = await axiosInstance.post(
         "/balance/add",
         { amount, reason: "ADD_FUNDS", meta: { source: "mobile_app" } },
-        { headers }
+        { headers: getAuthHeaders() }
       );
 
-      setUser({ ...user, virtualBalance: res.data.virtualBalance });
+      // Update UI directly (NOT context)
+      user.virtualBalance = res.data.virtualBalance;
+
       setAddAmount("");
       setShowAddModal(false);
-      showSuccess(`${user?.currency}${amount.toFixed(2)} added to your account`);
+      showSuccess(`${user.currency}${amount.toFixed(2)} added to your account`);
     } catch (err) {
       showError(err.response?.data?.message || "Failed to add balance");
     } finally {
@@ -113,6 +118,7 @@ export default function AccountScreen() {
     }
   };
 
+  // DEDUCT BALANCE
   const handleDeductBalance = async () => {
     const amount = parseFloat(deductAmount);
     if (!amount || amount <= 0) {
@@ -121,22 +127,36 @@ export default function AccountScreen() {
     }
 
     setActionLoading(true);
+
     try {
-      const headers = await getAuthHeaders();
       const res = await axiosInstance.post(
         "/balance/deduct",
         { amount, reason: "DEDUCT_FUNDS", meta: { source: "mobile_app" } },
-        { headers }
+        { headers: getAuthHeaders() }
       );
 
-      setUser({ ...user, virtualBalance: res.data.virtualBalance });
+      user.virtualBalance = res.data.virtualBalance;
+
       setDeductAmount("");
       setShowDeductModal(false);
-      showSuccess(`${user?.currency}${amount.toFixed(2)} deducted from your account`);
+      showSuccess(`${user.currency}${amount.toFixed(2)} deducted from your account`);
     } catch (err) {
       showError(err.response?.data?.message || "Failed to deduct balance");
     } finally {
       setActionLoading(false);
+    }
+  };
+
+  // LOGOUT
+  const performLogout = async () => {
+    try {
+      await logout();
+      navigation.reset({
+        index: 0,
+        routes: [{ name: "Login" }],
+      });
+    } catch (error) {
+      showError("Failed to logout. Please try again.");
     }
   };
 
@@ -160,28 +180,6 @@ export default function AccountScreen() {
     navigation.navigate("Settings");
   };
 
-  const performLogout = async () => {
-    try {
-      console.log("Performing logout...");
-      if (!logout) {
-        console.error("Logout function not available!");
-        showError("Logout function not available");
-        return;
-      }
-      await logout();
-      console.log("Logout successful, clearing user state");
-      setUser(null);
-      setShowLogoutModal(false);
-      console.log("Navigating to Login screen");
-      navigation.reset({
-        index: 0,
-        routes: [{ name: 'Login' }],
-      });
-    } catch (error) {
-      console.error("Logout error:", error);
-      showError("Failed to logout. Please try again.");
-    }
-  };
 
   // Loading UI
   if (loading) {
@@ -392,7 +390,7 @@ export default function AccountScreen() {
         {/* Info Banner */}
         <View style={styles.infoBanner}>
           <View style={styles.infoBannerIconContainer}>
-            <Feather name="info" size={20} color="#3B82F6" />
+            <Feather name="info" size={30} color="#3B82F6" />
           </View>
           <View style={styles.infoBannerContent}>
             <Text style={styles.infoBannerTitle}>Practice Trading Only</Text>
@@ -1046,9 +1044,12 @@ const styles = StyleSheet.create({
     borderWidth: 1,
     borderColor: '#DBEAFE',
   },
+  infoBannerIconContainer: {
+    marginRight: 10,
+    marginTop: 11
+  },
   infoBannerIcon: {
-    fontSize: 20,
-    marginRight: 12,
+    marginTop: 50,
   },
   infoBannerContent: {
     flex: 1,
