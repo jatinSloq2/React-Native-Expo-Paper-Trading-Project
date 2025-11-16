@@ -38,8 +38,8 @@ export default function RegisterScreen({ navigation }) {
       return;
     }
 
-    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-    if (!email?.trim() || !emailRegex.test(email)) {
+    // const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    if (!email?.trim()) {
       setError("A valid email is required");
       return;
     }

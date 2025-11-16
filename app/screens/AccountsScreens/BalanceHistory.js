@@ -11,7 +11,7 @@ import {
   View,
   RefreshControl
 } from "react-native";
-import axiosInstance from "../api/axiosInstance";
+import axiosInstance from "../../api/axiosInstance";
 
 export default function BalanceHistoryScreen({ navigation }) {
   const [transactions, setTransactions] = useState([]);
@@ -33,7 +33,7 @@ export default function BalanceHistoryScreen({ navigation }) {
       const apiKey = await AsyncStorage.getItem("api_key");
 
       const res = await axiosInstance.get(`/balance/history?page=${pageNum}&limit=20`, {
-        headers: {
+      headers: {
           Authorization: `Bearer ${token}`,
           "X-API-Key": apiKey || "",
         },

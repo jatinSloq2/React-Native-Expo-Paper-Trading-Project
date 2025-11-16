@@ -148,6 +148,18 @@ export default function AccountScreen() {
     setShowLogoutModal(true);
   };
 
+  const handleMarketWatch = () => {
+    navigation.navigate("MarketWatch");
+  };
+
+  const handleLearningHub = () => {
+    navigation.navigate("LearningHub");
+  };
+
+  const handleSettings = () => {
+    navigation.navigate("Settings");
+  };
+
   const performLogout = async () => {
     try {
       console.log("Performing logout...");
@@ -355,10 +367,26 @@ export default function AccountScreen() {
         {/* Quick Actions */}
         <Text style={styles.sectionTitle}>Quick Actions</Text>
         <View style={styles.actionsGrid}>
-          <ActionCard icon="list" label="History" onPress={handleViewHistory} />
-          <ActionCard icon="activity" label="Market Watch" onPress={() => { }} />
-          <ActionCard icon="book-open" label="Learning Hub" onPress={() => { }} />
-          <ActionCard icon="settings" label="Settings" onPress={() => { }} />
+          <ActionCard
+            icon="list"
+            label="History"
+            onPress={handleViewHistory}
+          />
+          <ActionCard
+            icon="activity"
+            label="Market Watch"
+            onPress={handleMarketWatch}
+          />
+          <ActionCard
+            icon="book-open"
+            label="Learning Hub"
+            onPress={handleLearningHub}
+          />
+          <ActionCard
+            icon="settings"
+            label="Settings"
+            onPress={handleSettings}
+          />
         </View>
 
         {/* Info Banner */}
