@@ -83,13 +83,11 @@ export default function MainNavigator() {
                 tabBarActiveTintColor: '#2E5CFF',
                 tabBarInactiveTintColor: '#9CA3AF',
                 tabBarStyle: {
-                    height: 60,
-                    paddingBottom: 12,
-                    paddingTop: 12,
+                    height: 70,
+                    paddingTop: 6,
                     borderTopWidth: 1,
                     borderTopColor: '#E5E7EB',
                     backgroundColor: '#FFFFFF',
-                    marginBottom: 12
                 },
                 tabBarLabelStyle: {
                     fontSize: 11,
