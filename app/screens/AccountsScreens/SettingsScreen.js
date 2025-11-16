@@ -122,6 +122,11 @@ export default function SettingsScreen() {
             onPress={() => navigation.navigate('HelpCenter')}
           />
           <SettingsItem
+            icon="help-circle"
+            label="See Your Tickets"
+            onPress={() => navigation.navigate('YourTickets')}
+          />
+          <SettingsItem
             icon="message-circle"
             label="Contact Support"
             onPress={() => navigation.navigate('ContactSupport')}

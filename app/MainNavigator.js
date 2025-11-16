@@ -23,6 +23,7 @@ import HelpCenterScreen from './screens/AccountsScreens/Settings/HelpCenterScree
 import ContactSupportScreen from './screens/AccountsScreens/Settings/ContactSupportScreen';
 import TermsConditionsScreen from './screens/AccountsScreens/Settings/TermsConditionsScreen';
 import PrivacyPolicyScreen from './screens/AccountsScreens/Settings/PrivacyPolicyScreen';
+import SeeYourTickets from './screens/AccountsScreens/Settings/SeeYourTickets';
 
 
 const Tab = createBottomTabNavigator();
@@ -51,6 +52,7 @@ const AccountStack = () => (
         <Stack.Screen name="ContactSupport" component={ContactSupportScreen} />
         <Stack.Screen name="TermsConditions" component={TermsConditionsScreen} />
         <Stack.Screen name="PrivacyPolicy" component={PrivacyPolicyScreen} />
+        <Stack.Screen name="YourTickets" component={SeeYourTickets} />
     </Stack.Navigator>
 );
 
@@ -87,6 +89,7 @@ export default function MainNavigator() {
                     borderTopWidth: 1,
                     borderTopColor: '#E5E7EB',
                     backgroundColor: '#FFFFFF',
+                    marginBottom: 12
                 },
                 tabBarLabelStyle: {
                     fontSize: 11,
@@ -109,11 +112,15 @@ export default function MainNavigator() {
                 component={FnoScreen}
                 options={{ title: 'F&O' }}
             />
-            <Tab.Screen
-                name="Portfolio"
-                component={Portfolio}
-                options={{ title: 'Portfolio' }}
-            />
+
+            {user &&
+                <Tab.Screen
+                    name="Portfolio"
+                    component={Portfolio}
+                    options={{ title: 'Portfolio' }}
+                />
+
+            }
             <Tab.Screen
                 name="Account"
                 component={user ? AccountStack : AuthStack}

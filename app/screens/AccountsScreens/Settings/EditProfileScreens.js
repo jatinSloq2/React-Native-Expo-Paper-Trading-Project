@@ -49,7 +49,7 @@ export default function EditProfileScreen() {
       const apiKey = await AsyncStorage.getItem("api_key");
 
       const response = await axiosInstance.put(
-        "/auth/profile",
+        "/auth/update-profile",
         {
           name: name.trim(),
           email: email.trim(),

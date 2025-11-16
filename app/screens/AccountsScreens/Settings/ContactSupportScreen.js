@@ -1,23 +1,25 @@
-import React, { useState } from 'react';
-import {
-  View,
-  Text,
-  StyleSheet,
-  ScrollView,
-  TouchableOpacity,
-  TextInput,
-  Alert,
-  ActivityIndicator,
-  KeyboardAvoidingView,
-  Platform
-} from 'react-native';
 import { Feather } from '@expo/vector-icons';
-import { LinearGradient } from 'expo-linear-gradient';
 import { useNavigation } from '@react-navigation/native';
+import { LinearGradient } from 'expo-linear-gradient';
+import { useState } from 'react';
+import {
+  ActivityIndicator,
+  Alert,
+  KeyboardAvoidingView,
+  Platform,
+  ScrollView,
+  StyleSheet,
+  Text,
+  TextInput,
+  TouchableOpacity,
+  View
+} from 'react-native';
+import axiosInstance from '../../../api/axiosInstance';
+import AsyncStorage from '@react-native-async-storage/async-storage';
 
 export default function ContactSupportScreen() {
   const navigation = useNavigation();
-  
+
   const [selectedIssue, setSelectedIssue] = useState('');
   const [subject, setSubject] = useState('');
   const [message, setMessage] = useState('');
@@ -34,56 +36,55 @@ export default function ContactSupportScreen() {
   ];
 
   const handleSubmit = async () => {
-    // Validation
-    if (!selectedIssue) {
-      Alert.alert('Error', 'Please select an issue type');
-      return;
-    }
-
-    if (!subject.trim()) {
-      Alert.alert('Error', 'Please enter a subject');
-      return;
-    }
-
-    if (!message.trim()) {
-      Alert.alert('Error', 'Please describe your issue');
-      return;
-    }
-
-    if (!email.trim()) {
-      Alert.alert('Error', 'Please enter your email');
-      return;
-    }
+    if (!selectedIssue) return Alert.alert('Error', 'Please select an issue type');
+    if (!subject.trim()) return Alert.alert('Error', 'Please enter a subject');
+    if (!message.trim()) return Alert.alert('Error', 'Please describe your issue');
+    if (!email.trim()) return Alert.alert('Error', 'Please enter your email');
 
     const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
     if (!emailRegex.test(email)) {
-      Alert.alert('Error', 'Please enter a valid email');
-      return;
+      return Alert.alert('Error', 'Please enter a valid email');
     }
-
+    const token = await AsyncStorage.getItem("token");
     setLoading(true);
-    
-    // Simulate API call
-    setTimeout(() => {
+
+    try {
+      await axiosInstance.post(
+        "/support/create",
+        {
+          email,
+          issueType: selectedIssue,
+          subject,
+          message,
+        },
+        {
+          headers: { Authorization: `Bearer ${token}` },
+        }
+      );
+
       setLoading(false);
+
       Alert.alert(
-        'Support Ticket Submitted',
-        'Thank you for contacting us! Our support team will review your request and respond within 24 hours.',
+        "Support Ticket Submitted",
+        "Thank you for contacting us! Our team will get back to you shortly.",
         [
           {
-            text: 'OK',
+            text: "OK",
             onPress: () => {
-              // Reset form
-              setSelectedIssue('');
-              setSubject('');
-              setMessage('');
-              setEmail('');
+              setSelectedIssue("");
+              setSubject("");
+              setMessage("");
+              setEmail("");
               navigation.goBack();
-            }
-          }
+            },
+          },
         ]
       );
-    }, 1500);
+    } catch (err) {
+      setLoading(false);
+      console.log(err)
+      Alert.alert("Error", err.response?.data?.message || "Something went wrong");
+    }
   };
 
   return (
@@ -159,7 +160,7 @@ export default function ContactSupportScreen() {
         {/* Form Section */}
         <View style={styles.section}>
           <Text style={styles.sectionTitle}>Contact Information</Text>
-          
+
           <View style={styles.inputGroup}>
             <Text style={styles.inputLabel}>Email Address *</Text>
             <View style={styles.inputContainer}>
@@ -220,7 +221,7 @@ export default function ContactSupportScreen() {
         {/* Alternative Contact Methods */}
         <View style={styles.alternativeSection}>
           <Text style={styles.alternativeTitle}>Other Ways to Reach Us</Text>
-          
+
           <TouchableOpacity style={styles.alternativeCard}>
             <View style={styles.alternativeIcon}>
               <Feather name="mail" size={20} color="#2E5CFF" />
