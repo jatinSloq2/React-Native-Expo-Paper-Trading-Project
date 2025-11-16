@@ -3,11 +3,11 @@ import { useNavigation } from '@react-navigation/native';
 import { LinearGradient } from 'expo-linear-gradient';
 import { useState } from 'react';
 import {
-    ScrollView,
-    StyleSheet,
-    Text,
-    TouchableOpacity,
-    View
+  ScrollView,
+  StyleSheet,
+  Text,
+  TouchableOpacity,
+  View
 } from 'react-native';
 
 export default function LearningHubScreen() {
@@ -188,7 +188,7 @@ export default function LearningHubScreen() {
               <Text style={styles.seeAll}>See all</Text>
             </TouchableOpacity>
           </View>
-          
+
           {articles.map((article, index) => (
             <ArticleCard key={index} article={article} />
           ))}
@@ -225,7 +225,7 @@ function CourseCard({ course }) {
   return (
     <TouchableOpacity style={styles.courseCard} activeOpacity={0.7}>
       <View style={[styles.courseColorBar, { backgroundColor: course.color }]} />
-      
+
       <View style={styles.courseContent}>
         <View style={styles.courseHeader}>
           <Text style={styles.courseTitle}>{course.title}</Text>
@@ -295,6 +295,8 @@ const styles = StyleSheet.create({
     paddingTop: 60,
     paddingBottom: 24,
     paddingHorizontal: 20,
+    borderBottomLeftRadius: 28,
+    borderBottomRightRadius: 28,
   },
   headerTop: {
     flexDirection: 'row',

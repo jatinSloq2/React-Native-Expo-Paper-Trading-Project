@@ -16,7 +16,7 @@ import { AuthContext } from '../../../context/AuthContext';
 export default function SettingsScreen() {
   const navigation = useNavigation();
   const { user } = useContext(AuthContext);
-  
+
   const [notifications, setNotifications] = useState(true);
   const [priceAlerts, setPriceAlerts] = useState(false);
   const [darkMode, setDarkMode] = useState(false);
@@ -45,7 +45,7 @@ export default function SettingsScreen() {
         {/* Account Settings */}
         <View style={styles.section}>
           <Text style={styles.sectionTitle}>Account</Text>
-          
+
           <SettingsItem
             icon="user"
             label="Edit Profile"
@@ -66,7 +66,7 @@ export default function SettingsScreen() {
         {/* App Settings */}
         <View style={styles.section}>
           <Text style={styles.sectionTitle}>App Settings</Text>
-          
+
           <SettingsToggle
             icon="bell"
             label="Notifications"
@@ -97,7 +97,7 @@ export default function SettingsScreen() {
         {/* Trading Settings */}
         <View style={styles.section}>
           <Text style={styles.sectionTitle}>Trading</Text>
-          
+
           <SettingsItem
             icon="dollar-sign"
             label="Default Currency"
@@ -115,7 +115,7 @@ export default function SettingsScreen() {
         {/* Support */}
         <View style={styles.section}>
           <Text style={styles.sectionTitle}>Support</Text>
-          
+
           <SettingsItem
             icon="help-circle"
             label="Help Center"
@@ -135,7 +135,7 @@ export default function SettingsScreen() {
             icon="file-text"
             label="Terms & Conditions"
             onPress={() => navigation.navigate('TermsConditions')}
-            />
+          />
           <SettingsItem
             icon="shield"
             label="Privacy Policy"
@@ -146,7 +146,7 @@ export default function SettingsScreen() {
         {/* About */}
         <View style={styles.section}>
           <Text style={styles.sectionTitle}>About</Text>
-          
+
           <SettingsItem
             icon="info"
             label="App Version"
@@ -222,6 +222,8 @@ const styles = StyleSheet.create({
     paddingTop: 60,
     paddingBottom: 20,
     paddingHorizontal: 20,
+    borderBottomLeftRadius: 28,
+    borderBottomRightRadius: 28,
   },
   backButton: {
     width: 40,

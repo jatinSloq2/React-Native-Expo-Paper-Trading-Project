@@ -123,7 +123,7 @@ export default function MarketWatchScreen() {
             {watchlist.map((stock, index) => (
               <StockCard key={index} stock={stock} />
             ))}
-            
+
             <TouchableOpacity style={styles.addMoreButton}>
               <Feather name="plus-circle" size={20} color="#2E5CFF" />
               <Text style={styles.addMoreText}>Add more stocks to watchlist</Text>
@@ -147,7 +147,7 @@ export default function MarketWatchScreen() {
 
 function StockCard({ stock }) {
   const isPositive = stock.change >= 0;
-  
+
   return (
     <TouchableOpacity style={styles.stockCard} activeOpacity={0.7}>
       <View style={styles.stockLeft}>
@@ -159,7 +159,7 @@ function StockCard({ stock }) {
           <Text style={styles.stockName}>{stock.name}</Text>
         </View>
       </View>
-      
+
       <View style={styles.stockRight}>
         <Text style={styles.stockPrice}>₹{stock.price.toFixed(2)}</Text>
         <View style={[styles.changeBadge, isPositive ? styles.changeBadgePositive : styles.changeBadgeNegative]}>
@@ -179,14 +179,14 @@ function StockCard({ stock }) {
 
 function IndexCard({ index }) {
   const isPositive = index.change >= 0;
-  
+
   return (
     <View style={styles.indexCard}>
       <View>
         <Text style={styles.indexName}>{index.name}</Text>
         <Text style={styles.indexValue}>{index.value.toLocaleString('en-IN', { minimumFractionDigits: 2 })}</Text>
       </View>
-      
+
       <View style={styles.indexRight}>
         <Text style={[styles.indexChange, isPositive ? styles.changeTextPositive : styles.changeTextNegative]}>
           {isPositive ? '+' : ''}{index.change.toFixed(2)}
@@ -215,6 +215,8 @@ const styles = StyleSheet.create({
     paddingTop: 60,
     paddingBottom: 20,
     paddingHorizontal: 20,
+    borderBottomLeftRadius: 28,
+    borderBottomRightRadius: 28,
   },
   headerTop: {
     flexDirection: 'row',
@@ -222,7 +224,14 @@ const styles = StyleSheet.create({
     justifyContent: 'space-between',
     marginBottom: 20,
   },
- backButton: {
+  headerGradient: {
+    paddingTop: 60,
+    paddingBottom: 32,
+    paddingHorizontal: 20,
+    borderBottomLeftRadius: 28,
+    borderBottomRightRadius: 28,
+  },
+  backButton: {
     width: 40,
     height: 40,
     borderRadius: 12,
