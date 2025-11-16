@@ -66,7 +66,7 @@ export default function MainNavigator() {
                 tabBarIcon: ({ focused, color, size }) => {
                     let iconName;
 
-                    if (route.name === 'Stocks') {
+                    if (route.name === 'Home') {
                         iconName = 'trending-up';
                     } else if (route.name === 'MutualFunds') {
                         iconName = 'pie-chart';
@@ -96,7 +96,7 @@ export default function MainNavigator() {
             })}
         >
             <Tab.Screen
-                name="Stocks"
+                name="Home"
                 component={StocksScreen}
                 options={{ title: 'Stocks' }}
             />
