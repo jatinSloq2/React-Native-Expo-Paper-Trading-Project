@@ -11,12 +11,15 @@ import {
   ActivityIndicator
 } from "react-native";
 import { LinearGradient } from 'expo-linear-gradient';
+import { Feather } from '@expo/vector-icons';
 import axiosInstance from "../api/axiosInstance";
 
 export default function RegisterScreen({ navigation }) {
   const [name, setName] = useState("");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
+  const [phone, setPhone] = useState("");
+  const [country, setCountry] = useState("");
   const [error, setError] = useState("");
   const [success, setSuccess] = useState("");
   const [isLoading, setIsLoading] = useState(false);
@@ -25,23 +28,59 @@ export default function RegisterScreen({ navigation }) {
   const handleRegister = async () => {
     setError("");
     setSuccess("");
+
+    // -----------------------------
+    // VALIDATION CHECKS
+    // -----------------------------
+
+    if (!name?.trim()) {
+      setError("Name is required");
+      return;
+    }
+
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    if (!email?.trim() || !emailRegex.test(email)) {
+      setError("A valid email is required");
+      return;
+    }
+
+    if (!password || password.length < 6) {
+      setError("Password must be at least 6 characters long");
+      return;
+    }
+
+    if (!phone?.trim() || phone.length < 8) {
+      setError("A valid phone number is required");
+      return;
+    }
+
+    if (!country?.trim()) {
+      setError("Country is required");
+      return;
+    }
+
+    // -----------------------------
+    // API CALL
+    // -----------------------------
     setIsLoading(true);
 
     try {
       const res = await axiosInstance.post(
         "/auth/register",
-        { name, email, password },
+        { name, email, password, phone, country },
         { headers: { "X-API-Key": "your_api_key_here" } }
       );
 
       setSuccess("Registration successful!");
       setTimeout(() => navigation.navigate("Login"), 1500);
+
     } catch (err) {
       setError(err.response?.data?.message || "Registration failed. Please try again.");
     } finally {
       setIsLoading(false);
     }
   };
+
 
   return (
     <KeyboardAvoidingView
@@ -62,11 +101,12 @@ export default function RegisterScreen({ navigation }) {
         >
           <View style={styles.logoContainer}>
             <View style={styles.logoCircle}>
+              {/* <Feather name="trending-up" size={48} color="#FFFFFF" /> */}
               <Text style={styles.logoEmoji}>🐂</Text>
             </View>
             <Text style={styles.brandName}>Paper Bull</Text>
           </View>
-          
+
           <Text style={styles.welcomeTitle}>Create Account</Text>
           <Text style={styles.welcomeSubtitle}>
             Master the markets with virtual trading
@@ -134,17 +174,53 @@ export default function RegisterScreen({ navigation }) {
               />
             </View>
 
+            {/* Phone Input */}
+            <View style={styles.inputContainer}>
+              <Text style={styles.inputLabel}>Phone Number</Text>
+              <TextInput
+                placeholder="+91 98765 43210"
+                placeholderTextColor="#9CA3AF"
+                value={phone}
+                onChangeText={setPhone}
+                onFocus={() => setFocusedInput('phone')}
+                onBlur={() => setFocusedInput(null)}
+                keyboardType="phone-pad"
+                style={[
+                  styles.input,
+                  focusedInput === 'phone' && styles.inputFocused
+                ]}
+              />
+            </View>
+
+            {/* Country Input */}
+            <View style={styles.inputContainer}>
+              <Text style={styles.inputLabel}>Country</Text>
+              <TextInput
+                placeholder="India"
+                placeholderTextColor="#9CA3AF"
+                value={country}
+                onChangeText={setCountry}
+                onFocus={() => setFocusedInput('country')}
+                onBlur={() => setFocusedInput(null)}
+                autoCapitalize="words"
+                style={[
+                  styles.input,
+                  focusedInput === 'country' && styles.inputFocused
+                ]}
+              />
+            </View>
+
             {/* Error/Success Messages */}
             {error ? (
               <View style={styles.errorContainer}>
-                <Text style={styles.errorIcon}>⚠️</Text>
+                <Feather name="alert-circle" size={16} color="#DC2626" style={styles.messageIcon} />
                 <Text style={styles.errorText}>{error}</Text>
               </View>
             ) : null}
 
             {success ? (
               <View style={styles.successContainer}>
-                <Text style={styles.successIcon}>✓</Text>
+                <Feather name="check-circle" size={16} color="#16A34A" style={styles.messageIcon} />
                 <Text style={styles.successText}>{success}</Text>
               </View>
             ) : null}
@@ -174,16 +250,18 @@ export default function RegisterScreen({ navigation }) {
           <View style={styles.featuresContainer}>
             <Text style={styles.featuresTitle}>Why Paper Bull?</Text>
             <View style={styles.featuresGrid}>
-              <FeatureCard icon="📚" label="Learn Risk-Free" />
-              <FeatureCard icon="📊" label="Real-time Data" />
-              <FeatureCard icon="💡" label="Build Strategies" />
-              <FeatureCard icon="📈" label="Track Progress" />
+              <FeatureCard icon="book-open" label="Learn Risk-Free" />
+              <FeatureCard icon="bar-chart-2" label="Real-time Data" />
+              <FeatureCard icon="zap" label="Build Strategies" />
+              <FeatureCard icon="trending-up" label="Track Progress" />
             </View>
           </View>
 
           {/* Info Banner */}
           <View style={styles.infoBanner}>
-            <Text style={styles.infoBannerIcon}>ℹ️</Text>
+            <View style={styles.infoBannerIconContainer}>
+              <Feather name="info" size={20} color="#3B82F6" />
+            </View>
             <View style={styles.infoBannerContent}>
               <Text style={styles.infoBannerTitle}>100% Virtual Money</Text>
               <Text style={styles.infoBannerText}>
@@ -209,7 +287,7 @@ function FeatureCard({ icon, label }) {
   return (
     <View style={styles.featureCard}>
       <View style={styles.featureIconContainer}>
-        <Text style={styles.featureIcon}>{icon}</Text>
+        <Feather name={icon} size={24} color="#2E5CFF" />
       </View>
       <Text style={styles.featureLabel}>{label}</Text>
     </View>
@@ -247,14 +325,14 @@ const styles = StyleSheet.create({
     borderWidth: 2,
     borderColor: 'rgba(255, 255, 255, 0.3)',
   },
-  logoEmoji: {
-    fontSize: 42,
-  },
   brandName: {
     fontSize: 24,
     fontWeight: '700',
     color: '#FFFFFF',
     letterSpacing: 0.5,
+  },
+  logoEmoji: {
+    fontSize: 42,
   },
   welcomeTitle: {
     fontSize: 28,
@@ -320,16 +398,6 @@ const styles = StyleSheet.create({
     borderWidth: 1,
     borderColor: '#FEE2E2',
   },
-  errorIcon: {
-    fontSize: 16,
-    marginRight: 10,
-  },
-  errorText: {
-    flex: 1,
-    fontSize: 14,
-    color: '#DC2626',
-    fontWeight: '500',
-  },
   successContainer: {
     flexDirection: 'row',
     alignItems: 'center',
@@ -340,10 +408,14 @@ const styles = StyleSheet.create({
     borderWidth: 1,
     borderColor: '#DCFCE7',
   },
-  successIcon: {
-    fontSize: 16,
+  messageIcon: {
     marginRight: 10,
-    color: '#16A34A',
+  },
+  errorText: {
+    flex: 1,
+    fontSize: 14,
+    color: '#DC2626',
+    fontWeight: '500',
   },
   successText: {
     flex: 1,
@@ -400,9 +472,6 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     marginBottom: 10,
   },
-  featureIcon: {
-    fontSize: 22,
-  },
   featureLabel: {
     fontSize: 13,
     color: '#1A1A1A',
@@ -418,8 +487,7 @@ const styles = StyleSheet.create({
     borderWidth: 1,
     borderColor: '#DBEAFE',
   },
-  infoBannerIcon: {
-    fontSize: 20,
+  infoBannerIconContainer: {
     marginRight: 12,
   },
   infoBannerContent: {

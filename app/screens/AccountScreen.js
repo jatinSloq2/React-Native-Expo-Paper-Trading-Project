@@ -1,6 +1,7 @@
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import { useNavigation } from "@react-navigation/native";
 import { LinearGradient } from 'expo-linear-gradient';
+import { Feather } from '@expo/vector-icons';
 import { useContext, useEffect, useState } from "react";
 import {
   ActivityIndicator,
@@ -139,36 +140,6 @@ export default function AccountScreen() {
     }
   };
 
-  const handleResetBalance = async () => {
-    setActionLoading(true);
-    try {
-      const headers = await getAuthHeaders();
-      const res = await axiosInstance.post("/balance/reset", {}, { headers });
-      setUser({ ...user, virtualBalance: res.data.virtualBalance });
-      setShowResetModal(false);
-      showSuccess("Balance reset to default");
-    } catch (err) {
-      showError(err.response?.data?.message || "Failed to reset balance");
-    } finally {
-      setActionLoading(false);
-    }
-  };
-
-  const handleSetBalanceZero = async () => {
-    setActionLoading(true);
-    try {
-      const headers = await getAuthHeaders();
-      const res = await axiosInstance.post("/balance/zero", {}, { headers });
-      setUser({ ...user, virtualBalance: 0 });
-      setShowZeroModal(false);
-      showSuccess("Balance set to zero");
-    } catch (err) {
-      showError(err.response?.data?.message || "Failed to set balance to zero");
-    } finally {
-      setActionLoading(false);
-    }
-  };
-
   const handleViewHistory = () => {
     navigation.navigate("BalanceHistory");
   };
@@ -268,10 +239,10 @@ export default function AccountScreen() {
 
         <View style={styles.featuresContainer}>
           <Text style={styles.featuresTitle}>Why Practice Trading?</Text>
-          <FeatureItem icon="📚" text="Learn without financial risk" />
-          <FeatureItem icon="📊" text="Real-time market data" />
-          <FeatureItem icon="💡" text="Build trading strategies" />
-          <FeatureItem icon="📈" text="Track your performance" />
+          <FeatureItem icon="book-open" text="Learn without financial risk" />
+          <FeatureItem icon="bar-chart-2" text="Real-time market data" />
+          <FeatureItem icon="zap" text="Build trading strategies" />
+          <FeatureItem icon="trending-up" text="Track your performance" />
         </View>
       </View>
     );
@@ -351,8 +322,9 @@ export default function AccountScreen() {
 
         <View style={styles.detailsCard}>
           <DetailRow label="Email Address" value={user?.email} />
-          <DetailRow label="User ID" value={user?.role?.toUpperCase()} />
           <DetailRow label="Trading Currency" value={user?.currency} />
+          <DetailRow label="Phone" value={user?.phone} />
+          <DetailRow label="Country" value={user?.country} />
           <DetailRow
             label="Member Since"
             value={new Date(user?.createdAt).toLocaleDateString("en-IN", {
@@ -361,55 +333,39 @@ export default function AccountScreen() {
               day: 'numeric'
             })}
           />
-          <DetailRow
-            label="Account Status"
-            value={user?.blocked ? "Restricted" : "Active"}
-            valueColor={user?.blocked ? "#EF4444" : "#10B981"}
-            isLast
-          />
         </View>
 
         {/* Balance Management */}
         <Text style={styles.sectionTitle}>Balance Management</Text>
         <View style={styles.balanceActionsGrid}>
-          <BalanceActionCard 
-            icon="💰" 
-            label="Add Funds" 
+          <BalanceActionCard
+            icon="plus-circle"
+            label="Add Funds"
             color="#10B981"
-            onPress={() => setShowAddModal(true)} 
+            onPress={() => setShowAddModal(true)}
           />
-          <BalanceActionCard 
-            icon="💸" 
-            label="Deduct" 
+          <BalanceActionCard
+            icon="minus-circle"
+            label="Deduct"
             color="#F59E0B"
-            onPress={() => setShowDeductModal(true)} 
-          />
-          <BalanceActionCard 
-            icon="🔄" 
-            label="Reset" 
-            color="#3B82F6"
-            onPress={() => setShowResetModal(true)} 
-          />
-          <BalanceActionCard 
-            icon="⚠️" 
-            label="Set Zero" 
-            color="#EF4444"
-            onPress={() => setShowZeroModal(true)} 
+            onPress={() => setShowDeductModal(true)}
           />
         </View>
 
         {/* Quick Actions */}
         <Text style={styles.sectionTitle}>Quick Actions</Text>
         <View style={styles.actionsGrid}>
-          <ActionCard icon="📊" label="History" onPress={handleViewHistory} />
-          <ActionCard icon="📈" label="Market Watch" onPress={() => { }} />
-          <ActionCard icon="📚" label="Learning Hub" onPress={() => { }} />
-          <ActionCard icon="⚙️" label="Settings" onPress={() => { }} />
+          <ActionCard icon="list" label="History" onPress={handleViewHistory} />
+          <ActionCard icon="activity" label="Market Watch" onPress={() => { }} />
+          <ActionCard icon="book-open" label="Learning Hub" onPress={() => { }} />
+          <ActionCard icon="settings" label="Settings" onPress={() => { }} />
         </View>
 
         {/* Info Banner */}
         <View style={styles.infoBanner}>
-          <Text style={styles.infoBannerIcon}>ℹ️</Text>
+          <View style={styles.infoBannerIconContainer}>
+            <Feather name="info" size={20} color="#3B82F6" />
+          </View>
           <View style={styles.infoBannerContent}>
             <Text style={styles.infoBannerTitle}>Practice Trading Only</Text>
             <Text style={styles.infoBannerText}>
@@ -424,7 +380,8 @@ export default function AccountScreen() {
           style={styles.logoutButton}
           activeOpacity={0.7}
         >
-          <Text style={styles.logoutButtonText}>🚪 Logout</Text>
+          <Feather name="log-out" size={20} color="#DC2626" style={{ marginRight: 8 }} />
+          <Text style={styles.logoutButtonText}>Logout</Text>
         </TouchableOpacity>
       </View>
 
@@ -441,7 +398,7 @@ export default function AccountScreen() {
             <Text style={styles.modalSubtitle}>
               Enter the amount you want to add to your virtual balance
             </Text>
-            
+
             <View style={styles.modalInputContainer}>
               <Text style={styles.modalInputLabel}>Amount ({user?.currency})</Text>
               <TextInput
@@ -463,7 +420,7 @@ export default function AccountScreen() {
               >
                 <Text style={styles.modalButtonTextCancel}>Cancel</Text>
               </TouchableOpacity>
-              
+
               <TouchableOpacity
                 style={[styles.modalButton, styles.modalButtonConfirm]}
                 onPress={handleAddBalance}
@@ -493,7 +450,7 @@ export default function AccountScreen() {
             <Text style={styles.modalSubtitle}>
               Enter the amount you want to deduct from your virtual balance
             </Text>
-            
+
             <View style={styles.modalInputContainer}>
               <Text style={styles.modalInputLabel}>Amount ({user?.currency})</Text>
               <TextInput
@@ -515,7 +472,7 @@ export default function AccountScreen() {
               >
                 <Text style={styles.modalButtonTextCancel}>Cancel</Text>
               </TouchableOpacity>
-              
+
               <TouchableOpacity
                 style={[styles.modalButton, styles.modalButtonConfirm]}
                 onPress={handleDeductBalance}
@@ -525,84 +482,6 @@ export default function AccountScreen() {
                   <ActivityIndicator color="#FFFFFF" size="small" />
                 ) : (
                   <Text style={styles.modalButtonTextConfirm}>Deduct</Text>
-                )}
-              </TouchableOpacity>
-            </View>
-          </View>
-        </View>
-      </Modal>
-
-      {/* Reset Balance Confirmation Modal */}
-      <Modal
-        visible={showResetModal}
-        transparent={true}
-        animationType="fade"
-        onRequestClose={() => setShowResetModal(false)}
-      >
-        <View style={styles.modalOverlay}>
-          <View style={styles.modalContent}>
-            <Text style={styles.modalTitle}>Reset Balance</Text>
-            <Text style={styles.modalSubtitle}>
-              Are you sure you want to reset your balance to the default amount?
-            </Text>
-
-            <View style={styles.modalButtons}>
-              <TouchableOpacity
-                style={[styles.modalButton, styles.modalButtonCancel]}
-                onPress={() => setShowResetModal(false)}
-                disabled={actionLoading}
-              >
-                <Text style={styles.modalButtonTextCancel}>Cancel</Text>
-              </TouchableOpacity>
-              
-              <TouchableOpacity
-                style={[styles.modalButton, styles.modalButtonConfirm]}
-                onPress={handleResetBalance}
-                disabled={actionLoading}
-              >
-                {actionLoading ? (
-                  <ActivityIndicator color="#FFFFFF" size="small" />
-                ) : (
-                  <Text style={styles.modalButtonTextConfirm}>Reset</Text>
-                )}
-              </TouchableOpacity>
-            </View>
-          </View>
-        </View>
-      </Modal>
-
-      {/* Set Balance to Zero Confirmation Modal */}
-      <Modal
-        visible={showZeroModal}
-        transparent={true}
-        animationType="fade"
-        onRequestClose={() => setShowZeroModal(false)}
-      >
-        <View style={styles.modalOverlay}>
-          <View style={styles.modalContent}>
-            <Text style={styles.modalTitle}>Set Balance to Zero</Text>
-            <Text style={styles.modalSubtitle}>
-              Are you sure you want to set your balance to {user?.currency}0? This action cannot be undone.
-            </Text>
-
-            <View style={styles.modalButtons}>
-              <TouchableOpacity
-                style={[styles.modalButton, styles.modalButtonCancel]}
-                onPress={() => setShowZeroModal(false)}
-                disabled={actionLoading}
-              >
-                <Text style={styles.modalButtonTextCancel}>Cancel</Text>
-              </TouchableOpacity>
-              
-              <TouchableOpacity
-                style={[styles.modalButton, styles.modalButtonDanger]}
-                onPress={handleSetBalanceZero}
-                disabled={actionLoading}
-              >
-                {actionLoading ? (
-                  <ActivityIndicator color="#FFFFFF" size="small" />
-                ) : (
-                  <Text style={styles.modalButtonTextConfirm}>Set to Zero</Text>
                 )}
               </TouchableOpacity>
             </View>
@@ -631,7 +510,7 @@ export default function AccountScreen() {
               >
                 <Text style={styles.modalButtonTextCancel}>Cancel</Text>
               </TouchableOpacity>
-              
+
               <TouchableOpacity
                 style={[styles.modalButton, styles.modalButtonDanger]}
                 onPress={performLogout}
@@ -653,7 +532,7 @@ export default function AccountScreen() {
         <View style={styles.modalOverlay}>
           <View style={styles.modalContent}>
             <View style={styles.successIcon}>
-              <Text style={styles.successIconText}>✓</Text>
+              <Feather name="check" size={32} color="#10B981" />
             </View>
             <Text style={styles.modalTitle}>Success</Text>
             <Text style={styles.modalSubtitle}>{successMessage}</Text>
@@ -678,7 +557,7 @@ export default function AccountScreen() {
         <View style={styles.modalOverlay}>
           <View style={styles.modalContent}>
             <View style={styles.errorIcon}>
-              <Text style={styles.errorIconText}>✕</Text>
+              <Feather name="x" size={32} color="#DC2626" />
             </View>
             <Text style={styles.modalTitle}>Error</Text>
             <Text style={styles.modalSubtitle}>{errorMessage}</Text>
@@ -700,7 +579,7 @@ function FeatureItem({ icon, text }) {
   return (
     <View style={styles.featureItem}>
       <View style={styles.featureIconContainer}>
-        <Text style={styles.featureIcon}>{icon}</Text>
+        <Feather name={icon} size={20} color="#2E5CFF" />
       </View>
       <Text style={styles.featureText}>{text}</Text>
     </View>
@@ -729,7 +608,7 @@ function ActionCard({ icon, label, onPress }) {
       activeOpacity={0.7}
     >
       <View style={styles.actionIconContainer}>
-        <Text style={styles.actionIcon}>{icon}</Text>
+        <Feather name={icon} size={24} color="#2E5CFF" />
       </View>
       <Text style={styles.actionLabel}>{label}</Text>
     </TouchableOpacity>
@@ -744,7 +623,7 @@ function BalanceActionCard({ icon, label, color, onPress }) {
       activeOpacity={0.7}
     >
       <View style={[styles.balanceActionIconContainer, { backgroundColor: `${color}15` }]}>
-        <Text style={styles.balanceActionIcon}>{icon}</Text>
+        <Feather name={icon} size={26} color={color} />
       </View>
       <Text style={styles.balanceActionLabel}>{label}</Text>
     </TouchableOpacity>
