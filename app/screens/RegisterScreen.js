@@ -8,11 +8,13 @@ import {
   KeyboardAvoidingView,
   Platform,
   ScrollView,
-  ActivityIndicator
+  ActivityIndicator,
+  Image
 } from "react-native";
 import { LinearGradient } from 'expo-linear-gradient';
 import { Feather } from '@expo/vector-icons';
 import axiosInstance from "../api/axiosInstance";
+import logoImage from "../../assets/mainLogoBlack.png"
 
 export default function RegisterScreen({ navigation }) {
   const [name, setName] = useState("");
@@ -100,11 +102,14 @@ export default function RegisterScreen({ navigation }) {
           end={{ x: 1, y: 1 }}
         >
           <View style={styles.logoContainer}>
-            <View style={styles.logoCircle}>
-              {/* <Feather name="trending-up" size={48} color="#FFFFFF" /> */}
-              <Text style={styles.logoEmoji}>🐂</Text>
+            <View style={styles.smallLogo}>
+              <Image
+                source={logoImage}
+                style={styles.smallLogoImage}
+                resizeMode="cover"
+              />
             </View>
-            <Text style={styles.brandName}>Paper Bull</Text>
+            {/* <Text style={styles.brandName}>Paper Bull</Text> */}
           </View>
 
           <Text style={styles.welcomeTitle}>Create Account</Text>
@@ -313,6 +318,19 @@ const styles = StyleSheet.create({
   logoContainer: {
     alignItems: 'center',
     marginBottom: 32,
+  },
+  smallLogo: {
+    width: 32,
+    height: 32,
+    borderRadius: 8,
+    alignItems: 'center',
+    justifyContent: 'center',
+    marginRight: 10,
+  },
+  smallLogoImage: {
+    width: 50,
+    height: 50,
+    resizeMode: "contain",
   },
   logoCircle: {
     width: 80,

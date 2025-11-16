@@ -11,10 +11,12 @@ import {
   Text,
   TextInput,
   TouchableOpacity,
-  View
+  View,
+  Image
 } from "react-native";
 import { AuthContext } from "../../context/AuthContext";
 import axiosInstance from "../api/axiosInstance";
+import logoImage from "../../assets/mainLogoBlack.png"
 
 export default function AccountScreen() {
   const {
@@ -192,7 +194,13 @@ export default function AccountScreen() {
             start={{ x: 0, y: 0 }}
             end={{ x: 1, y: 1 }}
           >
-            <Text style={styles.logoEmoji}>🐂</Text>
+            <View style={styles.smallLogo}>
+              <Image
+                source={logoImage}
+                style={styles.smallLogoImage}
+                resizeMode="contain"
+              />
+            </View>
           </LinearGradient>
           <Text style={styles.brandName}>Paper Bull</Text>
         </View>
@@ -213,7 +221,13 @@ export default function AccountScreen() {
             start={{ x: 0, y: 0 }}
             end={{ x: 1, y: 1 }}
           >
-            <Text style={styles.logoEmoji}>🐂</Text>
+            <View style={styles.smallLogo}>
+              <Image
+                source={logoImage}
+                style={styles.smallLogoImage}
+                resizeMode="contain"
+              />
+            </View>
           </LinearGradient>
           <Text style={styles.brandName}>Paper Bull</Text>
         </View>
@@ -275,7 +289,11 @@ export default function AccountScreen() {
         <View style={styles.headerTop}>
           <View style={styles.brandHeader}>
             <View style={styles.smallLogo}>
-              <Text style={styles.smallLogoEmoji}>🐂</Text>
+              <Image
+                source={logoImage}
+                style={styles.smallLogoImage}
+                resizeMode="contain"
+              />
             </View>
             <Text style={styles.headerBrandName}>Paper Bull</Text>
           </View>
@@ -813,7 +831,6 @@ const styles = StyleSheet.create({
   smallLogo: {
     width: 32,
     height: 32,
-    backgroundColor: 'rgba(255, 255, 255, 0.2)',
     borderRadius: 8,
     alignItems: 'center',
     justifyContent: 'center',
@@ -1113,6 +1130,10 @@ const styles = StyleSheet.create({
     fontWeight: '600',
     color: '#374151',
     marginBottom: 8,
+  },
+  smallLogoImage: {
+    width: 40,
+    height: 40,
   },
   modalInput: {
     height: 52,

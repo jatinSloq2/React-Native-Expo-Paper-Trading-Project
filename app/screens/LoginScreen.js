@@ -8,12 +8,15 @@ import {
   KeyboardAvoidingView,
   Platform,
   ScrollView,
-  ActivityIndicator
+  ActivityIndicator,
+  Image
 } from "react-native";
 import { LinearGradient } from 'expo-linear-gradient';
 import axiosInstance from "../api/axiosInstance";
 import { AuthContext } from "../../context/AuthContext";
 import { Feather } from '@expo/vector-icons';
+import logoImage from "../../assets/mainLogoBlack.png"
+
 
 export default function LoginScreen({ navigation }) {
   const { login } = useContext(AuthContext);
@@ -52,11 +55,11 @@ export default function LoginScreen({ navigation }) {
   };
 
   return (
-    <KeyboardAvoidingView 
+    <KeyboardAvoidingView
       behavior={Platform.OS === "ios" ? "padding" : "height"}
       style={styles.container}
     >
-      <ScrollView 
+      <ScrollView
         contentContainerStyle={styles.scrollContent}
         keyboardShouldPersistTaps="handled"
         showsVerticalScrollIndicator={false}
@@ -69,12 +72,16 @@ export default function LoginScreen({ navigation }) {
           end={{ x: 1, y: 1 }}
         >
           <View style={styles.logoContainer}>
-            <View style={styles.logoCircle}>
-              <Text style={styles.logoEmoji}>🐂</Text>
+            <View style={styles.smallLogo}>
+              <Image
+                source={logoImage}
+                style={styles.smallLogoImage}
+                resizeMode="cover"
+              />
             </View>
-            <Text style={styles.brandName}>Paper Bull</Text>
+            {/* <Text style={styles.brandName}>Paper Bull</Text> */}
           </View>
-          
+
           <Text style={styles.welcomeTitle}>Welcome Back</Text>
           <Text style={styles.welcomeSubtitle}>
             Continue your trading journey
@@ -135,7 +142,7 @@ export default function LoginScreen({ navigation }) {
                 <Text style={styles.errorText}>{error}</Text>
               </View>
             ) : null}
-            
+
             {success ? (
               <View style={styles.successContainer}>
                 <Text style={styles.successIcon}>✓</Text>
@@ -221,6 +228,19 @@ const styles = StyleSheet.create({
   logoContainer: {
     alignItems: 'center',
     marginBottom: 32,
+  },
+  smallLogo: {
+    width: 32,
+    height: 32,
+    borderRadius: 8,
+    alignItems: 'center',
+    justifyContent: 'center',
+    marginRight: 10,
+  },
+  smallLogoImage: {
+    width: 50,
+    height: 50,
+    resizeMode: "contain",
   },
   infoBannerIconContainer: {
     marginRight: 12,
