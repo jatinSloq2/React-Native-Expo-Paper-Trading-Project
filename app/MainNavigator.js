@@ -16,6 +16,13 @@ import MutualFundsScreen from "./screens/MutualFundsScreen";
 import Portfolio from "./screens/Portfolio";
 import RegisterScreen from "./screens/RegisterScreen";
 import StocksScreen from "./screens/StocksScreen";
+import EditProfileScreen from './screens/AccountsScreens/Settings/EditProfileScreens';
+import ChangePasswordScreen from './screens/AccountsScreens/Settings/ChangePasswordScreen';
+import PrivacySecurityScreen from './screens/AccountsScreens/Settings/PrivacySecurityScreen';
+import HelpCenterScreen from './screens/AccountsScreens/Settings/HelpCenterScreen';
+import ContactSupportScreen from './screens/AccountsScreens/Settings/ContactSupportScreen';
+import TermsConditionsScreen from './screens/AccountsScreens/Settings/TermsConditionsScreen';
+import PrivacyPolicyScreen from './screens/AccountsScreens/Settings/PrivacyPolicyScreen';
 
 
 const Tab = createBottomTabNavigator();
@@ -37,6 +44,13 @@ const AccountStack = () => (
         <Stack.Screen name="Settings" component={SettingsScreen} />
         <Stack.Screen name="MarketWatch" component={MarketWatchScreen} />
         <Stack.Screen name="LearningHub" component={LearningHubScreen} />
+        <Stack.Screen name="EditProfile" component={EditProfileScreen} />
+        <Stack.Screen name="ChangePassword" component={ChangePasswordScreen} />
+        <Stack.Screen name="PrivacySecurity" component={PrivacySecurityScreen} />
+        <Stack.Screen name="HelpCenter" component={HelpCenterScreen} />
+        <Stack.Screen name="ContactSupport" component={ContactSupportScreen} />
+        <Stack.Screen name="TermsConditions" component={TermsConditionsScreen} />
+        <Stack.Screen name="PrivacyPolicy" component={PrivacyPolicyScreen} />
     </Stack.Navigator>
 );
 
@@ -68,8 +82,8 @@ export default function MainNavigator() {
                 tabBarInactiveTintColor: '#9CA3AF',
                 tabBarStyle: {
                     height: 60,
-                    paddingBottom: 8,
-                    paddingTop: 8,
+                    paddingBottom: 12,
+                    paddingTop: 12,
                     borderTopWidth: 1,
                     borderTopColor: '#E5E7EB',
                     backgroundColor: '#FFFFFF',
@@ -80,23 +94,23 @@ export default function MainNavigator() {
                 },
             })}
         >
-            <Tab.Screen 
-                name="Stocks" 
+            <Tab.Screen
+                name="Stocks"
                 component={StocksScreen}
                 options={{ title: 'Stocks' }}
             />
-            <Tab.Screen 
-                name="MutualFunds" 
+            <Tab.Screen
+                name="MutualFunds"
                 component={MutualFundsScreen}
                 options={{ title: 'Mutual Funds' }}
             />
-            <Tab.Screen 
-                name="F&O" 
+            <Tab.Screen
+                name="F&O"
                 component={FnoScreen}
                 options={{ title: 'F&O' }}
             />
-            <Tab.Screen 
-                name="Portfolio" 
+            <Tab.Screen
+                name="Portfolio"
                 component={Portfolio}
                 options={{ title: 'Portfolio' }}
             />

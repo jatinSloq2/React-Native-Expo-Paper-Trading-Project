@@ -49,17 +49,17 @@ export default function SettingsScreen() {
           <SettingsItem
             icon="user"
             label="Edit Profile"
-            onPress={() => Alert.alert('Coming Soon', 'Profile editing will be available soon')}
+            onPress={() => navigation.navigate('EditProfile')}
           />
           <SettingsItem
             icon="lock"
             label="Change Password"
-            onPress={() => Alert.alert('Coming Soon', 'Password change will be available soon')}
+            onPress={() => navigation.navigate('ChangePassword')}
           />
           <SettingsItem
             icon="shield"
             label="Privacy & Security"
-            onPress={() => Alert.alert('Coming Soon', 'Privacy settings will be available soon')}
+            onPress={() => navigation.navigate('PrivacySecurity')}
           />
         </View>
 
@@ -119,22 +119,22 @@ export default function SettingsScreen() {
           <SettingsItem
             icon="help-circle"
             label="Help Center"
-            onPress={() => Alert.alert('Help Center', 'Visit our help center for assistance')}
+            onPress={() => navigation.navigate('HelpCenter')}
           />
           <SettingsItem
             icon="message-circle"
             label="Contact Support"
-            onPress={() => Alert.alert('Support', 'Email: support@paperbull.com')}
+            onPress={() => navigation.navigate('ContactSupport')}
           />
           <SettingsItem
             icon="file-text"
             label="Terms & Conditions"
-            onPress={() => Alert.alert('Coming Soon', 'Terms will be available soon')}
-          />
+            onPress={() => navigation.navigate('TermsConditions')}
+            />
           <SettingsItem
             icon="shield"
             label="Privacy Policy"
-            onPress={() => Alert.alert('Coming Soon', 'Privacy policy will be available soon')}
+            onPress={() => navigation.navigate('PrivacyPolicy')}
           />
         </View>
 
@@ -153,41 +153,6 @@ export default function SettingsScreen() {
             label="Rate Us"
             onPress={() => Alert.alert('Rate Us', 'Thank you for your support!')}
           />
-        </View>
-
-        {/* Danger Zone */}
-        <View style={styles.section}>
-          <Text style={[styles.sectionTitle, { color: '#DC2626' }]}>Danger Zone</Text>
-          
-          <TouchableOpacity
-            style={styles.dangerButton}
-            onPress={() => Alert.alert(
-              'Reset Balance',
-              'Are you sure you want to reset your virtual balance? This action cannot be undone.',
-              [
-                { text: 'Cancel', style: 'cancel' },
-                { text: 'Reset', style: 'destructive' }
-              ]
-            )}
-          >
-            <Feather name="rotate-ccw" size={20} color="#DC2626" />
-            <Text style={styles.dangerButtonText}>Reset Virtual Balance</Text>
-          </TouchableOpacity>
-
-          <TouchableOpacity
-            style={styles.dangerButton}
-            onPress={() => Alert.alert(
-              'Delete Account',
-              'Are you sure you want to delete your account? This action cannot be undone.',
-              [
-                { text: 'Cancel', style: 'cancel' },
-                { text: 'Delete', style: 'destructive' }
-              ]
-            )}
-          >
-            <Feather name="trash-2" size={20} color="#DC2626" />
-            <Text style={styles.dangerButtonText}>Delete Account</Text>
-          </TouchableOpacity>
         </View>
       </View>
     </ScrollView>
@@ -253,10 +218,10 @@ const styles = StyleSheet.create({
     paddingBottom: 20,
     paddingHorizontal: 20,
   },
- backButton: {
+  backButton: {
     width: 40,
     height: 40,
-    borderRadius: 12,
+    borderRadius: 20,
     backgroundColor: 'rgba(255, 255, 255, 0.2)',
     alignItems: 'center',
     justifyContent: 'center',
