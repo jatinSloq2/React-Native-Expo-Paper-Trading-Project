@@ -24,6 +24,7 @@ import ContactSupportScreen from './screens/AccountsScreens/Settings/ContactSupp
 import TermsConditionsScreen from './screens/AccountsScreens/Settings/TermsConditionsScreen';
 import PrivacyPolicyScreen from './screens/AccountsScreens/Settings/PrivacyPolicyScreen';
 import SeeYourTickets from './screens/AccountsScreens/Settings/SeeYourTickets';
+import NotificationPreferencesScreen from './screens/AccountsScreens/Settings/NotificationPreferencesScreen';
 
 
 const Tab = createBottomTabNavigator();
@@ -53,6 +54,7 @@ const AccountStack = () => (
         <Stack.Screen name="TermsConditions" component={TermsConditionsScreen} />
         <Stack.Screen name="PrivacyPolicy" component={PrivacyPolicyScreen} />
         <Stack.Screen name="YourTickets" component={SeeYourTickets} />
+        <Stack.Screen name="NotificationPreferences" component={NotificationPreferencesScreen} />
     </Stack.Navigator>
 );
 

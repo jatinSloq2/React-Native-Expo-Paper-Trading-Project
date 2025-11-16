@@ -10,13 +10,14 @@ import {
   Modal
 } from 'react-native';
 import { courses, keyTradingPoints } from '../../../constants/learningCourses';
+import { useNavigation } from '@react-navigation/native';
 
 export default function LearningHubScreen() {
   const [selectedCategory, setSelectedCategory] = useState('all');
   const [selectedCourse, setSelectedCourse] = useState(null);
   const [selectedLesson, setSelectedLesson] = useState(null);
-  const [showKeyPoints, setShowKeyPoints] = useState(false);
-
+  const [showKeyPoints, setShowKeyPoints] = useState(true);
+  const navigation = useNavigation();
   const categories = [
     { id: 'all', label: 'All', icon: 'grid' },
     { id: 'basics', label: 'Basics', icon: 'book' },
@@ -25,10 +26,6 @@ export default function LearningHubScreen() {
     { id: 'mf', label: 'Mutual Funds', icon: 'briefcase' },
     { id: 'analysis', label: 'Analysis', icon: 'pie-chart' },
   ];
-
-
-
-
 
   const filteredCourses = selectedCategory === 'all'
     ? courses
@@ -67,18 +64,14 @@ export default function LearningHubScreen() {
         start={{ x: 0, y: 0 }}
         end={{ x: 1, y: 1 }}
       >
-        <View style={styles.headerTop}>
-          <View style={styles.backButton}>
-            <Feather name="book-open" size={24} color="#FFFFFF" />
-          </View>
-          <Text style={styles.headerTitle}>Learning Hub</Text>
-          <View style={styles.backButton}>
-            <Feather name="award" size={24} color="#FFFFFF" />
-          </View>
-        </View>
-        <Text style={styles.headerSubtitle}>
-          Complete trading education from basics to advanced
-        </Text>
+        <TouchableOpacity
+          style={styles.backButton}
+          onPress={() => navigation.goBack()}
+        >
+          <Feather name="arrow-left" size={24} color="#FFFFFF" />
+        </TouchableOpacity>
+        <Text style={styles.headerTitle}>Learning Hub</Text>
+        <View style={styles.headerRight} />
       </LinearGradient>
 
       <ScrollView style={styles.content} showsVerticalScrollIndicator={false}>
@@ -138,7 +131,7 @@ export default function LearningHubScreen() {
         </ScrollView>
 
         <View style={styles.section}>
-          <Text style={styles.sectionTitle}>📚 Complete Courses</Text>
+          <Text style={styles.sectionTitle}>📚 Complete Learnings</Text>
           {filteredCourses.map((course) => (
             <CourseCard
               key={course.id}
@@ -443,17 +436,14 @@ const styles = StyleSheet.create({
     backgroundColor: '#F5F7FA',
   },
   header: {
-    paddingTop: 60,
-    paddingBottom: 24,
-    paddingHorizontal: 20,
-    borderBottomLeftRadius: 28,
-    borderBottomRightRadius: 28,
-  },
-  headerTop: {
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'space-between',
-    marginBottom: 12,
+    paddingTop: 60,
+    paddingBottom: 20,
+    paddingHorizontal: 20,
+    borderBottomLeftRadius: 28,
+    borderBottomRightRadius: 28,
   },
   backButton: {
     width: 40,
@@ -468,10 +458,8 @@ const styles = StyleSheet.create({
     fontWeight: '700',
     color: '#FFFFFF',
   },
-  headerSubtitle: {
-    fontSize: 14,
-    color: 'rgba(255, 255, 255, 0.9)',
-    marginTop: 4,
+  headerRight: {
+    width: 40,
   },
   content: {
     flex: 1,
