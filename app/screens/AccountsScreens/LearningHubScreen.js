@@ -11,6 +11,7 @@ import {
 } from 'react-native';
 import { courses, keyTradingPoints } from '../../../constants/learningCourses';
 import { useNavigation } from '@react-navigation/native';
+import Markdown from 'react-native-markdown-display';
 
 export default function LearningHubScreen() {
   const [selectedCategory, setSelectedCategory] = useState('all');
@@ -344,8 +345,14 @@ function LessonView({ lesson, courseTitle, onBack, course, currentLessonIndex, o
       onSelectLesson(nextLesson);
     }
   };
+  const handleLastLesson = () => {
+    if (!course) return;
+    const lastLesson = course.modules[currentLessonIndex - 1];
+    onSelectLesson(lastLesson);
+  };
 
   const isLastLesson = !course || currentLessonIndex >= course.modules.length - 1;
+  const isFirstLesson = !course || currentLessonIndex === 0;
 
   return (
     <View style={styles.container}>
@@ -392,7 +399,10 @@ function LessonView({ lesson, courseTitle, onBack, course, currentLessonIndex, o
         showsVerticalScrollIndicator={false}
         contentContainerStyle={styles.lessonContentContainer}
       >
-        <Text style={styles.lessonBody}>{lesson.content}</Text>
+        {/* <Text style={styles.lessonBody}>{lesson.content}</Text> */}
+        <Markdown style={markdownStyles}>
+          {lesson.content}
+        </Markdown>
 
         <View style={styles.lessonActions}>
           <TouchableOpacity style={styles.lessonActionButton}>
@@ -406,24 +416,46 @@ function LessonView({ lesson, courseTitle, onBack, course, currentLessonIndex, o
           </TouchableOpacity>
         </View>
 
-        {!isLastLesson && (
-          <TouchableOpacity
-            style={styles.nextLessonButton}
-            onPress={handleNextLesson}
-          >
-            <Text style={styles.nextLessonText}>Next Lesson</Text>
-            <Feather name="arrow-right" size={20} color="#FFFFFF" />
-          </TouchableOpacity>
-        )}
+        <View style={styles.lessonNavRow}>
+          {!isFirstLesson && !isLastLesson && (
+            <TouchableOpacity
+              style={[styles.lastLessonButton, { flex: 1 }]}
+              onPress={handleLastLesson}
+            >
+              <Feather name="arrow-left" size={20} color="#111" />
+              <Text style={styles.lastLessonText}>Back</Text>
+            </TouchableOpacity>
+          )}
+
+          {!isLastLesson && (
+            <TouchableOpacity
+              style={[styles.nextLessonButton, { flex: 1 }]}
+              onPress={handleNextLesson}
+            >
+              <Text style={styles.nextLessonText}>Next</Text>
+              <Feather name="arrow-right" size={20} color="#FFF" />
+            </TouchableOpacity>
+          )}
+        </View>
 
         {isLastLesson && (
-          <TouchableOpacity
-            style={[styles.nextLessonButton, { backgroundColor: '#10B981' }]}
-            onPress={onBack}
-          >
-            <Feather name="check-circle" size={20} color="#FFFFFF" />
-            <Text style={styles.nextLessonText}>Course Complete!</Text>
-          </TouchableOpacity>
+          <View style={styles.lessonNavRow}>
+            <TouchableOpacity
+              style={[styles.lastLessonButton, { flex: 1 }]}
+              onPress={handleLastLesson}
+            >
+              <Feather name="arrow-left" size={20} color="#111" />
+              <Text style={styles.lastLessonText}>Back</Text>
+            </TouchableOpacity>
+
+            <TouchableOpacity
+              style={[styles.nextLessonButton, { backgroundColor: '#10B981' }]}
+              onPress={onBack}
+            >
+              <Feather name="check-circle" size={20} color="#FFFFFF" />
+              <Text style={styles.nextLessonText}>Course Complete!</Text>
+            </TouchableOpacity>
+          </View>
         )}
       </ScrollView>
     </View>
@@ -431,6 +463,39 @@ function LessonView({ lesson, courseTitle, onBack, course, currentLessonIndex, o
 }
 
 const styles = StyleSheet.create({
+  lessonBackCourse: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    marginTop: 12,
+    gap: 6,
+  },
+  lastLessonButton: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    padding: 18,
+    borderRadius: 16,
+    gap: 8,
+    marginBottom: 20,
+
+    borderWidth: 1,
+    borderColor: '#111',
+    backgroundColor: 'transparent',
+  },
+  lessonNavRow: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    width: '100%',
+    gap: 12,
+    marginTop: 20,
+    marginBottom: 20,
+  },
+  lastLessonText: {
+    fontSize: 16,
+    fontWeight: '700',
+    color: '#111',
+  },
   container: {
     flex: 1,
     backgroundColor: '#F5F7FA',
@@ -919,3 +984,28 @@ const styles = StyleSheet.create({
     color: '#FFFFFF',
   },
 });
+
+const markdownStyles = {
+  body: {
+    fontSize: 16,
+    lineHeight: 26,
+    color: "#1A1A1A",
+  },
+  heading1: {
+    fontSize: 24,
+    fontWeight: "700",
+    marginBottom: 12,
+    color: "#2E5CFF",
+  },
+  heading2: {
+    fontSize: 20,
+    fontWeight: "700",
+    marginBottom: 10,
+  },
+  strong: {
+    fontWeight: "700",
+  },
+  bullet_list: {
+    marginVertical: 8,
+  }
+};
