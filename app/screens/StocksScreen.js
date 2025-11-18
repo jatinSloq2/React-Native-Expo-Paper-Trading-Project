@@ -1,22 +1,21 @@
 import { Feather, MaterialIcons } from '@expo/vector-icons';
+import { useNavigation } from '@react-navigation/native';
 import { LinearGradient } from 'expo-linear-gradient';
-import React, { useState, useEffect, useCallback, useRef } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import {
-  View,
+  ActivityIndicator,
+  // SafeAreaView,
+  Dimensions,
+  FlatList,
+  Image,
+  RefreshControl,
+  ScrollView,
+  StyleSheet,
   Text,
   TextInput,
   TouchableOpacity,
-  ScrollView,
-  ActivityIndicator,
-  StyleSheet,
-  SafeAreaView,
-  Dimensions,
-  Image,
-  RefreshControl,
-  FlatList,
-  Modal
+  View
 } from 'react-native';
-import { useNavigation } from '@react-navigation/native';
 
 const { width } = Dimensions.get('window');
 const CARD_WIDTH = (width - 60) / 2;
@@ -267,7 +266,7 @@ export default function StocksScreen() {
   // Show empty view while loading initially
   if (loading && stocksData.length === 0) {
     return (
-      <SafeAreaView style={styles.container}>
+      <View style={styles.container}>
         <LinearGradient
           colors={['#2E5CFF', '#1A3FCC']}
           style={styles.header}
@@ -283,12 +282,12 @@ export default function StocksScreen() {
           <ActivityIndicator size="large" color="#2E5CFF" />
           <Text style={styles.loadingText}>Loading markets...</Text>
         </View>
-      </SafeAreaView>
+      </View>
     );
   }
 
   return (
-    <SafeAreaView style={styles.container}>
+    <View style={styles.container}>
       {/* Header with Gradient */}
       <LinearGradient
         colors={['#2E5CFF', '#1A3FCC']}
@@ -497,7 +496,7 @@ export default function StocksScreen() {
           </TouchableOpacity>
         </View>
       </ScrollView>
-    </SafeAreaView>
+    </View>
   );
 }
 
