@@ -6,25 +6,25 @@ import { AuthContext } from "../context/AuthContext";
 
 // Existing screens
 import AccountScreen from "./screens/AccountScreen";
+import BalanceHistoryScreen from "./screens/AccountsScreens/BalanceHistory";
 import LearningHubScreen from "./screens/AccountsScreens/LearningHubScreen";
 import MarketWatchScreen from "./screens/AccountsScreens/MarketWatchScreen";
+import ChangePasswordScreen from './screens/AccountsScreens/Settings/ChangePasswordScreen';
+import ContactSupportScreen from './screens/AccountsScreens/Settings/ContactSupportScreen';
+import EditProfileScreen from './screens/AccountsScreens/Settings/EditProfileScreens';
+import HelpCenterScreen from './screens/AccountsScreens/Settings/HelpCenterScreen';
+import NotificationPreferencesScreen from './screens/AccountsScreens/Settings/NotificationPreferencesScreen';
+import PrivacyPolicyScreen from './screens/AccountsScreens/Settings/PrivacyPolicyScreen';
+import PrivacySecurityScreen from './screens/AccountsScreens/Settings/PrivacySecurityScreen';
+import SeeYourTickets from './screens/AccountsScreens/Settings/SeeYourTickets';
+import TermsConditionsScreen from './screens/AccountsScreens/Settings/TermsConditionsScreen';
 import SettingsScreen from "./screens/AccountsScreens/SettingsScreen";
-import BalanceHistoryScreen from "./screens/AccountsScreens/BalanceHistory";
 import FnoScreen from "./screens/FnOScreen";
 import LoginScreen from "./screens/LoginScreen";
 import MutualFundsScreen from "./screens/MutualFundsScreen";
-import Portfolio from "./screens/Portfolio";
 import RegisterScreen from "./screens/RegisterScreen";
+import StocksDetailsScreen from "./screens/StocksDetailsScreen";
 import StocksScreen from "./screens/StocksScreen";
-import EditProfileScreen from './screens/AccountsScreens/Settings/EditProfileScreens';
-import ChangePasswordScreen from './screens/AccountsScreens/Settings/ChangePasswordScreen';
-import PrivacySecurityScreen from './screens/AccountsScreens/Settings/PrivacySecurityScreen';
-import HelpCenterScreen from './screens/AccountsScreens/Settings/HelpCenterScreen';
-import ContactSupportScreen from './screens/AccountsScreens/Settings/ContactSupportScreen';
-import TermsConditionsScreen from './screens/AccountsScreens/Settings/TermsConditionsScreen';
-import PrivacyPolicyScreen from './screens/AccountsScreens/Settings/PrivacyPolicyScreen';
-import SeeYourTickets from './screens/AccountsScreens/Settings/SeeYourTickets';
-import NotificationPreferencesScreen from './screens/AccountsScreens/Settings/NotificationPreferencesScreen';
 
 
 const Tab = createBottomTabNavigator();
@@ -35,6 +35,14 @@ const AuthStack = () => (
     <Stack.Navigator screenOptions={{ headerShown: false }}>
         <Stack.Screen name="Login" component={LoginScreen} />
         <Stack.Screen name="Register" component={RegisterScreen} />
+    </Stack.Navigator>
+);
+
+// Home Stack with Stocks and Details
+const HomeStack = () => (
+    <Stack.Navigator screenOptions={{ headerShown: false }}>
+        <Stack.Screen name="StocksMain" component={StocksScreen} />
+        <Stack.Screen name="CryptoDetails" component={StocksDetailsScreen} />
     </Stack.Navigator>
 );
 
@@ -99,7 +107,7 @@ export default function MainNavigator() {
         >
             <Tab.Screen
                 name="Home"
-                component={StocksScreen}
+                component={HomeStack}
                 options={{ title: 'Stocks' }}
             />
             <Tab.Screen
