@@ -304,11 +304,11 @@ export default function StocksScreen() {
         {/* Search Bar */}
         <View style={styles.searchWrapper}>
           <View style={styles.searchContainer}>
-            <Feather name="search" size={20} color="#9CA3AF" />
+            <Feather name="search" size={20} color="#fff" />
             <TextInput
               style={styles.searchInput}
               placeholder="Search crypto currencies..."
-              placeholderTextColor="#9CA3AF"
+              placeholderTextColor="#fff"
               value={searchQuery}
               onChangeText={setSearchQuery}
             />
@@ -317,7 +317,7 @@ export default function StocksScreen() {
                 setSearchQuery('');
                 setShowSearchDropdown(false);
               }}>
-                <Feather name="x" size={20} color="#9CA3AF" />
+                <Feather name="x" size={20} color="#fff" />
               </TouchableOpacity>
             )}
           </View>
@@ -350,7 +350,7 @@ export default function StocksScreen() {
         <View style={styles.searchDropdown}>
           {searchLoading ? (
             <View style={styles.searchLoadingContainer}>
-              <ActivityIndicator size="large" color="#2E5CFF" />
+              <ActivityIndicator size="small" color="#2E5CFF" />
             </View>
           ) : searchResults.length > 0 ? (
             <FlatList
@@ -632,8 +632,7 @@ const styles = StyleSheet.create({
   searchLoadingContainer: {
     padding: 20,
     alignItems: 'center',
-    width: 0,
-
+    justifyContent : "center"
   },
   searchResultsList: {
     maxHeight: 300,
