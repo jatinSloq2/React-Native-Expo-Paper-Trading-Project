@@ -224,14 +224,6 @@ export default function StocksScreen() {
   useEffect(() => {
     if (debouncedSearch.trim() === '') {
       setFilteredStocks(stocksData);
-    } else {
-      const filtered = stocksData.filter(stock => {
-        const symbol = stock.symbol.replace('USDT', '').toLowerCase();
-        const name = SYMBOL_INFO[stock.symbol]?.name.toLowerCase() || '';
-        const search = debouncedSearch.toLowerCase();
-        return symbol.includes(search) || name.includes(search);
-      });
-      setFilteredStocks(filtered);
     }
   }, [debouncedSearch, stocksData]);
 
@@ -315,7 +307,7 @@ export default function StocksScreen() {
             <Feather name="search" size={20} color="#9CA3AF" />
             <TextInput
               style={styles.searchInput}
-              placeholder="Search cryptocurrencies..."
+              placeholder="Search crypto currencies..."
               placeholderTextColor="#9CA3AF"
               value={searchQuery}
               onChangeText={setSearchQuery}
@@ -329,54 +321,6 @@ export default function StocksScreen() {
               </TouchableOpacity>
             )}
           </View>
-
-          {/* Search Dropdown */}
-          {showSearchDropdown && searchQuery.length > 0 && (
-            <View style={styles.searchDropdown}>
-              {searchLoading ? (
-                <View style={styles.searchLoadingContainer}>
-                  <ActivityIndicator size="small" color="#2E5CFF" />
-                </View>
-              ) : searchResults.length > 0 ? (
-                <ScrollView style={styles.searchResultsList} nestedScrollEnabled>
-                  {searchResults.map((result, index) => (
-                    <TouchableOpacity
-                      key={result.symbol}
-                      style={styles.searchResultItem}
-                      onPress={() => handleSearchResultPress(result)}
-                    >
-                      <View style={styles.searchResultLeft}>
-                        <Feather name="trending-up" size={18} color="#6B7280" />
-                        <View style={styles.searchResultInfo}>
-                          <Text style={styles.searchResultSymbol}>
-                            {result.baseAsset}
-                          </Text>
-                          <Text style={styles.searchResultName}>
-                            {result.symbol}
-                          </Text>
-                        </View>
-                      </View>
-                      <View style={styles.searchResultRight}>
-                        <Text style={styles.searchResultPrice}>
-                          ${result.price >= 1 ? result.price.toFixed(2) : result.price.toFixed(6)}
-                        </Text>
-                        <Text style={[
-                          styles.searchResultChange,
-                          result.change >= 0 ? styles.changeTextPositive : styles.changeTextNegative
-                        ]}>
-                          {result.change >= 0 ? '+' : ''}{result.change.toFixed(2)}%
-                        </Text>
-                      </View>
-                    </TouchableOpacity>
-                  ))}
-                </ScrollView>
-              ) : (
-                <View style={styles.searchEmptyContainer}>
-                  <Text style={styles.searchEmptyText}>No results found</Text>
-                </View>
-              )}
-            </View>
-          )}
         </View>
 
         {/* Stats Banner */}
@@ -400,6 +344,55 @@ export default function StocksScreen() {
           </View>
         </View>
       </LinearGradient>
+
+      {/* Search Dropdown */}
+      {showSearchDropdown && searchQuery.length > 0 && (
+        <View style={styles.searchDropdown}>
+          {searchLoading ? (
+            <View style={styles.searchLoadingContainer}>
+              <ActivityIndicator size="large" color="#2E5CFF" />
+            </View>
+          ) : searchResults.length > 0 ? (
+            <FlatList
+              data={searchResults}
+              keyExtractor={(item) => item.symbol}
+              style={styles.searchResultsList}
+              nestedScrollEnabled={true}
+              showsVerticalScrollIndicator={true}
+              renderItem={({ item }) => (
+                <TouchableOpacity
+                  style={styles.searchResultItem}
+                  onPress={() => handleSearchResultPress(item)}
+                >
+                  <View style={styles.searchResultLeft}>
+                    <Feather name="trending-up" size={18} color="#6B7280" />
+                    <View style={styles.searchResultInfo}>
+                      <Text style={styles.searchResultSymbol}>{item.baseAsset}</Text>
+                      <Text style={styles.searchResultName}>{item.symbol}</Text>
+                    </View>
+                  </View>
+                  <View style={styles.searchResultRight}>
+                    <Text style={styles.searchResultPrice}>
+                      ${item.price >= 1 ? item.price.toFixed(2) : item.price.toFixed(6)}
+                    </Text>
+                    <Text style={[
+                      styles.searchResultChange,
+                      item.change >= 0 ? styles.changeTextPositive : styles.changeTextNegative
+                    ]}>
+                      {item.change >= 0 ? '+' : ''}{item.change.toFixed(2)}%
+                    </Text>
+                  </View>
+                </TouchableOpacity>
+              )}
+            />
+
+          ) : (
+            <View style={styles.searchEmptyContainer}>
+              <Text style={styles.searchEmptyText}>No results found</Text>
+            </View>
+          )}
+        </View>
+      )}
 
       <ScrollView
         style={styles.content}
@@ -566,6 +559,8 @@ const styles = StyleSheet.create({
   container: {
     flex: 1,
     backgroundColor: '#F5F7FA',
+    position: 'relative',
+
   },
   header: {
     paddingTop: 60,
@@ -573,6 +568,7 @@ const styles = StyleSheet.create({
     paddingHorizontal: 20,
     borderBottomLeftRadius: 28,
     borderBottomRightRadius: 28,
+    flexShrink: 1
   },
   headerTop: {
     flexDirection: 'row',
@@ -590,10 +586,10 @@ const styles = StyleSheet.create({
     width: 40,
   },
   searchWrapper: {
-    position: 'relative',
+    marginTop: 20,
     zIndex: 1000,
-    marginBottom: 16,
   },
+
   searchContainer: {
     flexDirection: 'row',
     alignItems: 'center',
@@ -601,7 +597,7 @@ const styles = StyleSheet.create({
     borderRadius: 12,
     paddingHorizontal: 16,
     paddingVertical: 12,
-    gap: 10,
+    gap: 10, marginBottom: 10,
   },
   searchInput: {
     flex: 1,
@@ -610,21 +606,34 @@ const styles = StyleSheet.create({
   },
   searchDropdown: {
     position: 'absolute',
-    top: 52,
-    left: 0,
+    top: 210,
+    left: 20,
     right: 0,
     backgroundColor: '#FFFFFF',
     borderRadius: 12,
-    maxHeight: 300,
+    paddingVertical: 8,
     shadowColor: '#000',
-    shadowOffset: { width: 0, height: 4 },
     shadowOpacity: 0.15,
     shadowRadius: 12,
-    elevation: 8,
+    shadowOffset: { width: 0, height: 4 },
+    elevation: 12,
+    zIndex: 9999,
+    maxHeight: 300,
+    maxWidth: 370,
+  },
+
+  searchDropdownContainer: {
+    position: 'absolute',
+    top: 170, // below search bar
+    left: 20,
+    right: 20,
+    zIndex: 999,
   },
   searchLoadingContainer: {
     padding: 20,
     alignItems: 'center',
+    width: 0,
+
   },
   searchResultsList: {
     maxHeight: 300,
@@ -853,7 +862,7 @@ const styles = StyleSheet.create({
   loadingContainer: {
     flex: 1,
     alignItems: 'center',
-    justifyContent: 'center',
+    justifyContent: "center"
   },
   loadingText: {
     fontSize: 16,

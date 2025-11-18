@@ -108,7 +108,7 @@ export default function MainNavigator() {
             <Tab.Screen
                 name="Home"
                 component={HomeStack}
-                options={{ title: 'Stocks' }}
+                options={{ title: 'Crypto' }}
             />
             <Tab.Screen
                 name="MutualFunds"
