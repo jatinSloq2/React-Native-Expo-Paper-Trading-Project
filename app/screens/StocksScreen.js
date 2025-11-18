@@ -581,9 +581,7 @@ const styles = StyleSheet.create({
     fontWeight: '700',
     color: '#FFFFFF',
   },
-  headerRight: {
-    width: 40,
-  },
+
   searchWrapper: {
     marginTop: 20,
     zIndex: 1000,
@@ -631,7 +629,7 @@ const styles = StyleSheet.create({
   searchLoadingContainer: {
     padding: 20,
     alignItems: 'center',
-    justifyContent : "center"
+    justifyContent: "center"
   },
   searchResultsList: {
     maxHeight: 300,
