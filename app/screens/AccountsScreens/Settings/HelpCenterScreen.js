@@ -35,7 +35,7 @@ export default function HelpCenterScreen() {
       id: 3,
       category: 'Account',
       question: 'How much virtual money do I start with?',
-      answer: 'New users start with ₹1,00,000 in virtual money. You can add or deduct funds from your account settings to simulate different trading scenarios.'
+      answer: 'New users start with $1,00,000 in virtual money. You can add or deduct funds from your account settings to simulate different trading scenarios.'
     },
     {
       id: 4,
@@ -320,7 +320,7 @@ function UserGuideModal({ visible, onClose }) {
     {
       title: "Step 1: Registration",
       icon: "user-plus",
-      content: "• Tap on 'Account' tab at the bottom\n• Click 'Create Account' or 'Register'\n• Fill in your details:\n  - Full Name\n  - Email Address\n  - Strong Password\n• Verify your email\n• Login with your credentials\n\nYou'll start with ₹1,00,000 virtual money!",
+      content: "• Tap on 'Account' tab at the bottom\n• Click 'Create Account' or 'Register'\n• Fill in your details:\n  - Full Name\n  - Email Address\n  - Strong Password\n• Verify your email\n• Login with your credentials\n\nYou'll start with $1,00,000 virtual money!",
       color: "#10B981"
     },
     {

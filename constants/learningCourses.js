@@ -39,7 +39,7 @@ When you buy a stock, you're buying a small piece of ownership in that company. 
 **Secondary Market**: Where investors trade shares among themselves
 
 ## Real Example:
-If Reliance Industries needs ₹10,000 crores for a new project, they can sell shares to the public. You buy 100 shares at ₹2,500 each = ₹2,50,000 investment. Now you own a tiny part of Reliance!
+If Reliance Industries needs $10,000 crores for a new project, they can sell shares to the public. You buy 100 shares at $2,500 each = $2,50,000 investment. Now you own a tiny part of Reliance!
 
 ## Remember:
 - Stock prices change every second based on demand and supply
@@ -82,8 +82,8 @@ If NIFTY is at 19,500:
 - **Post-closing**: 3:40 PM - 4:00 PM
 
 ## How Orders are Matched:
-1. You place a BUY order for TCS at ₹3,500
-2. Someone places a SELL order for TCS at ₹3,500
+1. You place a BUY order for TCS at $3,500
+2. Someone places a SELL order for TCS at $3,500
 3. Exchange matches both orders
 4. Trade executed! You now own TCS shares
 
@@ -107,13 +107,13 @@ Share prices are determined by **demand and supply**:
 
 When you see a stock quote, here's what each term means:
 
-**RELIANCE: ₹2,456.75**
+**RELIANCE: $2,456.75**
 - Current Trading Price
 
-**Open**: ₹2,440.00 (Price when market opened)
-**High**: ₹2,470.00 (Highest price today)
-**Low**: ₹2,435.00 (Lowest price today)
-**Close**: ₹2,450.00 (Yesterday's closing price)
+**Open**: $2,440.00 (Price when market opened)
+**High**: $2,470.00 (Highest price today)
+**Low**: $2,435.00 (Lowest price today)
+**Close**: $2,450.00 (Yesterday's closing price)
 
 **Change**: +6.75 (+0.28%) → Stock went up today!
 
@@ -123,28 +123,28 @@ When you see a stock quote, here's what each term means:
 Shows the total value of a company.
 
 **Formula**: Share Price × Total Shares
-Example: If Infosys has 100 crore shares at ₹1,500 each
-Market Cap = 100 crore × ₹1,500 = ₹1,50,000 crores
+Example: If Infosys has 100 crore shares at $1,500 each
+Market Cap = 100 crore × $1,500 = $1,50,000 crores
 
 ### Categories:
-- **Large Cap**: Above ₹20,000 crore (TCS, Reliance)
-- **Mid Cap**: ₹5,000 - ₹20,000 crore
-- **Small Cap**: Below ₹5,000 crore
+- **Large Cap**: Above $20,000 crore (TCS, Reliance)
+- **Mid Cap**: $5,000 - $20,000 crore
+- **Small Cap**: Below $5,000 crore
 
 ## P/E Ratio (Price to Earnings):
 Shows if a stock is expensive or cheap.
 
 **Formula**: Share Price ÷ EPS (Earnings Per Share)
 
-Example: Stock price ₹1,000, EPS = ₹50
+Example: Stock price $1,000, EPS = $50
 P/E Ratio = 1000 ÷ 50 = 20
 
 **P/E < 15**: Undervalued (might be good buy)
 **P/E > 25**: Overvalued (might be expensive)
 
 ## 52-Week High/Low:
-- **52W High**: ₹2,800 (Highest price in last year)
-- **52W Low**: ₹2,100 (Lowest price in last year)
+- **52W High**: $2,800 (Highest price in last year)
+- **52W Low**: $2,100 (Lowest price in last year)
 
 Helps you understand the stock's price range.`
       },
@@ -196,8 +196,8 @@ This is like a **bridge** between your bank account and Demat account.
 
 ## Charges:
 
-**Account Opening**: ₹0 - ₹500 (Most free now)
-**Annual Maintenance**: ₹0 - ₹300
+**Account Opening**: $0 - $500 (Most free now)
+**Annual Maintenance**: $0 - $300
 **Brokerage**: 0.01% to 0.05% per trade
 
 ## Important Points:
@@ -233,9 +233,9 @@ Understanding different order types is crucial for successful trading.
 
 **Buy/Sell immediately at current market price**
 
-Example: Infosys is trading at ₹1,450
+Example: Infosys is trading at $1,450
 You place MARKET ORDER to buy
-Order executes instantly at ₹1,450 (or close to it)
+Order executes instantly at $1,450 (or close to it)
 
 **Pros:**
 ✅ Instant execution
@@ -251,9 +251,9 @@ Order executes instantly at ₹1,450 (or close to it)
 
 **Buy/Sell at a specific price or better**
 
-Example: TCS is at ₹3,500, but you want to buy only at ₹3,450
-You place LIMIT ORDER at ₹3,450
-Order executes only when price drops to ₹3,450 or below
+Example: TCS is at $3,500, but you want to buy only at $3,450
+You place LIMIT ORDER at $3,450
+Order executes only when price drops to $3,450 or below
 
 **Buy Limit**: "I'll buy only at this price or LOWER"
 **Sell Limit**: "I'll sell only at this price or HIGHER"
@@ -272,9 +272,9 @@ Order executes only when price drops to ₹3,450 or below
 
 **Protects you from big losses**
 
-Example: You bought Wipro at ₹400
-You set Stop-Loss at ₹380
-If price drops to ₹380, it automatically sells
+Example: You bought Wipro at $400
+You set Stop-Loss at $380
+If price drops to $380, it automatically sells
 
 Think of it as a safety net!
 
@@ -283,20 +283,20 @@ Think of it as a safety net!
 **SL-Limit**: Sells at your limit price when trigger hits
 
 **Real Example:**
-- Bought: HDFC Bank at ₹1,600
-- Stop-Loss: ₹1,520 (5% below)
-- Current Price: ₹1,580 (falling)
-- Trigger: When it hits ₹1,520, auto sells
-- Result: Loss limited to ₹80 per share
+- Bought: HDFC Bank at $1,600
+- Stop-Loss: $1,520 (5% below)
+- Current Price: $1,580 (falling)
+- Trigger: When it hits $1,520, auto sells
+- Result: Loss limited to $80 per share
 
 ## 4. Good Till Cancelled (GTC)
 
 Order remains active until you cancel it
 
-Example: You want to buy Asian Paints at ₹2,800
-Current price: ₹3,000
-Set GTC order at ₹2,800
-Order stays active for days/weeks until price reaches ₹2,800
+Example: You want to buy Asian Paints at $2,800
+Current price: $3,000
+Set GTC order at $2,800
+Order stays active for days/weeks until price reaches $2,800
 
 **Validity**: Usually 30-90 days
 
@@ -316,11 +316,11 @@ If not executed by 3:30 PM, automatically cancelled
 
 ## Order Placement Example:
 
-**Scenario**: Want to buy Reliance at ₹2,400
+**Scenario**: Want to buy Reliance at $2,400
 
 **Conservative Approach:**
-- Current Price: ₹2,450
-- Place LIMIT ORDER at ₹2,400
+- Current Price: $2,450
+- Place LIMIT ORDER at $2,400
 - Wait for price to drop
 
 **Aggressive Approach:**
@@ -328,8 +328,8 @@ If not executed by 3:30 PM, automatically cancelled
 - Buy immediately at current price
 
 **With Protection:**
-- Place LIMIT ORDER at ₹2,400
-- After buying, set STOP-LOSS at ₹2,280 (5% below)
+- Place LIMIT ORDER at $2,400
+- After buying, set STOP-LOSS at $2,280 (5% below)
 
 ## Pro Tips:
 
@@ -480,19 +480,19 @@ Stocks (also called shares or equity) represent ownership in a company.
 
 ## Simple Example:
 
-Imagine you and 3 friends start a ₹1 lakh business:
-- You invest ₹25,000 (25% ownership)
-- Each friend invests ₹25,000 (25% each)
+Imagine you and 3 friends start a $1 lakh business:
+- You invest $25,000 (25% ownership)
+- Each friend invests $25,000 (25% each)
 
-Now scale this: A company worth ₹1 lakh crore divided into 100 crore shares
-Each share = ₹1,000
+Now scale this: A company worth $1 lakh crore divided into 100 crore shares
+Each share = $1,000
 
 If you buy 1 share = You own 0.000001% of the company!
 
 ## Why Companies Issue Stocks?
 
 **Reliance Example:**
-- Needs ₹50,000 crore for new 5G rollout
+- Needs $50,000 crore for new 5G rollout
 - Instead of bank loan (high interest), sells shares
 - Raises money from public
 - No repayment pressure
@@ -509,9 +509,9 @@ If you buy 1 share = You own 0.000001% of the company!
 - Capital appreciation
 
 **Example**: You own 100 Infosys shares
-- Get dividends: ₹50 per share = ₹5,000
+- Get dividends: $50 per share = $5,000
 - Voting: Can vote in AGM
-- Price rises: ₹1,400 → ₹1,600 = ₹20,000 profit
+- Price rises: $1,400 → $1,600 = $20,000 profit
 
 ### 2. Preference Shares
 **Priority over common stocks**
@@ -591,16 +591,16 @@ Reliance, ONGC, Coal India
 ## How to Make Money from Stocks:
 
 ### 1. Capital Gains
-Buy at ₹1,000, Sell at ₹1,200 = ₹200 profit per share
+Buy at $1,000, Sell at $1,200 = $200 profit per share
 
 **Short-term**: Sold within 1 year (15% tax)
-**Long-term**: Sold after 1 year (10% tax above ₹1 lakh)
+**Long-term**: Sold after 1 year (10% tax above $1 lakh)
 
 ### 2. Dividends
 Company shares profits with shareholders
 
-Example: Infosys declares ₹20 dividend per share
-You own 100 shares = ₹2,000 dividend income
+Example: Infosys declares $20 dividend per share
+You own 100 shares = $2,000 dividend income
 
 ### 3. Bonus Shares
 Free shares given to existing shareholders
@@ -613,7 +613,7 @@ Total: 200 shares
 1 share divided into multiple shares
 
 Example: 1:5 split
-1 share of ₹5,000 → 5 shares of ₹1,000 each
+1 share of $5,000 → 5 shares of $1,000 each
 Total value remains same
 
 ## Stock Selection Criteria:
@@ -635,11 +635,11 @@ Total value remains same
 
 ## Beginner's Stock Portfolio Example:
 
-**₹1,00,000 investment**
-- ₹40,000 - Large Cap (TCS, HDFC Bank)
-- ₹35,000 - Mid Cap (Good growth companies)
-- ₹15,000 - Small Cap (High risk, high return)
-- ₹10,000 - International (US stocks)
+**$1,00,000 investment**
+- $40,000 - Large Cap (TCS, HDFC Bank)
+- $35,000 - Mid Cap (Good growth companies)
+- $15,000 - Small Cap (High risk, high return)
+- $10,000 - International (US stocks)
 
 ## Key Takeaways:
 
@@ -684,7 +684,7 @@ Is company growing sales?
 Check last 5 years trend
 
 Good: 15%+ annual growth
-Example: TCS revenue grew from ₹1.23L Cr (2018) to ₹2.25L Cr (2023)
+Example: TCS revenue grew from $1.23L Cr (2018) to $2.25L Cr (2023)
 
 **2. Profit Margins**
 Is company making good profit?
@@ -952,7 +952,7 @@ Risk: Spread across many items
 ### The Players:
 
 **1. You (Investor)**
-- Invest ₹5,000 monthly
+- Invest $5,000 monthly
 - Get mutual fund units
 
 **2. Asset Management Company (AMC)**
@@ -969,8 +969,8 @@ Risk: Spread across many items
 
 ### The Process:
 
-**Step 1**: You invest ₹10,000 in "XYZ Mutual Fund"
-NAV (Net Asset Value) = ₹100
+**Step 1**: You invest $10,000 in "XYZ Mutual Fund"
+NAV (Net Asset Value) = $100
 You get: 10,000 ÷ 100 = **100 units**
 
 **Step 2**: Fund manager invests your money (along with others') in:
@@ -979,9 +979,9 @@ You get: 10,000 ÷ 100 = **100 units**
 - 10% Cash (for redemptions)
 
 **Step 3**: After 1 year:
-Portfolio grows to ₹11,500
-NAV becomes ₹115
-Your investment: 100 units × ₹115 = ₹11,500 ✅
+Portfolio grows to $11,500
+NAV becomes $115
+Your investment: 100 units × $115 = $11,500 ✅
 
 ## NAV (Net Asset Value)
 
@@ -992,14 +992,14 @@ NAV = (Total Assets - Total Liabilities) / Total Units
 
 **Example:**
 Fund has:
-- Stocks worth: ₹950 crores
-- Bonds worth: ₹40 crores
-- Cash: ₹10 crores
-- Total Assets: ₹1,000 crores
-- Liabilities: ₹5 crores
+- Stocks worth: $950 crores
+- Bonds worth: $40 crores
+- Cash: $10 crores
+- Total Assets: $1,000 crores
+- Liabilities: $5 crores
 - Units outstanding: 10 crore
 
-NAV = (1000 - 5) / 10 = ₹99.50
+NAV = (1000 - 5) / 10 = $99.50
 
 **NAV Updates:** Calculated daily after market closes (around 9 PM)
 
@@ -1069,7 +1069,7 @@ Example: Nifty 50 Index Fund
 **Equity funds with tax benefits**
 
 **Features:**
-- Tax deduction up to ₹1.5 lakh (Section 80C)
+- Tax deduction up to $1.5 lakh (Section 80C)
 - Lock-in: 3 years (shortest among tax-saving options)
 - Invest in stocks
 
@@ -1092,7 +1092,7 @@ Risk spreads across companies
 Example: One stock falls 20%, but fund falls only 2%
 
 **3. Low Investment Amount**
-Start with ₹500 SIP
+Start with $500 SIP
 No need for lakhs of rupees
 
 **4. Liquidity**
@@ -1109,7 +1109,7 @@ SEBI oversight
 Investor protection
 
 **7. Tax Efficiency**
-Equity funds: 10% tax (>₹1L gains) after 1 year
+Equity funds: 10% tax (>$1L gains) after 1 year
 Debt funds: Based on holding period
 
 ### ❌ Disadvantages:
@@ -1129,14 +1129,14 @@ Fund manager decides what to buy
 
 ## Mutual Fund Returns Example:
 
-**Investment:** ₹10,000 per month SIP
+**Investment:** $10,000 per month SIP
 **Duration:** 10 years
 **Fund:** Equity Mutual Fund
 **Assumed Return:** 12% annually
 
-**Total Invested:** ₹12,00,000
-**Final Value:** ₹23,23,391
-**Profit:** ₹11,23,391 🎉
+**Total Invested:** $12,00,000
+**Final Value:** $23,23,391
+**Profit:** $11,23,391 🎉
 
 **Power of Compounding!**
 
@@ -1159,7 +1159,7 @@ Fund manager decides what to buy
 **SIP vs Lumpsum**
 
 **SIP (Systematic Investment Plan):**
-- Fixed amount monthly (₹1000, ₹5000, etc.)
+- Fixed amount monthly ($1000, $5000, etc.)
 - Rupee cost averaging
 - Less risk
 - Best for salaried individuals
@@ -1203,8 +1203,8 @@ How long managing the fund?
 Consistent performance?
 
 **7. AUM (Assets Under Management)**
-Not too small (<₹100 crore)
-Not too large (>₹50,000 crore for small/mid cap)
+Not too small (<$100 crore)
+Not too large (>$50,000 crore for small/mid cap)
 
 ## Reading Mutual Fund Factsheet:
 
@@ -1229,16 +1229,16 @@ Not too large (>₹50,000 crore for small/mid cap)
 
 **Equity Funds:**
 - Short-term (<1 year): 15% tax
-- Long-term (>1 year): 10% tax above ₹1 lakh gains
+- Long-term (>1 year): 10% tax above $1 lakh gains
 
 **Debt Funds:**
 Taxed as per income tax slab
 
 **Example:**
-Invested ₹1,00,000 → Grew to ₹2,00,000 in 2 years
-Gain: ₹1,00,000
-Tax: ₹10,000 - ₹1,00,000 = 0 (₹1L exempt)
-Then 10% on remaining = ₹0
+Invested $1,00,000 → Grew to $2,00,000 in 2 years
+Gain: $1,00,000
+Tax: $10,000 - $1,00,000 = 0 ($1L exempt)
+Then 10% on remaining = $0
 
 ## Common Mistakes:
 
@@ -1252,25 +1252,25 @@ Then 10% on remaining = ₹0
 
 ## Sample Portfolio:
 
-**Monthly Budget: ₹20,000 SIP**
+**Monthly Budget: $20,000 SIP**
 
 **Age 25-30 (Aggressive):**
-- ₹8,000 - Large Cap Fund
-- ₹6,000 - Mid Cap Fund
-- ₹4,000 - Small Cap Fund
-- ₹2,000 - International Fund
+- $8,000 - Large Cap Fund
+- $6,000 - Mid Cap Fund
+- $4,000 - Small Cap Fund
+- $2,000 - International Fund
 
 **Age 30-40 (Balanced):**
-- ₹8,000 - Large Cap Fund
-- ₹5,000 - Mid Cap Fund
-- ₹5,000 - Hybrid Fund
-- ₹2,000 - Debt Fund
+- $8,000 - Large Cap Fund
+- $5,000 - Mid Cap Fund
+- $5,000 - Hybrid Fund
+- $2,000 - Debt Fund
 
 **Age 40-50 (Conservative):**
-- ₹7,000 - Large Cap Fund
-- ₹5,000 - Hybrid Fund
-- ₹5,000 - Debt Fund
-- ₹3,000 - Liquid/Arbitrage Fund
+- $7,000 - Large Cap Fund
+- $5,000 - Hybrid Fund
+- $5,000 - Debt Fund
+- $3,000 - Liquid/Arbitrage Fund
 
 ## Key Takeaways:
 
@@ -1318,15 +1318,15 @@ A contract whose value depends on something else (underlying asset)
 Control large position with small capital
 
 **Example:**
-Buy Reliance stock: Need ₹2,500 × 100 = ₹2,50,000
-Buy Reliance Future: Need only ₹50,000 margin
+Buy Reliance stock: Need $2,500 × 100 = $2,50,000
+Buy Reliance Future: Need only $50,000 margin
 **Leverage: 5x**
 
 ### 2. Hedging
 Protect your stock portfolio from losses
 
 **Example:**
-Own ₹10 lakh Nifty stocks
+Own $10 lakh Nifty stocks
 Buy Nifty Put option
 If market falls, Put option profit covers stock losses
 
@@ -1353,8 +1353,8 @@ Must buy in lots
 - TCS: 150 shares per lot
 
 **If Nifty at 19,500:**
-1 lot = 50 × 19,500 = ₹9,75,000 contract value
-Margin needed: ~₹1,20,000
+1 lot = 50 × 19,500 = $9,75,000 contract value
+Margin needed: ~$1,20,000
 
 ## Expiry Dates:
 
@@ -1422,7 +1422,7 @@ Based on individual stocks
 **Criteria for F&O listing:**
 - Large cap stocks mostly
 - High liquidity
-- Market cap > ₹500 crore
+- Market cap > $500 crore
 
 **Popular F&O stocks:**
 Reliance, TCS, HDFC Bank, Infosys, ITC
@@ -1459,11 +1459,11 @@ Daily profit/loss settlement
 - Loss: Can also multiply 5x-10x
 
 **Example:**
-Margin: ₹1,00,000
-Position size: ₹10,00,000 (10x leverage)
+Margin: $1,00,000
+Position size: $10,00,000 (10x leverage)
 
 Market moves 2% against you:
-Loss: 2% × ₹10,00,000 = ₹20,000 (20% of margin!)
+Loss: 2% × $10,00,000 = $20,000 (20% of margin!)
 
 **Can lose more than investment in some strategies!**
 
@@ -1492,20 +1492,20 @@ Loss: 2% × ₹10,00,000 = ₹20,000 (20% of margin!)
 ## Example Scenario:
 
 **Stock Trading:**
-- Buy 100 Reliance shares at ₹2,500
-- Investment: ₹2,50,000
-- Stock rises to ₹2,600
-- Profit: ₹10,000 (4%)
+- Buy 100 Reliance shares at $2,500
+- Investment: $2,50,000
+- Stock rises to $2,600
+- Profit: $10,000 (4%)
 
 **F&O Trading:**
-- Buy 1 lot Reliance Future (250 shares) at ₹2,500
-- Margin: ₹50,000
-- Contract value: ₹6,25,000
-- Future rises to ₹2,600
-- Profit: ₹25,000 (50% return on margin!)
+- Buy 1 lot Reliance Future (250 shares) at $2,500
+- Margin: $50,000
+- Contract value: $6,25,000
+- Future rises to $2,600
+- Profit: $25,000 (50% return on margin!)
 
 **But if wrong:**
-- Loss: ₹25,000 (50% of margin gone!)
+- Loss: $25,000 (50% of margin gone!)
 
 ## Regulations:
 
@@ -1560,13 +1560,13 @@ Futures are agreements to buy/sell an asset at a predetermined price on a future
 ## Simple Example:
 
 **Today (November):**
-- You agree to buy 1kg gold at ₹60,000
+- You agree to buy 1kg gold at $60,000
 - Delivery: December 31
 
 **December 31:**
-- Gold market price: ₹65,000
-- You pay only: ₹60,000
-- **Your Profit: ₹5,000**
+- Gold market price: $65,000
+- You pay only: $60,000
+- **Your Profit: $5,000**
 
 This is a Futures contract!
 
@@ -1578,13 +1578,13 @@ This is a Futures contract!
 - Nifty Spot: 19,500
 - Nifty December Future: 19,550
 - You BUY 1 lot (50 units)
-- Contract Value: 50 × 19,550 = ₹9,77,500
-- Margin Required: ₹1,20,000 (12%)
+- Contract Value: 50 × 19,550 = $9,77,500
+- Margin Required: $1,20,000 (12%)
 
 **Next Week:**
 - Nifty moves to 19,700
 - Future price: 19,750
-- Your gain: (19,750 - 19,550) × 50 = ₹10,000
+- Your gain: (19,750 - 19,550) × 50 = $10,000
 - Return on margin: 8.3% in 1 week!
 
 ## Key Features:
@@ -1617,10 +1617,10 @@ Usually 3-5%
 **Total Margin = SPAN + Exposure + Extreme Loss Margin**
 
 **Example for Reliance Future:**
-- Contract Value: ₹6,00,000
-- SPAN Margin: ₹60,000 (10%)
-- Exposure: ₹18,000 (3%)
-- Total: ₹78,000
+- Contract Value: $6,00,000
+- SPAN Margin: $60,000 (10%)
+- Exposure: $18,000 (3%)
+- Total: $78,000
 
 ### 3. Mark to Market (MTM)
 
@@ -1629,12 +1629,12 @@ Usually 3-5%
 **Example:**
 Day 1: Buy Nifty Future at 19,500
 Day 2: Nifty closes at 19,450
-MTM Loss: (19,450 - 19,500) × 50 = -₹2,500
-**This ₹2,500 debited from your account**
+MTM Loss: (19,450 - 19,500) × 50 = -$2,500
+**This $2,500 debited from your account**
 
 Day 3: Nifty closes at 19,600
-MTM Profit: (19,600 - 19,450) × 50 = +₹7,500
-**This ₹7,500 credited to your account**
+MTM Profit: (19,600 - 19,450) × 50 = +$7,500
+**This $7,500 credited to your account**
 
 ### 4. Rollover
 
@@ -1655,7 +1655,7 @@ Price difference between contracts + brokerage
 **Example:**
 - November Future: 19,500
 - December Future: 19,550
-- Rollover Cost: 50 points × 50 = ₹2,500
+- Rollover Cost: 50 points × 50 = $2,500
 
 ## Types of Positions:
 
@@ -1672,11 +1672,11 @@ Price difference between contracts + brokerage
 
 **If Right:**
 - Nifty → 19,800
-- Profit: (19,800-19,500) × 50 = ₹15,000
+- Profit: (19,800-19,500) × 50 = $15,000
 
 **If Wrong:**
 - Nifty → 19,350
-- Loss: (19,350-19,500) × 50 = -₹7,500
+- Loss: (19,350-19,500) × 50 = -$7,500
 
 ### 2. Short Position (Bearish)
 
@@ -1691,11 +1691,11 @@ Price difference between contracts + brokerage
 
 **If Right:**
 - Nifty → 19,200
-- Profit: (19,500-19,200) × 50 = ₹15,000
+- Profit: (19,500-19,200) × 50 = $15,000
 
 **If Wrong:**
 - Nifty → 19,650
-- Loss: (19,650-19,500) × 50 = -₹7,500
+- Loss: (19,650-19,500) × 50 = -$7,500
 
 ## Futures Pricing:
 
@@ -1712,7 +1712,7 @@ Price difference between contracts + brokerage
 - Nifty Spot: 19,500
 - Interest rate: 7% annually
 - Time to expiry: 1 month
-- Dividend: ₹0
+- Dividend: $0
 
 Future Fair Value:
 19,500 + (19,500 × 7% × 1/12) = 19,614
@@ -1736,39 +1736,39 @@ Bearish market
 ### Protecting Stock Portfolio
 
 **Scenario:**
-- Own ₹10 lakh Nifty stocks
+- Own $10 lakh Nifty stocks
 - Worried about market fall
 - Don't want to sell (long-term investor)
 
 **Solution:**
-Sell Nifty Futures worth ₹10 lakh
+Sell Nifty Futures worth $10 lakh
 
 **Result:**
 - Market falls 5%
-- Stock portfolio loss: -₹50,000
-- Future profit: +₹50,000
-- **Net: ₹0** (Protected!)
+- Stock portfolio loss: -$50,000
+- Future profit: +$50,000
+- **Net: $0** (Protected!)
 
 ### Real Example:
 
 **Portfolio:**
-- 100 Reliance shares at ₹2,500 = ₹2,50,000
+- 100 Reliance shares at $2,500 = $2,50,000
 - Expecting correction
 
 **Hedge:**
-Sell 1 lot Reliance Future (250 shares) at ₹2,500
+Sell 1 lot Reliance Future (250 shares) at $2,500
 
 **Outcome 1: Market Falls**
-- Reliance → ₹2,300
-- Stock loss: ₹20,000
-- Future profit: (2,500-2,300) × 250 = ₹50,000
-- Net gain: ₹30,000
+- Reliance → $2,300
+- Stock loss: $20,000
+- Future profit: (2,500-2,300) × 250 = $50,000
+- Net gain: $30,000
 
 **Outcome 2: Market Rises**
-- Reliance → ₹2,700
-- Stock gain: ₹20,000
-- Future loss: -₹50,000
-- Net loss: -₹30,000
+- Reliance → $2,700
+- Stock gain: $20,000
+- Future loss: -$50,000
+- Net loss: -$30,000
 
 *Hedge limits both gain and loss!*
 
@@ -1829,8 +1829,8 @@ Sell 1 lot Reliance Future (250 shares) at ₹2,500
 **Aggressive:** Use 70% margin capacity (risky!)
 
 **Example:**
-Total Capital: ₹5,00,000
-Conservative: Trade worth ₹1,50,000 margin
+Total Capital: $5,00,000
+Conservative: Trade worth $1,50,000 margin
 = 1 Nifty Lot + Buffer
 
 ### Stop-Loss Rules
@@ -1842,9 +1842,9 @@ Conservative: Trade worth ₹1,50,000 margin
 **1. Percentage-based:**
 Risk 1-2% of capital per trade
 
-Capital: ₹5 lakh
-Risk: 2% = ₹10,000
-Stop-loss: Calculate to limit loss to ₹10,000
+Capital: $5 lakh
+Risk: 2% = $10,000
+Stop-loss: Calculate to limit loss to $10,000
 
 **2. Technical-based:**
 Below support for long
@@ -1867,7 +1867,7 @@ Above resistance for short
 ## Costs Involved:
 
 **Brokerage:**
-₹10-20 per executed order (or 0.03%)
+$10-20 per executed order (or 0.03%)
 
 **STT (Securities Transaction Tax):**
 0.01% on sell side (Futures)
@@ -1879,14 +1879,14 @@ NSE: 0.002%
 18% on (brokerage + exchange charges)
 
 **SEBI Charges:**
-₹10 per crore
+$10 per crore
 
 **Stamp Duty:**
 State specific
 
 **Example:**
-Contract value: ₹10 lakh
-Total charges: ₹200-300
+Contract value: $10 lakh
+Total charges: $200-300
 
 ## Tax on Futures:
 
@@ -1896,9 +1896,9 @@ Taxed as per income slab
 **No LTCG benefit** (even if held >1 year)
 
 **Example:**
-Salary: ₹15 lakh (30% slab)
-F&O Profit: ₹2 lakh
-Tax: 30% of ₹2 lakh = ₹60,000
+Salary: $15 lakh (30% slab)
+F&O Profit: $2 lakh
+Tax: 30% of $2 lakh = $60,000
 
 **Can set off losses:**
 Against other speculative income
@@ -2105,16 +2105,16 @@ Importance of objective analysis
 ## Real-World Example:
 
 **Reliance Industries Daily Chart:**
-- Identified support at ₹2,200
-- Resistance at ₹2,500
+- Identified support at $2,200
+- Resistance at $2,500
 - Volume increasing on up moves
 - Moving averages aligned upward
 - Pattern suggesting breakout
 
 **Trade Setup:**
-Buy if breaks above ₹2,500 with high volume
-Stop loss: ₹2,450
-Target: ₹2,800
+Buy if breaks above $2,500 with high volume
+Stop loss: $2,450
+Target: $2,800
 
 ## Key Takeaways:
 
@@ -2319,14 +2319,14 @@ Enter long with stop below 16,450
 
 ### Reliance Industries Example:
 **Date**: March 15, 2024
-**Pattern**: Bullish engulfing at ₹2,300 support
+**Pattern**: Bullish engulfing at $2,300 support
 **Volume**: 2x average volume
 **Previous trend**: 2-week downtrend
 **Result**: 8% rally over next 5 sessions
 
 ### TCS Example:
 **Date**: April 2, 2024  
-**Pattern**: Evening star at ₹3,800 resistance
+**Pattern**: Evening star at $3,800 resistance
 **Volume**: High on third candle
 **Result**: 6% decline over next week
 
@@ -2400,7 +2400,7 @@ Price levels where significant trading occurred
 Large number of shares changed hands
 
 **Psychological Levels:**
-Round numbers (₹100, ₹500, ₹1000)
+Round numbers ($100, $500, $1000)
 Historical important levels
 
 **Technical Confluences:**
@@ -2480,9 +2480,9 @@ When support breaks, it becomes resistance
 When resistance breaks, it becomes support
 
 **Example:**
-Stock trades at ₹1,000 resistance multiple times
-Finally breaks above ₹1,000
-Now ₹1,000 becomes support on pullbacks
+Stock trades at $1,000 resistance multiple times
+Finally breaks above $1,000
+Now $1,000 becomes support on pullbacks
 
 ### Support/Resistance Zones:
 Rather than exact prices, think in terms of zones
@@ -2555,7 +2555,7 @@ Dramatically increases probability
 - Previous swing low support
 - 200-day moving average
 - 61.8% Fibonacci retracement
-- Round number (₹500)
+- Round number ($500)
 - High volume node
 
 ### Timeframe Alignment:
@@ -2596,7 +2596,7 @@ Support/resistance defines market structure
 - Round number resistance
 
 ### Reliance Industries Example:
-**Strong Support**: ₹2,200
+**Strong Support**: $2,200
 - 5 touches in 6 months
 - 200-day moving average
 - High volume node
@@ -2960,10 +2960,10 @@ Risk fixed % of capital per trade (1-2% recommended)
 Position Size = (Account Size × Risk %) ÷ (Entry Price - Stop Loss)
 
 **Example**:
-Account: ₹5,00,000
-Risk: 1% = ₹5,000
-Stock: Reliance at ₹2,500
-Stop Loss: ₹2,450 (2% risk)
+Account: $5,00,000
+Risk: 1% = $5,000
+Stock: Reliance at $2,500
+Stop Loss: $2,450 (2% risk)
 Position Size: 5,000 ÷ 50 = 100 shares
 
 ### 2. Volatility-Based Sizing:
@@ -3155,9 +3155,9 @@ Sharpe ratio and risk-adjusted returns
 ## Risk Management Plan Template:
 
 ### 1. Capital Allocation:
-Total trading capital: ₹______
-Risk per trade: __% (₹______)
-Maximum open risk: __% (₹______)
+Total trading capital: $______
+Risk per trade: __% ($______)
+Maximum open risk: __% ($______)
 
 ### 2. Position Sizing:
 Method: □ Fixed % □ Volatility-based □ Other
@@ -3168,8 +3168,8 @@ Method: □ Technical □ Percentage □ ATR
 Maximum loss per trade: __%
 
 ### 4. Daily/Weekly Limits:
-Maximum daily loss: ₹______
-Maximum weekly loss: ₹______
+Maximum daily loss: $______
+Maximum weekly loss: $______
 Trading halt after: __ consecutive losses
 
 ### 5. Portfolio Rules:
@@ -4068,10 +4068,10 @@ Cost savings, revenue enhancements, strategic benefits
 - Peer comparison: TCS, Wipro, HCL Tech
 
 **Valuation Range**:
-- DCF: ₹1,650-1,850 per share
-- P/E-based: ₹1,600-1,900 per share
-- **Fair Value Range**: ₹1,650-1,850
-- **Margin of Safety Price**: ₹1,320-1,480 (20% below low end)
+- DCF: $1,650-1,850 per share
+- P/E-based: $1,600-1,900 per share
+- **Fair Value Range**: $1,650-1,850
+- **Margin of Safety Price**: $1,320-1,480 (20% below low end)
 
 ## Key Takeaways:
 

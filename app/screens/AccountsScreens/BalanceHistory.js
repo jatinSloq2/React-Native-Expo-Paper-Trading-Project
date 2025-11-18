@@ -119,13 +119,13 @@ export default function BalanceHistoryScreen({ navigation }) {
             styles.transactionAmount,
             { color: isCredit ? '#10B981' : '#EF4444' }
           ]}>
-            {isCredit ? '+' : '-'}₹{item.amount.toLocaleString("en-IN", {
+            {isCredit ? '+' : '-'}${item.amount.toLocaleString("en-IN", {
               minimumFractionDigits: 2,
               maximumFractionDigits: 2
             })}
           </Text>
           <Text style={styles.transactionBalance}>
-            Bal: ₹{item.balanceAfter.toLocaleString("en-IN", {
+            Bal: ${item.balanceAfter.toLocaleString("en-IN", {
               minimumFractionDigits: 2,
               maximumFractionDigits: 2
             })}
@@ -154,7 +154,7 @@ export default function BalanceHistoryScreen({ navigation }) {
               <Text style={styles.summaryLabel}>Total Credit</Text>
             </View>
             <Text style={[styles.summaryAmount, { color: '#10B981' }]}>
-              ₹{summary.totalCredit.toLocaleString("en-IN", {
+              ${summary.totalCredit.toLocaleString("en-IN", {
                 minimumFractionDigits: 2,
                 maximumFractionDigits: 2
               })}
@@ -170,7 +170,7 @@ export default function BalanceHistoryScreen({ navigation }) {
               <Text style={styles.summaryLabel}>Total Debit</Text>
             </View>
             <Text style={[styles.summaryAmount, { color: '#EF4444' }]}>
-              ₹{summary.totalDebit.toLocaleString("en-IN", {
+              ${summary.totalDebit.toLocaleString("en-IN", {
                 minimumFractionDigits: 2,
                 maximumFractionDigits: 2
               })}
@@ -195,7 +195,7 @@ export default function BalanceHistoryScreen({ navigation }) {
             styles.netBalanceAmount,
             { color: netBalance >= 0 ? '#2E5CFF' : '#EF4444' }
           ]}>
-            {netBalance >= 0 ? '+' : ''}₹{netBalance.toLocaleString("en-IN", {
+            {netBalance >= 0 ? '+' : ''}${netBalance.toLocaleString("en-IN", {
               minimumFractionDigits: 2,
               maximumFractionDigits: 2
             })}

@@ -4,12 +4,15 @@ import { LinearGradient } from 'expo-linear-gradient';
 import { useEffect, useRef, useState } from 'react';
 import {
     ActivityIndicator,
+    Alert,
     Dimensions,
     Image,
+    Modal,
     RefreshControl,
     ScrollView,
     StyleSheet,
     Text,
+    TextInput,
     TouchableOpacity,
     View,
 } from 'react-native';
@@ -17,127 +20,33 @@ import { LineChart } from 'react-native-chart-kit';
 
 const { width } = Dimensions.get('window');
 
-// Enhanced function to get crypto logo - works for almost all cryptos
+// API Configuration
+const API_URL = 'YOUR_API_URL'; // Replace with your backend URL
+
+// Enhanced function to get crypto logo
 const getCryptoLogoUrl = (symbol) => {
     const baseAsset = symbol.replace('USDT', '').toLowerCase();
-
-    // Common aliases mapping
     const aliases = {
-        'bnb': 'binance-coin',
-        'matic': 'polygon',
-        'shib': 'shiba-inu',
-        'uni': 'uniswap',
-        'link': 'chainlink',
-        'avax': 'avalanche',
-        'atom': 'cosmos',
-        'hbar': 'hedera',
-        'vet': 'vechain',
-        'fil': 'filecoin',
-        'etc': 'ethereum-classic',
-        'xlm': 'stellar',
-        'trx': 'tron',
-        'xtz': 'tezos',
-        'algo': 'algorand',
-        'near': 'near-protocol',
-        'ftm': 'fantom',
-        'apt': 'aptos',
-        'arb': 'arbitrum',
-        'op': 'optimism',
-        'grt': 'the-graph',
-        'sand': 'the-sandbox',
-        'mana': 'decentraland',
-        'chz': 'chiliz',
-        'ape': 'apecoin',
-        'ldo': 'lido-dao',
-        'imx': 'immutable-x',
-        'inj': 'injective',
-        'rune': 'thorchain',
-        'cro': 'crypto-com-coin',
-        'qnt': 'quant',
-        'kcs': 'kucoin-token',
-        'cake': 'pancakeswap',
-        'mkr': 'maker',
-        'gala': 'gala',
-        'axs': 'axie-infinity',
-        'flow': 'flow',
-        'xmr': 'monero',
-        'eos': 'eos',
-        'bsv': 'bitcoin-sv',
-        'neo': 'neo',
-        'klay': 'klaytn',
-        'iota': 'iota',
-        'hnt': 'helium',
-        'theta': 'theta',
-        'zec': 'zcash',
-        'dash': 'dash',
-        'bat': 'basic-attention-token',
-        'enj': 'enjin-coin',
-        '1inch': '1inch',
-        'comp': 'compound',
-        'snx': 'synthetix',
-        'crv': 'curve-dao-token',
-        'sushi': 'sushiswap',
-        'yfi': 'yearn-finance',
-        'uma': 'uma',
-        'bal': 'balancer',
-        'zrx': '0x',
-        'knc': 'kyber-network',
-        'lrc': 'loopring',
-        'ont': 'ontology',
-        'icx': 'icon',
-        'zil': 'zilliqa',
-        'waves': 'waves',
-        'rvn': 'ravencoin',
-        'sc': 'siacoin',
-        'stx': 'stacks',
-        'mina': 'mina-protocol',
-        'rose': 'oasis-network',
-        'one': 'harmony',
-        'celo': 'celo',
-        'mask': 'mask-network',
-        'blur': 'blur',
-        'pepe': 'pepe',
-        'floki': 'floki',
-        'dydx': 'dydx',
-        'gmx': 'gmx',
-        'pendle': 'pendle',
-        'sei': 'sei',
-        'tia': 'celestia',
-        'wld': 'worldcoin',
-        'fet': 'fetch-ai',
-        'rndr': 'render-token',
-        'jup': 'jupiter',
-        'pyth': 'pyth-network',
-        'jto': 'jito',
-        'bonk': 'bonk',
-        'wif': 'dogwifhat',
+        'bnb': 'binance-coin', 'matic': 'polygon', 'shib': 'shiba-inu',
+        'uni': 'uniswap', 'link': 'chainlink', 'avax': 'avalanche',
+        'atom': 'cosmos', 'hbar': 'hedera', 'vet': 'vechain',
+        'fil': 'filecoin', 'etc': 'ethereum-classic', 'xlm': 'stellar',
+        'trx': 'tron', 'xtz': 'tezos', 'algo': 'algorand', 'near': 'near-protocol',
+        'ftm': 'fantom', 'apt': 'aptos', 'arb': 'arbitrum', 'op': 'optimism',
+        'grt': 'the-graph', 'sand': 'the-sandbox', 'mana': 'decentraland',
+        'pepe': 'pepe', 'bonk': 'bonk', 'wif': 'dogwifhat'
     };
-
     const logoName = aliases[baseAsset] || baseAsset;
-
     return `https://cryptologos.cc/logos/${logoName}-${baseAsset}-logo.png`;
 };
 
-// Get symbol info with dynamic fallback
 const getSymbolInfo = (symbol) => {
     const baseAsset = symbol.replace('USDT', '');
     const colors = {
-        'BTC': '#F7931A',
-        'ETH': '#627EEA',
-        'BNB': '#F3BA2F',
-        'SOL': '#14F195',
-        'XRP': '#23292F',
-        'ADA': '#0033AD',
-        'DOGE': '#C2A633',
-        'MATIC': '#8247E5',
-        'DOT': '#E6007A',
-        'LTC': '#345D9D',
-        'AVAX': '#E84142',
-        'LINK': '#2A5ADA',
-        'UNI': '#FF007A',
-        'ATOM': '#2E3148',
+        'BTC': '#F7931A', 'ETH': '#627EEA', 'BNB': '#F3BA2F',
+        'SOL': '#14F195', 'XRP': '#23292F', 'ADA': '#0033AD',
+        'DOGE': '#C2A633', 'MATIC': '#8247E5', 'DOT': '#E6007A'
     };
-
     return {
         name: baseAsset,
         color: colors[baseAsset] || '#2E5CFF',
@@ -145,6 +54,321 @@ const getSymbolInfo = (symbol) => {
     };
 };
 
+// Trading Modal Component
+const TradingModal = ({ visible, onClose, stock, orderType, userBalance = 10000 }) => {
+    const [executionType, setExecutionType] = useState('MARKET');
+    const [quantity, setQuantity] = useState('');
+    const [limitPrice, setLimitPrice] = useState('');
+    const [stopLoss, setStopLoss] = useState('');
+    const [takeProfit, setTakeProfit] = useState('');
+    const [showAdvanced, setShowAdvanced] = useState(false);
+    const [loading, setLoading] = useState(false);
+
+    const currentPrice = stock.price || 0;
+
+    const TRADING_FEE = 0.1; // 0.1%
+    const GST = 18; // 18%
+    const TRANSACTION_FEE = 2; // $2
+    const STT = orderType === 'SELL' ? 0.025 : 0; // 0.025% on sell
+
+    const calculateCharges = (amount) => {
+        const tradingFee = (amount * TRADING_FEE) / 100;
+        const gst = (tradingFee * GST) / 100;
+        const stt = (amount * STT) / 100;
+        const total = tradingFee + gst + TRANSACTION_FEE + stt;
+        return {
+            tradingFee: parseFloat(tradingFee.toFixed(2)),
+            gst: parseFloat(gst.toFixed(2)),
+            transactionFee: TRANSACTION_FEE,
+            stt: parseFloat(stt.toFixed(2)),
+            total: parseFloat(total.toFixed(2))
+        };
+    };
+
+    const orderSummary = quantity && parseFloat(quantity) > 0 ? (() => {
+        const price = executionType === 'LIMIT' && limitPrice ? parseFloat(limitPrice) : currentPrice;
+        const investedAmount = parseFloat(quantity) * price;
+        const charges = calculateCharges(investedAmount);
+        const totalCost = investedAmount + charges.total;
+        return {
+            quantity: parseFloat(quantity),
+            price,
+            investedAmount: investedAmount.toFixed(2),
+            charges,
+            totalCost: totalCost.toFixed(2),
+            netAmount: orderType === 'BUY' ? totalCost.toFixed(2) : (investedAmount - charges.total).toFixed(2)
+        };
+    })() : null;
+
+    const handleSubmit = async () => {
+        if (!quantity || parseFloat(quantity) <= 0) {
+            Alert.alert('Error', 'Please enter a valid quantity');
+            return;
+        }
+
+        if (orderType === 'BUY' && orderSummary && parseFloat(orderSummary.totalCost) > userBalance) {
+            Alert.alert('Insufficient Balance', `Your balance: $${userBalance.toFixed(2)}`);
+            return;
+        }
+
+        setLoading(true);
+
+        try {
+            // Simulate API call - Replace with actual API
+            const orderData = {
+                symbol: stock.symbol,
+                quantity: parseFloat(quantity),
+                orderType: executionType,
+                limitPrice: limitPrice ? parseFloat(limitPrice) : null,
+                stopLossPrice: stopLoss ? parseFloat(stopLoss) : null,
+                takeProfitPrice: takeProfit ? parseFloat(takeProfit) : null,
+            };
+
+            // Simulated API call
+            await new Promise(resolve => setTimeout(resolve, 1000));
+
+            Alert.alert(
+                'Order Placed Successfully',
+                `${orderType} order for ${quantity} ${stock.symbol.replace('USDT', '')}\nTotal: $${orderSummary.netAmount}`,
+                [{ text: 'OK', onPress: () => onClose() }]
+            );
+        } catch (error) {
+            Alert.alert('Error', error.message || 'Failed to place order');
+        } finally {
+            setLoading(false);
+        }
+    };
+
+    const quickAmounts = [1000, 2000, 5000, 10000];
+
+    return (
+        <Modal visible={visible} animationType="slide" transparent>
+            <View style={styles.modalOverlay}>
+                <View style={styles.modalContent}>
+                    <ScrollView showsVerticalScrollIndicator={false}>
+                        {/* Header */}
+                        <View style={styles.modalHeader}>
+                            <Text style={styles.modalTitle}>
+                                {orderType} {stock.symbol.replace('USDT', '')}
+                            </Text>
+                            <TouchableOpacity onPress={onClose}>
+                                <Feather name="x" size={24} color="#1A1A1A" />
+                            </TouchableOpacity>
+                        </View>
+
+                        {/* Current Price */}
+                        <View style={styles.currentPriceCard}>
+                            <Text style={styles.currentPriceLabel}>Current Price</Text>
+                            <Text style={styles.currentPriceValue}>${currentPrice.toFixed(2)}</Text>
+                        </View>
+
+                        {/* Execution Type */}
+                        <Text style={styles.inputLabel}>Order Type</Text>
+                        <View style={styles.executionTypeContainer}>
+                            {['MARKET', 'LIMIT', 'STOP_LOSS'].map((type) => (
+                                <TouchableOpacity
+                                    key={type}
+                                    style={[
+                                        styles.executionTypeButton,
+                                        executionType === type && styles.executionTypeButtonActive
+                                    ]}
+                                    onPress={() => setExecutionType(type)}
+                                >
+                                    <Text style={[
+                                        styles.executionTypeText,
+                                        executionType === type && styles.executionTypeTextActive
+                                    ]}>
+                                        {type.replace('_', ' ')}
+                                    </Text>
+                                </TouchableOpacity>
+                            ))}
+                        </View>
+
+                        {/* Quantity */}
+                        <Text style={styles.inputLabel}>Quantity</Text>
+                        <TextInput
+                            style={styles.input}
+                            value={quantity}
+                            onChangeText={setQuantity}
+                            placeholder="Enter quantity"
+                            keyboardType="decimal-pad"
+                        />
+
+                        {/* Quick Amount Buttons */}
+                        <View style={styles.quickAmountContainer}>
+                            {quickAmounts.map((amt) => (
+                                <TouchableOpacity
+                                    key={amt}
+                                    style={styles.quickAmountButton}
+                                    onPress={() => setQuantity((amt / currentPrice).toFixed(6))}
+                                >
+                                    <Text style={styles.quickAmountText}>${amt}</Text>
+                                </TouchableOpacity>
+                            ))}
+                        </View>
+
+                        {/* Limit Price */}
+                        {executionType === 'LIMIT' && (
+                            <>
+                                <Text style={styles.inputLabel}>Limit Price</Text>
+                                <TextInput
+                                    style={styles.input}
+                                    value={limitPrice}
+                                    onChangeText={setLimitPrice}
+                                    placeholder={`Current: $${currentPrice.toFixed(2)}`}
+                                    keyboardType="decimal-pad"
+                                />
+                            </>
+                        )}
+
+                        {/* Advanced Options */}
+                        <TouchableOpacity
+                            style={styles.advancedToggle}
+                            onPress={() => setShowAdvanced(!showAdvanced)}
+                        >
+                            <Text style={styles.advancedToggleText}>
+                                {showAdvanced ? '− Hide' : '+ Show'} Advanced Options
+                            </Text>
+                        </TouchableOpacity>
+
+                        {showAdvanced && (
+                            <View style={styles.advancedContainer}>
+                                <Text style={styles.inputLabel}>Stop Loss (Optional)</Text>
+                                <TextInput
+                                    style={styles.input}
+                                    value={stopLoss}
+                                    onChangeText={setStopLoss}
+                                    placeholder="Enter stop loss price"
+                                    keyboardType="decimal-pad"
+                                />
+
+                                <Text style={[styles.inputLabel, { marginTop: 12 }]}>Take Profit (Optional)</Text>
+                                <TextInput
+                                    style={styles.input}
+                                    value={takeProfit}
+                                    onChangeText={setTakeProfit}
+                                    placeholder="Enter take profit price"
+                                    keyboardType="decimal-pad"
+                                />
+
+                                <View style={styles.infoBox}>
+                                    <Feather name="info" size={14} color="#2E5CFF" />
+                                    <Text style={styles.infoText}>
+                                        Orders will auto-execute when price reaches your targets
+                                    </Text>
+                                </View>
+                            </View>
+                        )}
+
+                        {/* Order Summary */}
+                        {orderSummary && (
+                            <View style={styles.summaryCard}>
+                                <Text style={styles.summaryTitle}>Order Summary</Text>
+
+                                <View style={styles.summaryRow}>
+                                    <Text style={styles.summaryLabel}>Quantity</Text>
+                                    <Text style={styles.summaryValue}>
+                                        {orderSummary.quantity} {stock.symbol.replace('USDT', '')}
+                                    </Text>
+                                </View>
+
+                                <View style={styles.summaryRow}>
+                                    <Text style={styles.summaryLabel}>Price</Text>
+                                    <Text style={styles.summaryValue}>${orderSummary.price.toFixed(2)}</Text>
+                                </View>
+
+                                <View style={styles.summaryDivider} />
+
+                                <View style={styles.summaryRow}>
+                                    <Text style={styles.summaryLabel}>Order Value</Text>
+                                    <Text style={styles.summaryValue}>${orderSummary.investedAmount}</Text>
+                                </View>
+
+                                {/* Charges */}
+                                <View style={styles.chargesContainer}>
+                                    <View style={styles.chargeRow}>
+                                        <Text style={styles.chargeLabel}>Trading Fee (0.1%)</Text>
+                                        <Text style={styles.chargeValue}>${orderSummary.charges.tradingFee}</Text>
+                                    </View>
+                                    <View style={styles.chargeRow}>
+                                        <Text style={styles.chargeLabel}>GST (18%)</Text>
+                                        <Text style={styles.chargeValue}>${orderSummary.charges.gst}</Text>
+                                    </View>
+                                    <View style={styles.chargeRow}>
+                                        <Text style={styles.chargeLabel}>Transaction Fee</Text>
+                                        <Text style={styles.chargeValue}>${orderSummary.charges.transactionFee}</Text>
+                                    </View>
+                                    {orderType === 'SELL' && (
+                                        <View style={styles.chargeRow}>
+                                            <Text style={styles.chargeLabel}>STT (0.025%)</Text>
+                                            <Text style={styles.chargeValue}>${orderSummary.charges.stt}</Text>
+                                        </View>
+                                    )}
+                                    <View style={[styles.chargeRow, { marginTop: 8 }]}>
+                                        <Text style={styles.chargeLabelBold}>Total Charges</Text>
+                                        <Text style={styles.chargeValueBold}>${orderSummary.charges.total}</Text>
+                                    </View>
+                                </View>
+
+                                <View style={styles.summaryDivider} />
+
+                                <View style={styles.summaryRow}>
+                                    <Text style={styles.summaryLabelBold}>
+                                        {orderType === 'BUY' ? 'Total Payable' : 'You Will Receive'}
+                                    </Text>
+                                    <Text style={[
+                                        styles.summaryValueBold,
+                                        { color: orderType === 'BUY' ? '#EF4444' : '#10B981' }
+                                    ]}>
+                                        ${orderSummary.netAmount}
+                                    </Text>
+                                </View>
+                            </View>
+                        )}
+
+                        {/* Action Buttons */}
+                        <View style={styles.actionButtonsContainer}>
+                            <TouchableOpacity
+                                style={styles.cancelButton}
+                                onPress={onClose}
+                            >
+                                <Text style={styles.cancelButtonText}>Cancel</Text>
+                            </TouchableOpacity>
+
+                            <TouchableOpacity
+                                style={[
+                                    styles.submitButton,
+                                    orderType === 'BUY' ? styles.buyButton : styles.sellButton,
+                                    loading && styles.submitButtonDisabled
+                                ]}
+                                onPress={handleSubmit}
+                                disabled={loading || !orderSummary}
+                            >
+                                {loading ? (
+                                    <ActivityIndicator color="#FFFFFF" />
+                                ) : (
+                                    <Text style={styles.submitButtonText}>
+                                        {orderType === 'BUY' ? 'Buy Now' : 'Sell Now'}
+                                    </Text>
+                                )}
+                            </TouchableOpacity>
+                        </View>
+
+                        {/* Disclaimer */}
+                        <View style={styles.disclaimer}>
+                            <Feather name="alert-circle" size={12} color="#F59E0B" />
+                            <Text style={styles.disclaimerText}>
+                                Virtual trading with simulated charges for educational purposes
+                            </Text>
+                        </View>
+                    </ScrollView>
+                </View>
+            </View>
+        </Modal>
+    );
+};
+
+// Main Component
 export default function CryptoDetailsScreen() {
     const navigation = useNavigation();
     const route = useRoute();
@@ -152,19 +376,19 @@ export default function CryptoDetailsScreen() {
 
     const [stock, setStock] = useState(initialStock);
     const [refreshing, setRefreshing] = useState(false);
-    const [priceUpdating, setPriceUpdating] = useState(false);
     const [isWatchlisted, setIsWatchlisted] = useState(false);
     const [selectedTimeframe, setSelectedTimeframe] = useState('24H');
     const [chartData, setChartData] = useState({ labels: [], data: [] });
     const [chartLoading, setChartLoading] = useState(true);
+    const [showTradingModal, setShowTradingModal] = useState(false);
+    const [tradeType, setTradeType] = useState('BUY');
+    const [userBalance, setUserBalance] = useState(50000); // Demo balance
     const updateIntervalRef = useRef(null);
 
     const symbolInfo = getSymbolInfo(stock.symbol);
     const isPositive = stock.change >= 0;
-    const changeValue = !isNaN(stock.change) ? stock.change : 0;
-    const priceValue = !isNaN(stock.price) ? stock.price : 0;
 
-    // Fetch chart data based on timeframe
+    // Fetch chart data
     const fetchChartData = async (timeframe = selectedTimeframe) => {
         try {
             setChartLoading(true);
@@ -182,10 +406,8 @@ export default function CryptoDetailsScreen() {
             );
             const data = await response.json();
 
-            // Format data for react-native-chart-kit
-            const prices = data.map((item) => parseFloat(item[4])); // Close prices
+            const prices = data.map((item) => parseFloat(item[4]));
             const labels = data.map((item, index) => {
-                // Show only a few labels to avoid crowding
                 if (timeframe === '1H' && index % 10 === 0) {
                     return new Date(item[0]).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
                 } else if (timeframe === '24H' && index % 12 === 0) {
@@ -203,19 +425,14 @@ export default function CryptoDetailsScreen() {
             setChartData({ labels, data: prices });
         } catch (error) {
             console.error('Error fetching chart data:', error);
-            setChartData({ labels: [], data: [] });
         } finally {
             setChartLoading(false);
         }
     };
 
-    // Update stock data (called every 4 seconds)
-    const updateStockData = async (showUpdatingIndicator = true) => {
+    // Update stock data
+    const updateStockData = async () => {
         try {
-            if (showUpdatingIndicator) {
-                setPriceUpdating(true);
-            }
-
             const response = await fetch(
                 `https://api.binance.com/api/v3/ticker/24hr?symbol=${stock.symbol}`
             );
@@ -232,33 +449,23 @@ export default function CryptoDetailsScreen() {
                 quoteVolume: parseFloat(data.quoteVolume) || 0,
                 trades: data.count || 0,
             });
-
-            if (showUpdatingIndicator) {
-                setTimeout(() => setPriceUpdating(false), 500);
-            }
         } catch (error) {
             console.error('Error updating stock:', error);
-            setPriceUpdating(false);
         }
     };
 
-    // Pull to refresh handler
     const onRefresh = async () => {
         setRefreshing(true);
-        await Promise.all([
-            updateStockData(false),
-            fetchChartData(selectedTimeframe)
-        ]);
+        await Promise.all([updateStockData(), fetchChartData(selectedTimeframe)]);
         setRefreshing(false);
     };
 
-    // Initial load and interval setup
     useEffect(() => {
-        updateStockData(false);
+        updateStockData();
         fetchChartData(selectedTimeframe);
 
         updateIntervalRef.current = setInterval(() => {
-            updateStockData(true);
+            updateStockData();
         }, 4000);
 
         return () => {
@@ -268,13 +475,13 @@ export default function CryptoDetailsScreen() {
         };
     }, [stock.symbol]);
 
-    // Update chart when timeframe changes
     useEffect(() => {
         fetchChartData(selectedTimeframe);
     }, [selectedTimeframe]);
 
-    const toggleWatchlist = () => {
-        setIsWatchlisted(!isWatchlisted);
+    const openTradingModal = (type) => {
+        setTradeType(type);
+        setShowTradingModal(true);
     };
 
     const timeframes = ['1H', '24H', '7D', '1M', '1Y'];
@@ -316,16 +523,12 @@ export default function CryptoDetailsScreen() {
                             onPress={onRefresh}
                             disabled={refreshing}
                         >
-                            <Feather
-                                name="refresh-cw"
-                                size={18}
-                                color="#FFFFFF"
-                            />
+                            <Feather name="refresh-cw" size={18} color="#FFFFFF" />
                         </TouchableOpacity>
 
                         <TouchableOpacity
                             style={styles.watchlistButton}
-                            onPress={toggleWatchlist}
+                            onPress={() => setIsWatchlisted(!isWatchlisted)}
                         >
                             <Feather
                                 name="star"
@@ -339,16 +542,9 @@ export default function CryptoDetailsScreen() {
 
                 {/* Price Section */}
                 <View style={styles.priceSection}>
-                    <View style={styles.priceRow}>
-                        <Text style={styles.currentPrice}>
-                            ${priceValue >= 1 ? priceValue.toFixed(2) : priceValue.toFixed(6)}
-                        </Text>
-                        {/* {priceUpdating && (
-                            <View style={styles.updatingIndicator}>
-                                <View style={styles.pulseDot} />
-                            </View>
-                        )} */}
-                    </View>
+                    <Text style={styles.currentPrice}>
+                        ${stock.price >= 1 ? stock.price.toFixed(2) : stock.price.toFixed(6)}
+                    </Text>
                     <View style={styles.changeContainer}>
                         <Feather
                             name={isPositive ? 'trending-up' : 'trending-down'}
@@ -359,7 +555,7 @@ export default function CryptoDetailsScreen() {
                             styles.changeText,
                             isPositive ? styles.changePositive : styles.changeNegative
                         ]}>
-                            {isPositive ? '+' : ''}{changeValue.toFixed(2)}%
+                            {isPositive ? '+' : ''}{stock.change.toFixed(2)}%
                         </Text>
                         <Text style={styles.changeLabel}>Today</Text>
                     </View>
@@ -370,12 +566,7 @@ export default function CryptoDetailsScreen() {
                 style={styles.content}
                 showsVerticalScrollIndicator={false}
                 refreshControl={
-                    <RefreshControl
-                        refreshing={refreshing}
-                        onRefresh={onRefresh}
-                        tintColor="#2E5CFF"
-                        colors={['#2E5CFF']}
-                    />
+                    <RefreshControl refreshing={refreshing} onRefresh={onRefresh} />
                 }
             >
                 {/* Timeframe Selector */}
@@ -404,58 +595,29 @@ export default function CryptoDetailsScreen() {
                     {chartLoading ? (
                         <View style={styles.chartLoadingContainer}>
                             <ActivityIndicator size="large" color="#2E5CFF" />
-                            <Text style={styles.chartLoadingText}>Loading chart...</Text>
                         </View>
                     ) : chartData.data.length > 0 ? (
-                        <View style={styles.chartWrapper}>
-                            <LineChart
-                                data={{
-                                    labels: chartData.labels.filter(label => label !== ''),
-                                    datasets: [{
-                                        data: chartData.data
-                                    }]
-                                }}
-                                width={width - 60}
-                                height={200}
-                                chartConfig={{
-                                    backgroundColor: '#FFFFFF',
-                                    backgroundGradientFrom: '#FFFFFF',
-                                    backgroundGradientTo: '#FFFFFF',
-                                    decimalPlaces: priceValue >= 1 ? 2 : 6,
-                                    color: (opacity = 1) => isPositive ? `rgba(16, 185, 129, ${opacity})` : `rgba(239, 68, 68, ${opacity})`,
-                                    labelColor: (opacity = 1) => `rgba(107, 114, 128, ${opacity})`,
-                                    style: {
-                                        borderRadius: 16,
-                                    },
-                                    propsForDots: {
-                                        r: '0',
-                                    },
-                                    propsForBackgroundLines: {
-                                        strokeDasharray: '',
-                                        stroke: '#E5E7EB',
-                                        strokeWidth: 1,
-                                    },
-                                }}
-                                bezier
-                                style={{
-                                    marginVertical: 8,
-                                    borderRadius: 16,
-                                }}
-                                withInnerLines={true}
-                                withOuterLines={false}
-                                withVerticalLabels={true}
-                                withHorizontalLabels={true}
-                                withDots={false}
-                                withShadow={false}
-                                fromZero={false}
-                            />
-                        </View>
-                    ) : (
-                        <View style={styles.chartLoadingContainer}>
-                            <Feather name="trending-up" size={48} color="#9CA3AF" />
-                            <Text style={styles.chartPlaceholderText}>No chart data available</Text>
-                        </View>
-                    )}
+                        <LineChart
+                            data={{
+                                labels: chartData.labels.filter(label => label !== ''),
+                                datasets: [{ data: chartData.data }]
+                            }}
+                            width={width - 60}
+                            height={200}
+                            chartConfig={{
+                                backgroundColor: '#FFFFFF',
+                                backgroundGradientFrom: '#FFFFFF',
+                                backgroundGradientTo: '#FFFFFF',
+                                decimalPlaces: stock.price >= 1 ? 2 : 6,
+                                color: (opacity = 1) => isPositive ? `rgba(16, 185, 129, ${opacity})` : `rgba(239, 68, 68, ${opacity})`,
+                                labelColor: (opacity = 1) => `rgba(107, 114, 128, ${opacity})`,
+                                propsForDots: { r: '0' },
+                            }}
+                            bezier
+                            style={styles.chart}
+                            withDots={false}
+                        />
+                    ) : null}
                 </View>
 
                 {/* Stats Grid */}
@@ -504,45 +666,12 @@ export default function CryptoDetailsScreen() {
                     </View>
                 </View>
 
-                {/* Additional Info */}
-                <View style={styles.infoSection}>
-                    <View style={styles.infoCard}>
-                        <View style={styles.infoRow}>
-                            <Text style={styles.infoLabel}>Open Price</Text>
-                            <Text style={styles.infoValue}>
-                                ${stock.openPrice >= 1 ? stock.openPrice.toFixed(2) : stock.openPrice.toFixed(6)}
-                            </Text>
-                        </View>
-                        <View style={styles.infoDivider} />
-                        <View style={styles.infoRow}>
-                            <Text style={styles.infoLabel}>Number of Trades</Text>
-                            <Text style={styles.infoValue}>
-                                {stock.trades ? stock.trades.toLocaleString() : 'N/A'}
-                            </Text>
-                        </View>
-                        <View style={styles.infoDivider} />
-                        <View style={styles.infoRow}>
-                            <Text style={styles.infoLabel}>Market</Text>
-                            <Text style={styles.infoValue}>Binance</Text>
-                        </View>
-                    </View>
-                </View>
-
-                {/* About Section */}
-                <View style={styles.aboutSection}>
-                    <Text style={styles.aboutTitle}>About {symbolInfo.name}</Text>
-                    <View style={styles.aboutCard}>
-                        <Text style={styles.aboutText}>
-                            {symbolInfo.name} is a cryptocurrency trading on Binance.
-                            Real-time price updates are fetched every 4 seconds to ensure
-                            you have the latest market information. Pull down to refresh all data.
-                        </Text>
-                    </View>
-                </View>
-
                 {/* Action Buttons */}
                 <View style={styles.actionButtons}>
-                    <TouchableOpacity style={styles.buyButton}>
+                    <TouchableOpacity
+                        style={styles.buyButtonMain}
+                        onPress={() => openTradingModal('BUY')}
+                    >
                         <LinearGradient
                             colors={['#10B981', '#059669']}
                             style={styles.buttonGradient}
@@ -554,7 +683,10 @@ export default function CryptoDetailsScreen() {
                         </LinearGradient>
                     </TouchableOpacity>
 
-                    <TouchableOpacity style={styles.sellButton}>
+                    <TouchableOpacity
+                        style={styles.sellButtonMain}
+                        onPress={() => openTradingModal('SELL')}
+                    >
                         <LinearGradient
                             colors={['#EF4444', '#DC2626']}
                             style={styles.buttonGradient}
@@ -567,11 +699,57 @@ export default function CryptoDetailsScreen() {
                     </TouchableOpacity>
                 </View>
             </ScrollView>
+
+            {/* Trading Modal */}
+            <TradingModal
+                visible={showTradingModal}
+                onClose={() => setShowTradingModal(false)}
+                stock={stock}
+                orderType={tradeType}
+                userBalance={userBalance}
+            />
         </View>
     );
 }
 
 const styles = StyleSheet.create({
+    actionButtons: {
+        flexDirection: 'row',
+        justifyContent: 'space-between',
+        marginTop: 20,
+        paddingHorizontal: 10,
+    },
+
+    buyButtonMain: {
+        flex: 1,
+        marginRight: 8,
+        borderRadius: 12,
+        overflow: 'hidden',
+    },
+
+    sellButtonMain: {
+        flex: 1,
+        marginLeft: 8,
+        borderRadius: 12,
+        overflow: 'hidden',
+    },
+
+    buttonGradient: {
+        height: 50,
+        borderRadius: 12,
+        flexDirection: 'row',
+        alignItems: 'center',
+        justifyContent: 'center',
+        gap: 8,
+    },
+
+    buttonText: {
+        color: '#FFFFFF',
+        fontSize: 16,
+        fontWeight: '700',
+    },
+
+
     container: {
         flex: 1,
         backgroundColor: '#F5F7FA',
@@ -877,4 +1055,308 @@ const styles = StyleSheet.create({
         fontWeight: '700',
         color: '#FFFFFF',
     },
+    container: {
+        flex: 1,
+        backgroundColor: '#F5F7FB',
+    },
+
+    /* HEADER */
+    header: {
+        paddingTop: 55,
+        paddingBottom: 20,
+        paddingHorizontal: 18,
+        borderBottomLeftRadius: 22,
+        borderBottomRightRadius: 22,
+        elevation: 5,
+    },
+    headerTop: {
+        flexDirection: 'row',
+        alignItems: 'center',
+    },
+    backButton: {
+        padding: 8,
+        backgroundColor: 'rgba(255,255,255,0.2)',
+        borderRadius: 12,
+    },
+
+    /* MODAL OVERLAY */
+    modalOverlay: {
+        flex: 1,
+        backgroundColor: 'rgba(0,0,0,0.4)',
+        justifyContent: 'flex-end',
+    },
+
+    /* MODAL CONTENT */
+    modalContent: {
+        maxHeight: '90%',
+        backgroundColor: '#FFFFFF',
+        padding: 20,
+        borderTopLeftRadius: 20,
+        borderTopRightRadius: 20,
+        elevation: 10,
+    },
+
+    /* MODAL HEADER */
+    modalHeader: {
+        flexDirection: 'row',
+        justifyContent: 'space-between',
+        alignItems: 'center',
+        marginBottom: 15,
+    },
+    modalTitle: {
+        fontSize: 20,
+        fontWeight: '700',
+        color: '#1A1A1A',
+    },
+
+    /* CURRENT PRICE */
+    currentPriceCard: {
+        backgroundColor: '#EEF3FF',
+        padding: 16,
+        borderRadius: 12,
+        marginBottom: 20,
+    },
+    currentPriceLabel: {
+        fontSize: 13,
+        color: '#6B7280',
+    },
+    currentPriceValue: {
+        fontSize: 22,
+        fontWeight: '700',
+        color: '#1A3FCC',
+        marginTop: 4,
+    },
+
+    /* INPUT LABEL */
+    inputLabel: {
+        fontSize: 14,
+        color: '#374151',
+        marginBottom: 6,
+        marginTop: 8,
+        fontWeight: '600',
+    },
+
+    /* TEXT INPUT */
+    input: {
+        backgroundColor: '#F1F5F9',
+        borderRadius: 12,
+        padding: 12,
+        fontSize: 15,
+        borderWidth: 1,
+        borderColor: '#E2E8F0',
+        marginBottom: 14,
+    },
+
+    /* EXECUTION TYPE */
+    executionTypeContainer: {
+        flexDirection: 'row',
+        gap: 10,
+        marginBottom: 18,
+    },
+    executionTypeButton: {
+        flex: 1,
+        paddingVertical: 10,
+        borderRadius: 10,
+        backgroundColor: '#E5E7EB',
+        alignItems: 'center',
+    },
+    executionTypeButtonActive: {
+        backgroundColor: '#2E5CFF',
+    },
+    executionTypeText: {
+        fontSize: 13,
+        fontWeight: '600',
+        color: '#374151',
+    },
+    executionTypeTextActive: {
+        color: '#FFFFFF',
+    },
+
+    /* QUICK AMOUNTS */
+    quickAmountContainer: {
+        flexDirection: 'row',
+        gap: 10,
+        marginBottom: 20,
+    },
+    quickAmountButton: {
+        flex: 1,
+        paddingVertical: 10,
+        backgroundColor: '#F3F4F6',
+        borderRadius: 10,
+        alignItems: 'center',
+        borderWidth: 1,
+        borderColor: '#E5E7EB',
+    },
+    quickAmountText: {
+        fontSize: 14,
+        fontWeight: '600',
+        color: '#111827',
+    },
+
+    /* ADVANCED OPTIONS */
+    advancedToggle: {
+        paddingVertical: 6,
+        alignItems: 'center',
+        marginBottom: 10,
+    },
+    advancedToggleText: {
+        color: '#2563EB',
+        fontSize: 14,
+        fontWeight: '600',
+    },
+    advancedContainer: {
+        backgroundColor: '#F9FAFB',
+        padding: 14,
+        borderRadius: 12,
+        borderWidth: 1,
+        borderColor: '#E5E7EB',
+        marginBottom: 16,
+    },
+    infoBox: {
+        marginTop: 12,
+        flexDirection: 'row',
+        alignItems: 'center',
+        backgroundColor: '#EFF6FF',
+        padding: 10,
+        borderRadius: 10,
+        borderWidth: 1,
+        borderColor: '#DBEAFE',
+    },
+    infoText: {
+        marginLeft: 8,
+        color: '#2563EB',
+        fontSize: 12,
+        flex: 1,
+    },
+
+    /* SUMMARY CARD */
+    summaryCard: {
+        padding: 16,
+        backgroundColor: '#FFFFFF',
+        borderRadius: 14,
+        borderWidth: 1,
+        borderColor: '#E5E7EB',
+        marginBottom: 20,
+    },
+    summaryTitle: {
+        fontSize: 17,
+        fontWeight: '700',
+        marginBottom: 12,
+        color: '#111827',
+    },
+    summaryRow: {
+        flexDirection: 'row',
+        justifyContent: 'space-between',
+        marginBottom: 10,
+    },
+    summaryLabel: {
+        color: '#6B7280',
+        fontSize: 14,
+    },
+    summaryValue: {
+        color: '#111827',
+        fontSize: 14,
+        fontWeight: '600',
+    },
+    summaryDivider: {
+        borderBottomWidth: 1,
+        borderColor: '#E5E7EB',
+        marginVertical: 10,
+    },
+
+    /* CHARGES */
+    chargesContainer: {
+        marginBottom: 12,
+        marginTop: 6,
+    },
+    chargeRow: {
+        flexDirection: 'row',
+        justifyContent: 'space-between',
+        marginBottom: 6,
+    },
+    chargeLabel: {
+        fontSize: 13,
+        color: '#6B7280',
+    },
+    chargeValue: {
+        fontSize: 13,
+        color: '#111827',
+        fontWeight: '600',
+    },
+    chargeLabelBold: {
+        fontSize: 14,
+        fontWeight: '700',
+        color: '#374151',
+    },
+    chargeValueBold: {
+        fontSize: 14,
+        fontWeight: '700',
+        color: '#1F2937',
+    },
+
+    summaryLabelBold: {
+        fontSize: 15,
+        fontWeight: '700',
+        color: '#1F2937',
+    },
+    summaryValueBold: {
+        fontSize: 16,
+        fontWeight: '700',
+    },
+
+    /* ACTION BUTTONS */
+    actionButtonsContainer: {
+        flexDirection: 'row',
+        gap: 12,
+        marginTop: 10,
+    },
+    cancelButton: {
+        flex: 1,
+        padding: 14,
+        backgroundColor: '#F3F4F6',
+        borderRadius: 12,
+        alignItems: 'center',
+        borderWidth: 1,
+        borderColor: '#E5E7EB',
+    },
+    cancelButtonText: {
+        fontSize: 15,
+        fontWeight: '600',
+        color: '#374151',
+    },
+    submitButton: {
+        flex: 1,
+        padding: 14,
+        borderRadius: 12,
+        alignItems: 'center',
+    },
+    buyButton: {
+        backgroundColor: '#10B981',
+    },
+    sellButton: {
+        backgroundColor: '#EF4444',
+    },
+    submitButtonText: {
+        fontSize: 15,
+        fontWeight: '700',
+        color: '#FFFFFF',
+    },
+    submitButtonDisabled: {
+        opacity: 0.6,
+    },
+
+    /* DISCLAIMER */
+    disclaimer: {
+        flexDirection: 'row',
+        alignItems: 'center',
+        marginTop: 16,
+        paddingVertical: 4,
+    },
+    disclaimerText: {
+        marginLeft: 6,
+        fontSize: 12,
+        color: '#6B7280',
+        flex: 1,
+    }
+
 });

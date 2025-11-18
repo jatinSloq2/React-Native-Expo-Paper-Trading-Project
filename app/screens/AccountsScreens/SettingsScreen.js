@@ -277,7 +277,7 @@ export default function SettingsScreen() {
           <SettingsItem
             icon="dollar-sign"
             label="Default Currency"
-            value={user?.currency || 'INR'}
+            value={user?.currency}
             onPress={() => Alert.alert('Coming Soon', 'Currency selection will be available soon')}
           />
           <SettingsItem

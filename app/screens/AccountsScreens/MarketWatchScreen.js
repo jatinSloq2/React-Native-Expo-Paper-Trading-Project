@@ -161,7 +161,7 @@ function StockCard({ stock }) {
       </View>
 
       <View style={styles.stockRight}>
-        <Text style={styles.stockPrice}>₹{stock.price.toFixed(2)}</Text>
+        <Text style={styles.stockPrice}>${stock.price.toFixed(2)}</Text>
         <View style={[styles.changeBadge, isPositive ? styles.changeBadgePositive : styles.changeBadgeNegative]}>
           <Feather
             name={isPositive ? 'trending-up' : 'trending-down'}
