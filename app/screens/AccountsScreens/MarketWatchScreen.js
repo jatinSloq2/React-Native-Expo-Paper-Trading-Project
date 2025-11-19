@@ -14,69 +14,8 @@ import {
   View
 } from 'react-native';
 import axiosInstance from '../../api/axiosInstance';
+import { SYMBOL_INFO } from '../../../constants/symbols';
 
-const SYMBOL_INFO = {
-  BTCUSDT: {
-    name: 'Bitcoin',
-    color: '#F7931A',
-    icon: '₿',
-    image: 'https://cryptologos.cc/logos/bitcoin-btc-logo.png'
-  },
-  ETHUSDT: {
-    name: 'Ethereum',
-    color: '#627EEA',
-    icon: 'Ξ',
-    image: 'https://cryptologos.cc/logos/ethereum-eth-logo.png'
-  },
-  BNBUSDT: {
-    name: 'Binance',
-    color: '#F3BA2F',
-    icon: 'B',
-    image: 'https://cryptologos.cc/logos/bnb-bnb-logo.png'
-  },
-  SOLUSDT: {
-    name: 'Solana',
-    color: '#14F195',
-    icon: 'S',
-    image: 'https://cryptologos.cc/logos/solana-sol-logo.png'
-  },
-  XRPUSDT: {
-    name: 'Ripple',
-    color: '#23292F',
-    icon: 'X',
-    image: 'https://cryptologos.cc/logos/xrp-xrp-logo.png'
-  },
-  ADAUSDT: {
-    name: 'Cardano',
-    color: '#0033AD',
-    icon: 'A',
-    image: 'https://cryptologos.cc/logos/cardano-ada-logo.png'
-  },
-  DOGEUSDT: {
-    name: 'Dogecoin',
-    color: '#C2A633',
-    icon: 'Ð',
-    image: 'https://cryptologos.cc/logos/dogecoin-doge-logo.png'
-  },
-  MATICUSDT: {
-    name: 'Polygon',
-    color: '#8247E5',
-    icon: 'M',
-    image: 'https://cryptologos.cc/logos/polygon-matic-logo.png'
-  },
-  DOTUSDT: {
-    name: 'Polkadot',
-    color: '#E6007A',
-    icon: 'D',
-    image: 'https://cryptologos.cc/logos/polkadot-new-dot-logo.png'
-  },
-  LTCUSDT: {
-    name: 'Litecoin',
-    color: '#345D9D',
-    icon: 'Ł',
-    image: 'https://cryptologos.cc/logos/litecoin-ltc-logo.png'
-  }
-};
 
 export default function MarketWatchScreen() {
   const navigation = useNavigation();
