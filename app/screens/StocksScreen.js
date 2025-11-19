@@ -452,21 +452,6 @@ export default function StocksScreen() {
 
           <TouchableOpacity
             style={styles.quickActionCard}
-            onPress={() => { }}
-          >
-            <LinearGradient
-              colors={['#10B981', '#059669']}
-              style={styles.quickActionGradient}
-              start={{ x: 0, y: 0 }}
-              end={{ x: 1, y: 1 }}
-            >
-              <Feather name="plus-circle" size={24} color="#FFFFFF" />
-              <Text style={styles.quickActionText}>Add to Watchlist</Text>
-            </LinearGradient>
-          </TouchableOpacity>
-
-          <TouchableOpacity
-            style={styles.quickActionCard}
             onPress={navigateToLearningHub}
           >
             <LinearGradient
@@ -477,21 +462,6 @@ export default function StocksScreen() {
             >
               <Feather name="book-open" size={24} color="#FFFFFF" />
               <Text style={styles.quickActionText}>Learning Hub</Text>
-            </LinearGradient>
-          </TouchableOpacity>
-
-          <TouchableOpacity
-            style={styles.quickActionCard}
-            onPress={navigateToAddFunds}
-          >
-            <LinearGradient
-              colors={['#EF4444', '#DC2626']}
-              style={styles.quickActionGradient}
-              start={{ x: 0, y: 0 }}
-              end={{ x: 1, y: 1 }}
-            >
-              <Feather name="dollar-sign" size={24} color="#FFFFFF" />
-              <Text style={styles.quickActionText}>Add Funds</Text>
             </LinearGradient>
           </TouchableOpacity>
         </View>
@@ -573,7 +543,6 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'center',
-    marginBottom: 30,
   },
   headerTitle: {
     textAlign: "center",
@@ -688,11 +657,11 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     backgroundColor: 'rgba(255, 255, 255, 0.1)',
     borderRadius: 16,
-    padding: 16,
+    padding: 10,
   },
   statItem: {
     alignItems: 'center',
-    gap: 4,
+    gap: 1,
   },
   statValue: {
     fontSize: 18,
@@ -705,7 +674,7 @@ const styles = StyleSheet.create({
   },
   statDivider: {
     width: 1,
-    height: 40,
+    height: 20,
     backgroundColor: 'rgba(255, 255, 255, 0.2)',
   },
   liveDot: {
@@ -745,7 +714,7 @@ const styles = StyleSheet.create({
     width: CARD_WIDTH,
     backgroundColor: '#FFFFFF',
     borderRadius: 16,
-    padding: 16,
+    padding: 10,
     borderWidth: 1,
     borderColor: '#E5E7EB',
     alignItems: 'center',
