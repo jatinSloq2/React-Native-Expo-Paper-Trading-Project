@@ -403,7 +403,7 @@ export default function StocksScreen() {
       >
         {/* Market Overview */}
         <View style={styles.section}>
-          <Text style={styles.sectionTitle}>📈 Market Overview</Text>
+          <Text style={styles.sectionTitle}>Market Overview</Text>
           <Text style={styles.sectionSubtitle}>
             Tap any asset to view detailed information
           </Text>
@@ -572,7 +572,7 @@ const styles = StyleSheet.create({
   },
   searchDropdown: {
     position: 'absolute',
-    top: 210,
+    top: 180,
     left: 20,
     right: 0,
     backgroundColor: '#FFFFFF',
@@ -584,7 +584,6 @@ const styles = StyleSheet.create({
     shadowOffset: { width: 0, height: 4 },
     elevation: 12,
     zIndex: 9999,
-    maxHeight: 300,
     maxWidth: 370,
   },
 
@@ -809,7 +808,7 @@ const styles = StyleSheet.create({
   },
   quickActionCard: {
     width: CARD_WIDTH,
-    height: 120,
+    height: 80,
     borderRadius: 16,
     overflow: 'hidden',
   },

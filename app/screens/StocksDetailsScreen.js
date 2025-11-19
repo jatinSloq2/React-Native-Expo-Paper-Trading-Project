@@ -298,7 +298,7 @@ const TradingModal = ({
                             <Text style={styles.currentPriceValue}>${currentPrice.toFixed(2)}</Text>
                         </View>
 
-                        {user && (
+                        {user && !orderType === 'SELL' && (
                             <View style={styles.currentPriceCard}>
                                 <Text style={styles.currentPriceLabel}>Available Balance</Text>
                                 <Text style={styles.currentPriceValue}>${userBalance.toFixed(2)}</Text>
