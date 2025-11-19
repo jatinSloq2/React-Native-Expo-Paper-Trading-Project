@@ -21,9 +21,11 @@ import logoImage from "../../assets/mainLogoBlack.png"
 export default function AccountScreen() {
   const {
     user,
+    setUser,
     token,
     apiKey,
     loading,
+    setLoading,
     logout
   } = useContext(AuthContext);
 
@@ -43,8 +45,7 @@ export default function AccountScreen() {
 
   const fetchUserInfo = async () => {
     try {
-      const token = await AsyncStorage.getItem("token");
-      const apiKey = await AsyncStorage.getItem("api_key");
+      const storedToken = await AsyncStorage.getItem("token");
 
       if (!token) {
         setUser(null);
@@ -54,8 +55,7 @@ export default function AccountScreen() {
 
       const res = await axiosInstance.get("/auth/me", {
         headers: {
-          Authorization: `Bearer ${token}`,
-          "X-API-Key": apiKey || "",
+          Authorization: `Bearer ${storedToken}`,
         },
       });
 

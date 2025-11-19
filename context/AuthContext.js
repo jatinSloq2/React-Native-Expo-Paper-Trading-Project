@@ -27,12 +27,17 @@ export default function AuthProvider({ children }) {
     loadStoredAuth();
   }, []);
 
-  const fetchUser = async (jwt, key) => {
+  const fetchUser = async (jwt) => {
+    let token = null
+    if(!jwt) {
+      token =  AsyncStorage.getItem("token")
+    } else {
+      token = jwt
+    }
     try {
       const res = await axiosInstance.get("/auth/me", {
         headers: {
-          Authorization: `Bearer ${jwt}`,
-          "X-API-Key": key || "",
+          Authorization: `Bearer ${token}`,
         },
       });
       setUser(res.data.user);

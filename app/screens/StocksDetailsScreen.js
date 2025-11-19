@@ -68,7 +68,7 @@ const TradingModal = ({
     user,
     setSuccessOrderData,
     setShowSuccessModal,
-    setLastOrderType
+    setLastOrderType, fetchUser
 }) => {
     const { token, apiKey } = useContext(AuthContext);
     const [executionType, setExecutionType] = useState('MARKET');
@@ -222,6 +222,7 @@ const TradingModal = ({
             );
         } finally {
             setLoading(false);
+            fetchUser()
         }
     };
 
@@ -459,7 +460,7 @@ export default function CryptoDetailsScreen() {
     const navigation = useNavigation();
     const route = useRoute();
     const { stock: initialStock } = route.params;
-    const { user, token, apiKey } = useContext(AuthContext);
+    const { user, token, apiKey, fetchUser } = useContext(AuthContext);
 
     const [stock, setStock] = useState(initialStock);
     const [refreshing, setRefreshing] = useState(false);
@@ -829,6 +830,7 @@ export default function CryptoDetailsScreen() {
                 setSuccessOrderData={setSuccessOrderData}
                 setShowSuccessModal={setShowSuccessModal}
                 setLastOrderType={setLastOrderType}
+                fetchUser={fetchUser}
             />
             <OrderSuccessModal
                 visible={showSuccessModal}
