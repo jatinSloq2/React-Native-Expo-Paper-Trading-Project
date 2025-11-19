@@ -1,7 +1,7 @@
 import { Feather } from '@expo/vector-icons';
 import { useNavigation, useRoute } from '@react-navigation/native';
 import { LinearGradient } from 'expo-linear-gradient';
-import { useEffect, useRef, useState } from 'react';
+import { useContext, useEffect, useRef, useState } from 'react';
 import {
     ActivityIndicator,
     Alert,
@@ -17,27 +17,30 @@ import {
     View,
 } from 'react-native';
 import { LineChart } from 'react-native-chart-kit';
+import axiosInstance from '../api/axiosInstance';
+import { AuthContext } from '../../context/AuthContext';
+import OrderSuccessModal from '../components/OrderSuccessModal';
 
 const { width } = Dimensions.get('window');
-
-// API Configuration
-const API_URL = 'YOUR_API_URL'; // Replace with your backend URL
 
 // Enhanced function to get crypto logo
 const getCryptoLogoUrl = (symbol) => {
     const baseAsset = symbol.replace('USDT', '').toLowerCase();
-    const aliases = {
-        'bnb': 'binance-coin', 'matic': 'polygon', 'shib': 'shiba-inu',
-        'uni': 'uniswap', 'link': 'chainlink', 'avax': 'avalanche',
-        'atom': 'cosmos', 'hbar': 'hedera', 'vet': 'vechain',
-        'fil': 'filecoin', 'etc': 'ethereum-classic', 'xlm': 'stellar',
-        'trx': 'tron', 'xtz': 'tezos', 'algo': 'algorand', 'near': 'near-protocol',
-        'ftm': 'fantom', 'apt': 'aptos', 'arb': 'arbitrum', 'op': 'optimism',
-        'grt': 'the-graph', 'sand': 'the-sandbox', 'mana': 'decentraland',
-        'pepe': 'pepe', 'bonk': 'bonk', 'wif': 'dogwifhat'
+    const projectSlugs = {
+        btc: 'bitcoin', eth: 'ethereum', bnb: 'binance-coin',
+        matic: 'polygon', sol: 'solana', xrp: 'xrp',
+        ada: 'cardano', doge: 'dogecoin', dot: 'polkadot',
+        shib: 'shiba-inu', uni: 'uniswap', link: 'chainlink',
+        avax: 'avalanche', atom: 'cosmos', hbar: 'hedera',
+        vet: 'vechain', fil: 'filecoin', etc: 'ethereum-classic',
+        xlm: 'stellar', trx: 'tron', xtz: 'tezos',
+        algo: 'algorand', near: 'near-protocol', ftm: 'fantom',
+        apt: 'aptos', arb: 'arbitrum', op: 'optimism',
+        grt: 'the-graph', sand: 'the-sandbox', mana: 'decentraland',
+        pepe: 'pepe', bonk: 'bonk', wif: 'dogwifhat'
     };
-    const logoName = aliases[baseAsset] || baseAsset;
-    return `https://cryptologos.cc/logos/${logoName}-${baseAsset}-logo.png`;
+    const slug = projectSlugs[baseAsset] || baseAsset;
+    return `https://cryptologos.cc/logos/${slug}-${baseAsset}-logo.png`;
 };
 
 const getSymbolInfo = (symbol) => {
@@ -55,7 +58,19 @@ const getSymbolInfo = (symbol) => {
 };
 
 // Trading Modal Component
-const TradingModal = ({ visible, onClose, stock, orderType, userBalance = 10000 }) => {
+const TradingModal = ({
+    visible,
+    onClose,
+    stock,
+    orderType,
+    userBalance = 0,
+    onOrderSuccess,
+    user,
+    setSuccessOrderData,
+    setShowSuccessModal,
+    setLastOrderType
+}) => {
+    const { token, apiKey } = useContext(AuthContext);
     const [executionType, setExecutionType] = useState('MARKET');
     const [quantity, setQuantity] = useState('');
     const [limitPrice, setLimitPrice] = useState('');
@@ -63,13 +78,37 @@ const TradingModal = ({ visible, onClose, stock, orderType, userBalance = 10000 
     const [takeProfit, setTakeProfit] = useState('');
     const [showAdvanced, setShowAdvanced] = useState(false);
     const [loading, setLoading] = useState(false);
+    const [existingPosition, setExistingPosition] = useState(null);
 
     const currentPrice = stock.price || 0;
+    const TRADING_FEE = 0.1;
+    const GST = 18;
+    const TRANSACTION_FEE = 2;
+    const STT = orderType === 'SELL' ? 0.025 : 0;
 
-    const TRADING_FEE = 0.1; // 0.1%
-    const GST = 18; // 18%
-    const TRANSACTION_FEE = 2; // $2
-    const STT = orderType === 'SELL' ? 0.025 : 0; // 0.025% on sell
+    useEffect(() => {
+        if (visible && orderType === 'SELL') {
+            fetchExistingPosition();
+        }
+    }, [visible, orderType]);
+
+    const fetchExistingPosition = async () => {
+        try {
+            const response = await axiosInstance.get('/trading/positions', {
+                headers: {
+                    Authorization: `Bearer ${token}`,
+                    'X-API-Key': apiKey || '',
+                },
+            });
+            const position = response.data.data.find(p => p.symbol === stock.symbol && p.status === 'ACTIVE');
+            setExistingPosition(position);
+            if (!position) {
+                Alert.alert('No Position', 'You do not have an active position for this asset');
+            }
+        } catch (error) {
+            console.error('Error fetching position:', error);
+        }
+    };
 
     const calculateCharges = (amount) => {
         const tradingFee = (amount * TRADING_FEE) / 100;
@@ -111,29 +150,76 @@ const TradingModal = ({ visible, onClose, stock, orderType, userBalance = 10000 
             return;
         }
 
+        if (orderType === 'SELL') {
+            if (!existingPosition) {
+                Alert.alert('Error', 'No active position found for this asset');
+                return;
+            }
+            if (parseFloat(quantity) > existingPosition.totalQuantity) {
+                Alert.alert('Insufficient Quantity', `Available: ${existingPosition.totalQuantity}`);
+                return;
+            }
+        }
+
+        if (executionType === 'LIMIT' && (!limitPrice || parseFloat(limitPrice) <= 0)) {
+            Alert.alert('Error', 'Please enter a valid limit price');
+            return;
+        }
+
         setLoading(true);
 
         try {
-            // Simulate API call - Replace with actual API
             const orderData = {
                 symbol: stock.symbol,
                 quantity: parseFloat(quantity),
                 orderType: executionType,
-                limitPrice: limitPrice ? parseFloat(limitPrice) : null,
-                stopLossPrice: stopLoss ? parseFloat(stopLoss) : null,
-                takeProfitPrice: takeProfit ? parseFloat(takeProfit) : null,
+                currentPrice: currentPrice,
+                limitPrice: limitPrice && limitPrice.trim() !== '' ? parseFloat(limitPrice) : undefined,
+                stopLossPrice: stopLoss && stopLoss.trim() !== '' ? parseFloat(stopLoss) : undefined,
+                takeProfitPrice: takeProfit && takeProfit.trim() !== '' ? parseFloat(takeProfit) : undefined,
             };
 
-            // Simulated API call
-            await new Promise(resolve => setTimeout(resolve, 1000));
+            const endpoint = orderType === 'BUY' ? '/trading/order/buy' : '/trading/order/sell';
 
-            Alert.alert(
-                'Order Placed Successfully',
-                `${orderType} order for ${quantity} ${stock.symbol.replace('USDT', '')}\nTotal: $${orderSummary.netAmount}`,
-                [{ text: 'OK', onPress: () => onClose() }]
-            );
+            const response = await axiosInstance.post(endpoint, orderData, {
+                headers: {
+                    Authorization: `Bearer ${token}`,
+                    'X-API-Key': apiKey || '',
+                },
+            });
+
+            if (response.data.success) {
+                const { order, position, charges, netPnl } = response.data.data;
+
+                setQuantity('');
+                setLimitPrice('');
+                setStopLoss('');
+                setTakeProfit('');
+
+                setLastOrderType(orderType);
+
+                setSuccessOrderData({
+                    symbol: stock.symbol.replace('USDT', ''),
+                    quantity: order.quantity.toFixed(6),
+                    price: order.entryPrice.toFixed(2),
+                    total: orderSummary.netAmount,
+                    pnl: orderType === 'SELL' ? netPnl?.toFixed(2) : undefined,
+                });
+
+                onClose();
+
+                setTimeout(() => {
+                    setShowSuccessModal(true);
+                }, 300);
+
+                if (onOrderSuccess) onOrderSuccess();
+            }
         } catch (error) {
-            Alert.alert('Error', error.message || 'Failed to place order');
+            console.error("❌ Order Error:", error.response?.data || error.message);
+            Alert.alert(
+                "Order Failed",
+                error.response?.data?.message || "Failed to place order. Please try again."
+            );
         } finally {
             setLoading(false);
         }
@@ -146,7 +232,6 @@ const TradingModal = ({ visible, onClose, stock, orderType, userBalance = 10000 
             <View style={styles.modalOverlay}>
                 <View style={styles.modalContent}>
                     <ScrollView showsVerticalScrollIndicator={false}>
-                        {/* Header */}
                         <View style={styles.modalHeader}>
                             <Text style={styles.modalTitle}>
                                 {orderType} {stock.symbol.replace('USDT', '')}
@@ -156,16 +241,33 @@ const TradingModal = ({ visible, onClose, stock, orderType, userBalance = 10000 
                             </TouchableOpacity>
                         </View>
 
-                        {/* Current Price */}
+                        {orderType === 'SELL' && existingPosition && (
+                            <View style={styles.positionInfoCard}>
+                                <Text style={styles.positionInfoLabel}>Available Quantity</Text>
+                                <Text style={styles.positionInfoValue}>
+                                    {existingPosition.totalQuantity} {stock.symbol.replace('USDT', '')}
+                                </Text>
+                                <Text style={styles.positionInfoSubtext}>
+                                    Avg Price: ${existingPosition.averagePrice.toFixed(2)}
+                                </Text>
+                            </View>
+                        )}
+
                         <View style={styles.currentPriceCard}>
                             <Text style={styles.currentPriceLabel}>Current Price</Text>
                             <Text style={styles.currentPriceValue}>${currentPrice.toFixed(2)}</Text>
                         </View>
 
-                        {/* Execution Type */}
+                        {user && (
+                            <View style={styles.currentPriceCard}>
+                                <Text style={styles.currentPriceLabel}>Available Balance</Text>
+                                <Text style={styles.currentPriceValue}>${userBalance.toFixed(2)}</Text>
+                            </View>
+                        )}
+
                         <Text style={styles.inputLabel}>Order Type</Text>
                         <View style={styles.executionTypeContainer}>
-                            {['MARKET', 'LIMIT', 'STOP_LOSS'].map((type) => (
+                            {['MARKET', 'LIMIT'].map((type) => (
                                 <TouchableOpacity
                                     key={type}
                                     style={[
@@ -178,13 +280,12 @@ const TradingModal = ({ visible, onClose, stock, orderType, userBalance = 10000 
                                         styles.executionTypeText,
                                         executionType === type && styles.executionTypeTextActive
                                     ]}>
-                                        {type.replace('_', ' ')}
+                                        {type}
                                     </Text>
                                 </TouchableOpacity>
                             ))}
                         </View>
 
-                        {/* Quantity */}
                         <Text style={styles.inputLabel}>Quantity</Text>
                         <TextInput
                             style={styles.input}
@@ -194,20 +295,20 @@ const TradingModal = ({ visible, onClose, stock, orderType, userBalance = 10000 
                             keyboardType="decimal-pad"
                         />
 
-                        {/* Quick Amount Buttons */}
-                        <View style={styles.quickAmountContainer}>
-                            {quickAmounts.map((amt) => (
-                                <TouchableOpacity
-                                    key={amt}
-                                    style={styles.quickAmountButton}
-                                    onPress={() => setQuantity((amt / currentPrice).toFixed(6))}
-                                >
-                                    <Text style={styles.quickAmountText}>${amt}</Text>
-                                </TouchableOpacity>
-                            ))}
-                        </View>
+                        {orderType === 'BUY' && (
+                            <View style={styles.quickAmountContainer}>
+                                {quickAmounts.map((amt) => (
+                                    <TouchableOpacity
+                                        key={amt}
+                                        style={styles.quickAmountButton}
+                                        onPress={() => setQuantity((amt / currentPrice).toFixed(6))}
+                                    >
+                                        <Text style={styles.quickAmountText}>${amt}</Text>
+                                    </TouchableOpacity>
+                                ))}
+                            </View>
+                        )}
 
-                        {/* Limit Price */}
                         {executionType === 'LIMIT' && (
                             <>
                                 <Text style={styles.inputLabel}>Limit Price</Text>
@@ -221,7 +322,6 @@ const TradingModal = ({ visible, onClose, stock, orderType, userBalance = 10000 
                             </>
                         )}
 
-                        {/* Advanced Options */}
                         <TouchableOpacity
                             style={styles.advancedToggle}
                             onPress={() => setShowAdvanced(!showAdvanced)}
@@ -260,31 +360,24 @@ const TradingModal = ({ visible, onClose, stock, orderType, userBalance = 10000 
                             </View>
                         )}
 
-                        {/* Order Summary */}
                         {orderSummary && (
                             <View style={styles.summaryCard}>
                                 <Text style={styles.summaryTitle}>Order Summary</Text>
-
                                 <View style={styles.summaryRow}>
                                     <Text style={styles.summaryLabel}>Quantity</Text>
                                     <Text style={styles.summaryValue}>
                                         {orderSummary.quantity} {stock.symbol.replace('USDT', '')}
                                     </Text>
                                 </View>
-
                                 <View style={styles.summaryRow}>
                                     <Text style={styles.summaryLabel}>Price</Text>
                                     <Text style={styles.summaryValue}>${orderSummary.price.toFixed(2)}</Text>
                                 </View>
-
                                 <View style={styles.summaryDivider} />
-
                                 <View style={styles.summaryRow}>
                                     <Text style={styles.summaryLabel}>Order Value</Text>
                                     <Text style={styles.summaryValue}>${orderSummary.investedAmount}</Text>
                                 </View>
-
-                                {/* Charges */}
                                 <View style={styles.chargesContainer}>
                                     <View style={styles.chargeRow}>
                                         <Text style={styles.chargeLabel}>Trading Fee (0.1%)</Text>
@@ -309,9 +402,7 @@ const TradingModal = ({ visible, onClose, stock, orderType, userBalance = 10000 
                                         <Text style={styles.chargeValueBold}>${orderSummary.charges.total}</Text>
                                     </View>
                                 </View>
-
                                 <View style={styles.summaryDivider} />
-
                                 <View style={styles.summaryRow}>
                                     <Text style={styles.summaryLabelBold}>
                                         {orderType === 'BUY' ? 'Total Payable' : 'You Will Receive'}
@@ -326,15 +417,10 @@ const TradingModal = ({ visible, onClose, stock, orderType, userBalance = 10000 
                             </View>
                         )}
 
-                        {/* Action Buttons */}
                         <View style={styles.actionButtonsContainer}>
-                            <TouchableOpacity
-                                style={styles.cancelButton}
-                                onPress={onClose}
-                            >
+                            <TouchableOpacity style={styles.cancelButton} onPress={onClose}>
                                 <Text style={styles.cancelButtonText}>Cancel</Text>
                             </TouchableOpacity>
-
                             <TouchableOpacity
                                 style={[
                                     styles.submitButton,
@@ -342,7 +428,7 @@ const TradingModal = ({ visible, onClose, stock, orderType, userBalance = 10000 
                                     loading && styles.submitButtonDisabled
                                 ]}
                                 onPress={handleSubmit}
-                                disabled={loading || !orderSummary}
+                                disabled={loading || !orderSummary || (orderType === 'SELL' && !existingPosition)}
                             >
                                 {loading ? (
                                     <ActivityIndicator color="#FFFFFF" />
@@ -354,7 +440,6 @@ const TradingModal = ({ visible, onClose, stock, orderType, userBalance = 10000 
                             </TouchableOpacity>
                         </View>
 
-                        {/* Disclaimer */}
                         <View style={styles.disclaimer}>
                             <Feather name="alert-circle" size={12} color="#F59E0B" />
                             <Text style={styles.disclaimerText}>
@@ -368,11 +453,13 @@ const TradingModal = ({ visible, onClose, stock, orderType, userBalance = 10000 
     );
 };
 
+
 // Main Component
 export default function CryptoDetailsScreen() {
     const navigation = useNavigation();
     const route = useRoute();
     const { stock: initialStock } = route.params;
+    const { user, token, apiKey } = useContext(AuthContext);
 
     const [stock, setStock] = useState(initialStock);
     const [refreshing, setRefreshing] = useState(false);
@@ -382,11 +469,30 @@ export default function CryptoDetailsScreen() {
     const [chartLoading, setChartLoading] = useState(true);
     const [showTradingModal, setShowTradingModal] = useState(false);
     const [tradeType, setTradeType] = useState('BUY');
-    const [userBalance, setUserBalance] = useState(50000); // Demo balance
+    const [userBalance, setUserBalance] = useState(0);
     const updateIntervalRef = useRef(null);
+
+    const [lastOrderType, setLastOrderType] = useState('BUY');
+    const [showSuccessModal, setShowSuccessModal] = useState(false);
+    const [successOrderData, setSuccessOrderData] = useState(null);
 
     const symbolInfo = getSymbolInfo(stock.symbol);
     const isPositive = stock.change >= 0;
+
+    // Fetch user balance
+    const fetchUserBalance = async () => {
+        try {
+            const response = await axiosInstance.get('/auth/me', {
+                headers: {
+                    Authorization: `Bearer ${token}`,
+                    'X-API-Key': apiKey || '',
+                },
+            });
+            setUserBalance(response.data.user.virtualBalance || 0);
+        } catch (error) {
+            console.error('Error fetching balance:', error);
+        }
+    };
 
     // Fetch chart data
     const fetchChartData = async (timeframe = selectedTimeframe) => {
@@ -456,11 +562,14 @@ export default function CryptoDetailsScreen() {
 
     const onRefresh = async () => {
         setRefreshing(true);
-        await Promise.all([updateStockData(), fetchChartData(selectedTimeframe)]);
+        await Promise.all([updateStockData(), fetchChartData(selectedTimeframe), fetchUserBalance()]);
         setRefreshing(false);
     };
 
     useEffect(() => {
+        if (user && token) {
+            fetchUserBalance();
+        }
         updateStockData();
         fetchChartData(selectedTimeframe);
 
@@ -480,8 +589,16 @@ export default function CryptoDetailsScreen() {
     }, [selectedTimeframe]);
 
     const openTradingModal = (type) => {
+        if (!user || !token) {
+            Alert.alert('Not Logged In', 'Please login to trade');
+            return;
+        }
         setTradeType(type);
         setShowTradingModal(true);
+    };
+
+    const handleOrderSuccess = () => {
+        fetchUserBalance();
     };
 
     const timeframes = ['1H', '24H', '7D', '1M', '1Y'];
@@ -702,11 +819,27 @@ export default function CryptoDetailsScreen() {
 
             {/* Trading Modal */}
             <TradingModal
+                user={user}
                 visible={showTradingModal}
                 onClose={() => setShowTradingModal(false)}
                 stock={stock}
                 orderType={tradeType}
                 userBalance={userBalance}
+                onOrderSuccess={() => fetchUserBalance()}
+                setSuccessOrderData={setSuccessOrderData}
+                setShowSuccessModal={setShowSuccessModal}
+                setLastOrderType={setLastOrderType}
+            />
+            <OrderSuccessModal
+                visible={showSuccessModal}
+                onClose={() => setShowSuccessModal(false)}
+                orderData={successOrderData || {
+                    symbol: 'BTC',
+                    quantity: '0',
+                    price: '0',
+                    total: '0',
+                }}
+                orderType={lastOrderType}
             />
         </View>
     );
