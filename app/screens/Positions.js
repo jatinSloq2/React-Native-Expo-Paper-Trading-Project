@@ -48,6 +48,9 @@ export default function Positions({ navigation }) {
   const [successOrderData, setSuccessOrderData] = useState(null);
   const [lastOrderType, setLastOrderType] = useState('SELL');
 
+  const [selectedSection, setSelectedSection] = useState('positions'); // 'positions' or 'orders'
+  const [ordersData, setOrdersData] = useState([]);
+
   const updateStocksData = async () => {
     try {
       const promises = STOCK_SYMBOLS.map(symbol =>
@@ -94,6 +97,21 @@ export default function Positions({ navigation }) {
     } catch (err) {
       console.log('Error fetching market positions', err);
       return [];
+    }
+  };
+
+  const fetchOrders = async () => {
+    try {
+      const res = await axiosInstance.get('/trading/orders', {
+        headers: {
+          Authorization: `Bearer ${token}`,
+          'X-API-Key': apiKey || '',
+        },
+      });
+      setOrdersData(res.data.data || []);
+    } catch (err) {
+      console.error('Error fetching orders:', err);
+      setOrdersData([]);
     }
   };
 
@@ -151,11 +169,13 @@ export default function Positions({ navigation }) {
   useEffect(() => {
     if (user && token) {
       fetchPositions();
+      fetchOrders();
       fetchUserBalance();
       updateStocksData();
 
       const interval = setInterval(() => {
         updateStocksData();
+        fetchOrders();
       }, 4000);
 
       return () => clearInterval(interval);
@@ -280,6 +300,66 @@ export default function Positions({ navigation }) {
     );
   };
 
+  const renderOrderCard = (order) => {
+     const info = SYMBOL_INFO[order.symbol] || SYMBOL_INFO[order.symbol + 'USDT'] || {};
+    const isBuy = order.type === 'BUY';
+    const currentPrice = order.currentPrice || order.entryPrice;
+
+    return (
+      <TouchableOpacity key={order._id} style={styles.positionCard} activeOpacity={0.7}>
+        <View style={styles.cardTop}>
+          <View style={styles.stockLeft}>
+            {info.image ? (
+              <View style={styles.stockImageContainer}>
+                <Image source={{ uri: info.image }} style={styles.stockImage} resizeMode="contain" />
+              </View>
+            ) : (
+              <View style={styles.symbolPlaceholder}>
+                <Text style={styles.symbolPlaceholderText}>{order.symbol.charAt(0)}</Text>
+              </View>
+            )}
+            <View>
+              <Text style={styles.symbolText}>{order.symbol}</Text>
+              <Text style={styles.nameText}>{info.name || order.symbol}</Text>
+            </View>
+          </View>
+          <View style={styles.stockRight}>
+            <Text style={styles.valueText}>$ {formatCurrency(order.investedAmount)}</Text>
+            <View style={[styles.changeBadge, isBuy ? styles.changeBadgePositive : styles.changeBadgeNegative]}>
+              <Text style={styles.changeText}>{order.status}</Text>
+            </View>
+          </View>
+        </View>
+
+        <View style={styles.cardDivider} />
+
+        <View style={styles.cardBottom}>
+          <View style={styles.infoItem}>
+            <Text style={styles.infoLabel}>Quantity</Text>
+            <Text style={styles.infoValue}>{order.quantity}</Text>
+          </View>
+          <View style={styles.infoItem}>
+            <Text style={styles.infoLabel}>Entry Price</Text>
+            <Text style={styles.infoValue}>$ {formatCurrency(order.entryPrice)}</Text>
+          </View>
+          <View style={styles.infoItem}>
+            <Text style={styles.infoLabel}>Current Price</Text>
+            <Text style={styles.infoValue}>$ {formatCurrency(currentPrice)}</Text>
+          </View>
+        </View>
+      </TouchableOpacity>
+    );
+  };
+
+  const EmptyOrders = () => (
+    <View style={styles.emptyContainer}>
+      <Feather name="file-text" size={48} color="#9CA3AF" />
+      <Text style={styles.emptyText}>No orders yet</Text>
+      <Text style={styles.emptySubText}>Your orders will appear here</Text>
+    </View>
+  );
+
+
   const displayPositions = selectedTab === 'combined' ? [...markets, ...options] :
     selectedTab === 'markets' ? markets : options;
 
@@ -318,6 +398,25 @@ export default function Positions({ navigation }) {
           </TouchableOpacity>
         </View>
       </LinearGradient>
+
+      <View style={styles.innerTabsContainer}>
+        <TouchableOpacity
+          style={[styles.innerTab, selectedSection === 'positions' ? styles.innerTabActive : styles.innerTabNotActive]}
+          onPress={() => setSelectedSection('positions')}
+        >
+          <Text style={[styles.innerTabText, selectedSection === 'positions' ? styles.innerTabTextActive : ""]}>
+            Positions
+          </Text>
+        </TouchableOpacity>
+        <TouchableOpacity
+          style={[styles.innerTab, selectedSection === 'orders' ? styles.innerTabActive : styles.innerTabNotActive]}
+          onPress={() => setSelectedSection('orders')}
+        >
+          <Text style={[styles.innerTabText, selectedSection === 'orders' ? styles.innerTabTextActive : ""]}>
+            Orders
+          </Text>
+        </TouchableOpacity>
+      </View>
 
       {/* Content */}
       {loading ? (
@@ -370,14 +469,22 @@ export default function Positions({ navigation }) {
             <Text style={styles.listHeaderCount}>{displayPositions.length} positions</Text>
           </View>
 
-          {displayPositions.length === 0 ? (
-            <View style={styles.emptyContainer}>
-              <Feather name="briefcase" size={48} color="#9CA3AF" />
-              <Text style={styles.emptyText}>No positions yet</Text>
-              <Text style={styles.emptySubText}>Start trading to see your positions here</Text>
-            </View>
+          {selectedSection === 'positions' ? (
+            displayPositions.length === 0 ? (
+              <View style={styles.emptyContainer}>
+                <Feather name="briefcase" size={48} color="#9CA3AF" />
+                <Text style={styles.emptyText}>No positions yet</Text>
+                <Text style={styles.emptySubText}>Start trading to see your positions here</Text>
+              </View>
+            ) : (
+              displayPositions.map(renderPositionCard)
+            )
           ) : (
-            displayPositions.map(renderPositionCard)
+            ordersData.length === 0 ? (
+              <EmptyOrders />
+            ) : (
+              ordersData.map(renderOrderCard)
+            )
           )}
 
           {/* Disclaimer */}
@@ -676,4 +783,24 @@ const styles = StyleSheet.create({
   plNegText: { color: '#DC2626' },
 
   loadingWrap: { flex: 1, alignItems: 'center', justifyContent: 'center' },
+  innerTabsContainer: { flexDirection: 'row', marginVertical: 10, marginHorizontal: 20, gap: 8 },
+  innerTab: { flex: 1, paddingVertical: 6, borderRadius: 8, backgroundColor: '#F3F4F6', alignItems: 'center' },
+  innerTabActive: {
+    backgroundColor: '#2E5CFF'
+  },
+  innerTabNotActive: {
+    backgroundColor: '#F3F4F6', // same as before inactive
+    borderWidth: 1,
+    borderColor: '#E5E7EB',      // subtle border to differentiate
+  },
+  innerTabText: {
+    color: '#6B7280',
+    fontWeight: '600'
+  },
+  innerTabTextActive: {
+    color: '#FFFFFF'
+  },
+  innerTabTextNotActive: {
+    color: '#6B7280'
+  }
 });
