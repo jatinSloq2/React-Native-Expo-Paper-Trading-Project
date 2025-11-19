@@ -384,7 +384,7 @@ export default function AccountScreen() {
         <View style={styles.actionsGrid}>
           <ActionCard
             icon="briefcase"
-            label="History"
+            label="Transactions"
             onPress={handleViewHistory}
           />
           <ActionCard
