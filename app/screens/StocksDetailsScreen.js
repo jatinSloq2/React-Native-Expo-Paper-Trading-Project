@@ -68,7 +68,10 @@ const TradingModal = ({
     user,
     setSuccessOrderData,
     setShowSuccessModal,
-    setLastOrderType, fetchUser
+    setLastOrderType,
+    fetchUser,
+    isWatchlisted,
+    onToggleWatchlist
 }) => {
     const { token, apiKey } = useContext(AuthContext);
     const [executionType, setExecutionType] = useState('MARKET');
@@ -79,6 +82,7 @@ const TradingModal = ({
     const [showAdvanced, setShowAdvanced] = useState(false);
     const [loading, setLoading] = useState(false);
     const [existingPosition, setExistingPosition] = useState(null);
+    const [addingToWatchlist, setAddingToWatchlist] = useState(false);
 
     const currentPrice = stock.price || 0;
     const TRADING_FEE = 0.1;
@@ -107,6 +111,23 @@ const TradingModal = ({
             }
         } catch (error) {
             console.error('Error fetching position:', error);
+        }
+    };
+
+    const handleAddToWatchlist = async () => {
+        if (!user || !token) {
+            Alert.alert('Not Logged In', 'Please login to add to watchlist');
+            return;
+        }
+
+        setAddingToWatchlist(true);
+        try {
+            await onToggleWatchlist();
+            Alert.alert('Success', 'Added to watchlist successfully');
+        } catch (error) {
+            Alert.alert('Error', 'Failed to add to watchlist');
+        } finally {
+            setAddingToWatchlist(false);
         }
     };
 
@@ -241,6 +262,24 @@ const TradingModal = ({
                                 <Feather name="x" size={24} color="#1A1A1A" />
                             </TouchableOpacity>
                         </View>
+
+                        {/* Add to Watchlist Button */}
+                        {!isWatchlisted && (
+                            <TouchableOpacity
+                                style={styles.watchlistAddButton}
+                                onPress={handleAddToWatchlist}
+                                disabled={addingToWatchlist}
+                            >
+                                {addingToWatchlist ? (
+                                    <ActivityIndicator size="small" color="#2E5CFF" />
+                                ) : (
+                                    <>
+                                        <Feather name="star" size={16} color="#2E5CFF" />
+                                        <Text style={styles.watchlistAddText}>Add to Watchlist</Text>
+                                    </>
+                                )}
+                            </TouchableOpacity>
+                        )}
 
                         {orderType === 'SELL' && existingPosition && (
                             <View style={styles.positionInfoCard}>
@@ -465,6 +504,8 @@ export default function CryptoDetailsScreen() {
     const [stock, setStock] = useState(initialStock);
     const [refreshing, setRefreshing] = useState(false);
     const [isWatchlisted, setIsWatchlisted] = useState(false);
+    const [watchlistLoading, setWatchlistLoading] = useState(false);
+    const [watchlistItemId, setWatchlistItemId] = useState(null);
     const [selectedTimeframe, setSelectedTimeframe] = useState('24H');
     const [chartData, setChartData] = useState({ labels: [], data: [] });
     const [chartLoading, setChartLoading] = useState(true);
@@ -479,6 +520,92 @@ export default function CryptoDetailsScreen() {
 
     const symbolInfo = getSymbolInfo(stock.symbol);
     const isPositive = stock.change >= 0;
+
+    // Check if item is in watchlist
+    const checkWatchlistStatus = async () => {
+        if (!user || !token) return;
+
+        try {
+            const response = await axiosInstance.get(
+                `/user/watchlist/check/${stock.symbol}?assetType=CRYPTO`,
+                {
+                    headers: {
+                        Authorization: `Bearer ${token}`,
+                        'X-API-Key': apiKey || '',
+                    },
+                }
+            );
+
+            if (response.data.success) {
+                setIsWatchlisted(response.data.isInWatchlist);
+                if (response.data.watchlistItemId) {
+                    setWatchlistItemId(response.data.watchlistItemId);
+                }
+            }
+        } catch (error) {
+            console.error('Error checking watchlist status:', error);
+        }
+    };
+
+    // Toggle watchlist
+    const toggleWatchlist = async () => {
+        if (!user || !token) {
+            Alert.alert('Not Logged In', 'Please login to use watchlist');
+            return;
+        }
+
+        setWatchlistLoading(true);
+        try {
+            if (isWatchlisted && watchlistItemId) {
+                // Remove from watchlist
+                const response = await axiosInstance.delete(
+                    `/user/watchlist/${watchlistItemId}`,
+                    {
+                        headers: {
+                            Authorization: `Bearer ${token}`,
+                            'X-API-Key': apiKey || '',
+                        },
+                    }
+                );
+
+                if (response.data.success) {
+                    setIsWatchlisted(false);
+                    setWatchlistItemId(null);
+                    Alert.alert('Success', 'Removed from watchlist');
+                }
+            } else {
+                // Add to watchlist
+                const response = await axiosInstance.post(
+                    '/user/watchlist',
+                    {
+                        symbol: stock.symbol,
+                        assetType: 'CRYPTO',
+                        notes: `Added from ${symbolInfo.name} details`
+                    },
+                    {
+                        headers: {
+                            Authorization: `Bearer ${token}`,
+                            'X-API-Key': apiKey || '',
+                        },
+                    }
+                );
+
+                if (response.data.success) {
+                    setIsWatchlisted(true);
+                    setWatchlistItemId(response.data.data._id);
+                    Alert.alert('Success', 'Added to watchlist');
+                }
+            }
+        } catch (error) {
+            console.error('Error toggling watchlist:', error);
+            Alert.alert(
+                'Error',
+                error.response?.data?.message || 'Failed to update watchlist'
+            );
+        } finally {
+            setWatchlistLoading(false);
+        }
+    };
 
     // Fetch user balance
     const fetchUserBalance = async () => {
@@ -563,13 +690,19 @@ export default function CryptoDetailsScreen() {
 
     const onRefresh = async () => {
         setRefreshing(true);
-        await Promise.all([updateStockData(), fetchChartData(selectedTimeframe), fetchUserBalance()]);
+        await Promise.all([
+            updateStockData(),
+            fetchChartData(selectedTimeframe),
+            fetchUserBalance(),
+            checkWatchlistStatus()
+        ]);
         setRefreshing(false);
     };
 
     useEffect(() => {
         if (user && token) {
             fetchUserBalance();
+            checkWatchlistStatus();
         }
         updateStockData();
         fetchChartData(selectedTimeframe);
@@ -646,14 +779,19 @@ export default function CryptoDetailsScreen() {
 
                         <TouchableOpacity
                             style={styles.watchlistButton}
-                            onPress={() => setIsWatchlisted(!isWatchlisted)}
+                            onPress={toggleWatchlist}
+                            disabled={watchlistLoading}
                         >
-                            <Feather
-                                name="star"
-                                size={18}
-                                color={isWatchlisted ? "#F59E0B" : "#FFFFFF"}
-                                fill={isWatchlisted ? "#F59E0B" : "transparent"}
-                            />
+                            {watchlistLoading ? (
+                                <ActivityIndicator size="small" color="#FFFFFF" />
+                            ) : (
+                                <Feather
+                                    name="star"
+                                    size={18}
+                                    color={isWatchlisted ? "#F59E0B" : "#FFFFFF"}
+                                    fill={isWatchlisted ? "#F59E0B" : "transparent"}
+                                />
+                            )}
                         </TouchableOpacity>
                     </View>
                 </View>
@@ -831,6 +969,8 @@ export default function CryptoDetailsScreen() {
                 setShowSuccessModal={setShowSuccessModal}
                 setLastOrderType={setLastOrderType}
                 fetchUser={fetchUser}
+                isWatchlisted={isWatchlisted}
+                onToggleWatchlist={toggleWatchlist}
             />
             <OrderSuccessModal
                 visible={showSuccessModal}
@@ -848,43 +988,6 @@ export default function CryptoDetailsScreen() {
 }
 
 const styles = StyleSheet.create({
-    actionButtons: {
-        flexDirection: 'row',
-        justifyContent: 'space-between',
-        marginTop: 20,
-        paddingHorizontal: 10,
-    },
-
-    buyButtonMain: {
-        flex: 1,
-        marginRight: 8,
-        borderRadius: 12,
-        overflow: 'hidden',
-    },
-
-    sellButtonMain: {
-        flex: 1,
-        marginLeft: 8,
-        borderRadius: 12,
-        overflow: 'hidden',
-    },
-
-    buttonGradient: {
-        height: 50,
-        borderRadius: 12,
-        flexDirection: 'row',
-        alignItems: 'center',
-        justifyContent: 'center',
-        gap: 8,
-    },
-
-    buttonText: {
-        color: '#FFFFFF',
-        fontSize: 16,
-        fontWeight: '700',
-    },
-
-
     container: {
         flex: 1,
         backgroundColor: '#F5F7FA',
@@ -951,33 +1054,14 @@ const styles = StyleSheet.create({
         alignItems: 'center',
         justifyContent: 'center',
     },
-    rotating: {
-        transform: [{ rotate: '360deg' }],
-    },
     priceSection: {
         alignItems: 'center',
         marginTop: 8,
-    },
-    priceRow: {
-        flexDirection: 'row',
-        alignItems: 'center',
-        gap: 8,
-        marginBottom: 8,
     },
     currentPrice: {
         fontSize: 36,
         fontWeight: '700',
         color: '#FFFFFF',
-    },
-    updatingIndicator: {
-        marginTop: 8,
-    },
-    pulseDot: {
-        width: 8,
-        height: 8,
-        borderRadius: 4,
-        backgroundColor: '#10B981',
-        animation: 'pulse 1s ease-in-out infinite',
     },
     changeContainer: {
         flexDirection: 'row',
@@ -1045,17 +1129,8 @@ const styles = StyleSheet.create({
         borderWidth: 1,
         borderColor: '#E5E7EB',
     },
-    chartLoadingText: {
-        fontSize: 14,
-        color: '#6B7280',
-        fontWeight: '500',
-    },
-    chartWrapper: {
-        backgroundColor: '#FFFFFF',
+    chart: {
         borderRadius: 16,
-        padding: 10,
-        borderWidth: 1,
-        borderColor: '#E5E7EB',
     },
     statsSection: {
         paddingHorizontal: 20,
@@ -1099,129 +1174,45 @@ const styles = StyleSheet.create({
         fontWeight: '700',
         color: '#1A1A1A',
     },
-    infoSection: {
-        paddingHorizontal: 20,
-        marginTop: 24,
-    },
-    infoCard: {
-        backgroundColor: '#FFFFFF',
-        borderRadius: 16,
-        padding: 16,
-        borderWidth: 1,
-        borderColor: '#E5E7EB',
-    },
-    infoRow: {
-        flexDirection: 'row',
-        justifyContent: 'space-between',
-        alignItems: 'center',
-        paddingVertical: 12,
-    },
-    infoDivider: {
-        height: 1,
-        backgroundColor: '#F3F4F6',
-    },
-    infoLabel: {
-        fontSize: 14,
-        color: '#6B7280',
-    },
-    infoValue: {
-        fontSize: 14,
-        fontWeight: '600',
-        color: '#1A1A1A',
-    },
-    aboutSection: {
-        paddingHorizontal: 20,
-        marginTop: 24,
-    },
-    aboutTitle: {
-        fontSize: 18,
-        fontWeight: '700',
-        color: '#1A1A1A',
-        marginBottom: 12,
-    },
-    aboutCard: {
-        backgroundColor: '#FFFFFF',
-        borderRadius: 16,
-        padding: 16,
-        borderWidth: 1,
-        borderColor: '#E5E7EB',
-    },
-    aboutText: {
-        fontSize: 14,
-        color: '#6B7280',
-        lineHeight: 22,
-    },
     actionButtons: {
         flexDirection: 'row',
+        justifyContent: 'space-between',
+        marginTop: 20,
+        marginBottom: 30,
         paddingHorizontal: 20,
-        marginTop: 24,
-        marginBottom: 24,
-        gap: 12,
     },
-    buyButton: {
+    buyButtonMain: {
         flex: 1,
-        borderRadius: 16,
+        marginRight: 8,
+        borderRadius: 12,
         overflow: 'hidden',
-        elevation: 4,
-        shadowColor: '#10B981',
-        shadowOffset: { width: 0, height: 4 },
-        shadowOpacity: 0.3,
-        shadowRadius: 8,
     },
-    sellButton: {
+    sellButtonMain: {
         flex: 1,
-        borderRadius: 16,
+        marginLeft: 8,
+        borderRadius: 12,
         overflow: 'hidden',
-        elevation: 4,
-        shadowColor: '#EF4444',
-        shadowOffset: { width: 0, height: 4 },
-        shadowOpacity: 0.3,
-        shadowRadius: 8,
     },
     buttonGradient: {
+        height: 50,
+        borderRadius: 12,
         flexDirection: 'row',
         alignItems: 'center',
         justifyContent: 'center',
-        paddingVertical: 16,
         gap: 8,
     },
     buttonText: {
+        color: '#FFFFFF',
         fontSize: 16,
         fontWeight: '700',
-        color: '#FFFFFF',
-    },
-    container: {
-        flex: 1,
-        backgroundColor: '#F5F7FB',
     },
 
-    /* HEADER */
-    header: {
-        paddingTop: 55,
-        paddingBottom: 20,
-        paddingHorizontal: 18,
-        borderBottomLeftRadius: 22,
-        borderBottomRightRadius: 22,
-        elevation: 5,
-    },
-    headerTop: {
-        flexDirection: 'row',
-        alignItems: 'center',
-    },
-    backButton: {
-        padding: 8,
-        backgroundColor: 'rgba(255,255,255,0.2)',
-        borderRadius: 12,
-    },
-
-    /* MODAL OVERLAY */
+    // Modal Styles
     modalOverlay: {
         flex: 1,
         backgroundColor: 'rgba(0,0,0,0.4)',
         justifyContent: 'flex-end',
     },
-
-    /* MODAL CONTENT */
     modalContent: {
         maxHeight: '90%',
         backgroundColor: '#FFFFFF',
@@ -1230,8 +1221,6 @@ const styles = StyleSheet.create({
         borderTopRightRadius: 20,
         elevation: 10,
     },
-
-    /* MODAL HEADER */
     modalHeader: {
         flexDirection: 'row',
         justifyContent: 'space-between',
@@ -1243,8 +1232,47 @@ const styles = StyleSheet.create({
         fontWeight: '700',
         color: '#1A1A1A',
     },
-
-    /* CURRENT PRICE */
+    watchlistAddButton: {
+        flexDirection: 'row',
+        alignItems: 'center',
+        justifyContent: 'center',
+        backgroundColor: '#EEF3FF',
+        paddingVertical: 12,
+        paddingHorizontal: 16,
+        borderRadius: 12,
+        marginBottom: 16,
+        gap: 8,
+        borderWidth: 1,
+        borderColor: '#DBEAFE',
+    },
+    watchlistAddText: {
+        fontSize: 14,
+        fontWeight: '600',
+        color: '#2E5CFF',
+    },
+    positionInfoCard: {
+        backgroundColor: '#FEF3C7',
+        padding: 16,
+        borderRadius: 12,
+        marginBottom: 16,
+        borderWidth: 1,
+        borderColor: '#FDE68A',
+    },
+    positionInfoLabel: {
+        fontSize: 12,
+        color: '#92400E',
+        marginBottom: 4,
+    },
+    positionInfoValue: {
+        fontSize: 18,
+        fontWeight: '700',
+        color: '#78350F',
+        marginBottom: 4,
+    },
+    positionInfoSubtext: {
+        fontSize: 12,
+        color: '#92400E',
+    },
     currentPriceCard: {
         backgroundColor: '#EEF3FF',
         padding: 16,
@@ -1261,8 +1289,6 @@ const styles = StyleSheet.create({
         color: '#1A3FCC',
         marginTop: 4,
     },
-
-    /* INPUT LABEL */
     inputLabel: {
         fontSize: 14,
         color: '#374151',
@@ -1270,8 +1296,6 @@ const styles = StyleSheet.create({
         marginTop: 8,
         fontWeight: '600',
     },
-
-    /* TEXT INPUT */
     input: {
         backgroundColor: '#F1F5F9',
         borderRadius: 12,
@@ -1281,8 +1305,6 @@ const styles = StyleSheet.create({
         borderColor: '#E2E8F0',
         marginBottom: 14,
     },
-
-    /* EXECUTION TYPE */
     executionTypeContainer: {
         flexDirection: 'row',
         gap: 10,
@@ -1306,8 +1328,6 @@ const styles = StyleSheet.create({
     executionTypeTextActive: {
         color: '#FFFFFF',
     },
-
-    /* QUICK AMOUNTS */
     quickAmountContainer: {
         flexDirection: 'row',
         gap: 10,
@@ -1327,8 +1347,6 @@ const styles = StyleSheet.create({
         fontWeight: '600',
         color: '#111827',
     },
-
-    /* ADVANCED OPTIONS */
     advancedToggle: {
         paddingVertical: 6,
         alignItems: 'center',
@@ -1363,8 +1381,6 @@ const styles = StyleSheet.create({
         fontSize: 12,
         flex: 1,
     },
-
-    /* SUMMARY CARD */
     summaryCard: {
         padding: 16,
         backgroundColor: '#FFFFFF',
@@ -1398,8 +1414,6 @@ const styles = StyleSheet.create({
         borderColor: '#E5E7EB',
         marginVertical: 10,
     },
-
-    /* CHARGES */
     chargesContainer: {
         marginBottom: 12,
         marginTop: 6,
@@ -1428,7 +1442,6 @@ const styles = StyleSheet.create({
         fontWeight: '700',
         color: '#1F2937',
     },
-
     summaryLabelBold: {
         fontSize: 15,
         fontWeight: '700',
@@ -1438,8 +1451,6 @@ const styles = StyleSheet.create({
         fontSize: 16,
         fontWeight: '700',
     },
-
-    /* ACTION BUTTONS */
     actionButtonsContainer: {
         flexDirection: 'row',
         gap: 12,
@@ -1479,8 +1490,6 @@ const styles = StyleSheet.create({
     submitButtonDisabled: {
         opacity: 0.6,
     },
-
-    /* DISCLAIMER */
     disclaimer: {
         flexDirection: 'row',
         alignItems: 'center',
@@ -1492,6 +1501,5 @@ const styles = StyleSheet.create({
         fontSize: 12,
         color: '#6B7280',
         flex: 1,
-    }
-
+    },
 });
