@@ -43,6 +43,7 @@ const TradingModal = ({
     const [loading, setLoading] = useState(false);
     const [existingPosition, setExistingPosition] = useState(null);
     const [addingToWatchlist, setAddingToWatchlist] = useState(false);
+    const [fetchingPosition, setFetchingPosition] = useState(false);
 
     const currentPrice = stock.price || 0;
     const TRADING_FEE = 0.1;
@@ -50,33 +51,66 @@ const TradingModal = ({
     const TRANSACTION_FEE = 2;
     const STT = orderType === 'SELL' ? 0.025 : 0;
 
+    // Extract symbol without USDT suffix for API calls
+    const getSymbolForAPI = () => {
+        return stock.symbol.replace('USDT', '').toUpperCase();
+    };
+
     useEffect(() => {
         if (visible && orderType === 'SELL') {
             fetchExistingPosition();
+        } else if (visible) {
+            // Reset position when opening for BUY
+            setExistingPosition(null);
         }
-    }, [visible, orderType]);
+    }, [visible, orderType, stock.symbol]);
 
     const fetchExistingPosition = async () => {
+        setFetchingPosition(true);
         try {
-            const response = await axiosInstance.get('/trading/positions', {
+            const symbolForAPI = getSymbolForAPI();
+            const response = await axiosInstance.get('/trading/positions/symbol', {
+                params: { symbol: symbolForAPI },
                 headers: {
                     Authorization: `Bearer ${token}`,
                     'X-API-Key': apiKey || '',
                 },
             });
-            const position = response.data.data.find(p => p.symbol === stock.symbol && p.status === 'ACTIVE');
-            setExistingPosition(position);
-            if (!position) {
-                Alert.alert('No Position', 'You do not have an active position for this asset');
+
+            if (response.data.success && response.data.data.length > 0) {
+                // Get the first active position for this symbol
+                const position = response.data.data[0];
+                setExistingPosition(position);
+            } else {
+                setExistingPosition(null);
+                if (orderType === 'SELL') {
+                    Alert.alert(
+                        'No Position',
+                        `You do not have an active position for ${symbolForAPI}`
+                    );
+                }
             }
         } catch (error) {
             console.error('Error fetching position:', error);
+            Alert.alert(
+                'Error',
+                error.response?.data?.message || 'Failed to fetch position details'
+            );
+            
+            setExistingPosition(null);
+        } finally {
+            setFetchingPosition(false);
         }
     };
 
     const handleAddToWatchlist = async () => {
         if (!user || !token) {
             Alert.alert('Not Logged In', 'Please login to add to watchlist');
+            return;
+        }
+
+        if (!onToggleWatchlist) {
+            Alert.alert('Error', 'Watchlist functionality not available');
             return;
         }
 
@@ -150,8 +184,9 @@ const TradingModal = ({
         setLoading(true);
 
         try {
+            const symbolForAPI = getSymbolForAPI();
             const orderData = {
-                symbol: stock.symbol,
+                symbol: symbolForAPI,
                 quantity: parseFloat(quantity),
                 orderType: executionType,
                 currentPrice: currentPrice,
@@ -172,15 +207,18 @@ const TradingModal = ({
             if (response.data.success) {
                 const { order, position, charges, netPnl } = response.data.data;
 
+                // Reset form
                 setQuantity('');
                 setLimitPrice('');
                 setStopLoss('');
                 setTakeProfit('');
+                setExecutionType('MARKET');
+                setShowAdvanced(false);
 
                 setLastOrderType(orderType);
 
                 setSuccessOrderData({
-                    symbol: stock.symbol.replace('USDT', ''),
+                    symbol: symbolForAPI,
                     quantity: order.quantity.toFixed(6),
                     price: order.entryPrice.toFixed(2),
                     total: orderSummary.netAmount,
@@ -203,11 +241,14 @@ const TradingModal = ({
             );
         } finally {
             setLoading(false);
-            fetchUser()
+            if (fetchUser) fetchUser();
         }
     };
 
     const quickAmounts = [1000, 2000, 5000, 10000];
+
+    // Only show watchlist button if the function is provided and user is not selling
+    const showWatchlistButton = onToggleWatchlist && !isWatchlisted && orderType === 'BUY';
 
     return (
         <Modal visible={visible} animationType="slide" transparent>
@@ -223,8 +264,8 @@ const TradingModal = ({
                             </TouchableOpacity>
                         </View>
 
-                        {/* Add to Watchlist Button */}
-                        {!isWatchlisted && (
+                        {/* Add to Watchlist Button - Only show when function is provided */}
+                        {showWatchlistButton && (
                             <TouchableOpacity
                                 style={styles.watchlistAddButton}
                                 onPress={handleAddToWatchlist}
@@ -241,24 +282,44 @@ const TradingModal = ({
                             </TouchableOpacity>
                         )}
 
-                        {orderType === 'SELL' && existingPosition && (
-                            <View style={styles.currentPriceCard}>
-                                <Text style={styles.currentPriceLabel}>Available Quantity</Text>
-                                <Text style={styles.currentPriceValue}>
-                                    {existingPosition.totalQuantity} {stock.symbol.replace('USDT', '')}
-                                </Text>
-                                <Text style={styles.positionInfoSubtext}>
-                                    Avg Price: ${existingPosition.averagePrice.toFixed(2)}
-                                </Text>
-                            </View>
+                        {/* Position Info for SELL orders */}
+                        {orderType === 'SELL' && (
+                            fetchingPosition ? (
+                                <View style={styles.positionLoadingCard}>
+                                    <ActivityIndicator size="small" color="#2E5CFF" />
+                                    <Text style={styles.positionLoadingText}>Loading position...</Text>
+                                </View>
+                            ) : existingPosition ? (
+                                <View style={styles.positionInfoCard}>
+                                    <Text style={styles.positionInfoLabel}>Available Quantity</Text>
+                                    <Text style={styles.positionInfoValue}>
+                                        {existingPosition.totalQuantity} {stock.symbol.replace('USDT', '')}
+                                    </Text>
+                                    <Text style={styles.positionInfoSubtext}>
+                                        Avg Price: ${existingPosition.averagePrice.toFixed(2)}
+                                    </Text>
+                                    <Text style={styles.positionInfoSubtext}>
+                                        Current Value: ${(existingPosition.totalQuantity * currentPrice).toFixed(2)}
+                                    </Text>
+                                </View>
+                            ) : (
+                                <View style={styles.noPositionCard}>
+                                    <Feather name="alert-circle" size={20} color="#EF4444" />
+                                    <Text style={styles.noPositionText}>
+                                        No active position found for {stock.symbol.replace('USDT', '')}
+                                    </Text>
+                                </View>
+                            )
                         )}
 
                         <View style={styles.currentPriceCard}>
-                            <Text style={styles.currentPriceLabel}>Current Price</Text>
-                            <Text style={styles.currentPriceValue}>${currentPrice.toFixed(2)}</Text>
+                            <Text style={styles.currentPriceLabel}>Current Market Price</Text>
+                            <Text style={styles.currentPriceValue}>
+                                ${currentPrice >= 1 ? currentPrice.toFixed(2) : currentPrice.toFixed(6)}
+                            </Text>
                         </View>
 
-                        {user && !orderType === 'SELL' && (
+                        {user && orderType === 'BUY' && (
                             <View style={styles.currentPriceCard}>
                                 <Text style={styles.currentPriceLabel}>Available Balance</Text>
                                 <Text style={styles.currentPriceValue}>${userBalance.toFixed(2)}</Text>
@@ -291,7 +352,9 @@ const TradingModal = ({
                             style={styles.input}
                             value={quantity}
                             onChangeText={setQuantity}
-                            placeholder="Enter quantity"
+                            placeholder={orderType === 'SELL' && existingPosition
+                                ? `Max: ${existingPosition.totalQuantity}`
+                                : "Enter quantity"}
                             keyboardType="decimal-pad"
                         />
 
@@ -309,6 +372,15 @@ const TradingModal = ({
                             </View>
                         )}
 
+                        {orderType === 'SELL' && existingPosition && (
+                            <TouchableOpacity
+                                style={styles.maxQuantityButton}
+                                onPress={() => setQuantity(existingPosition.totalQuantity.toString())}
+                            >
+                                <Text style={styles.maxQuantityText}>Use Max Quantity</Text>
+                            </TouchableOpacity>
+                        )}
+
                         {executionType === 'LIMIT' && (
                             <>
                                 <Text style={styles.inputLabel}>Limit Price</Text>
@@ -316,7 +388,7 @@ const TradingModal = ({
                                     style={styles.input}
                                     value={limitPrice}
                                     onChangeText={setLimitPrice}
-                                    placeholder={`Current: $${currentPrice.toFixed(2)}`}
+                                    placeholder={`Current: $${currentPrice >= 1 ? currentPrice.toFixed(2) : currentPrice.toFixed(6)}`}
                                     keyboardType="decimal-pad"
                                 />
                             </>
@@ -371,7 +443,9 @@ const TradingModal = ({
                                 </View>
                                 <View style={styles.summaryRow}>
                                     <Text style={styles.summaryLabel}>Price</Text>
-                                    <Text style={styles.summaryValue}>${orderSummary.price.toFixed(2)}</Text>
+                                    <Text style={styles.summaryValue}>
+                                        ${orderSummary.price >= 1 ? orderSummary.price.toFixed(2) : orderSummary.price.toFixed(6)}
+                                    </Text>
                                 </View>
                                 <View style={styles.summaryDivider} />
                                 <View style={styles.summaryRow}>
@@ -425,7 +499,7 @@ const TradingModal = ({
                                 style={[
                                     styles.submitButton,
                                     orderType === 'BUY' ? styles.buyButton : styles.sellButton,
-                                    loading && styles.submitButtonDisabled
+                                    (loading || !orderSummary || (orderType === 'SELL' && !existingPosition)) && styles.submitButtonDisabled
                                 ]}
                                 onPress={handleSubmit}
                                 disabled={loading || !orderSummary || (orderType === 'SELL' && !existingPosition)}
@@ -443,7 +517,7 @@ const TradingModal = ({
                         <View style={styles.disclaimer}>
                             <Feather name="alert-circle" size={12} color="#F59E0B" />
                             <Text style={styles.disclaimerText}>
-                                Virtual trading with simulated charges for educational purposes
+                                Virtual trading with simulated charges for educational purposes only. All trades are fake and no real money is involved.
                             </Text>
                         </View>
                     </ScrollView>

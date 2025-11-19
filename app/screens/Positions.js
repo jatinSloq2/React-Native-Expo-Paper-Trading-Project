@@ -407,8 +407,6 @@ export default function Positions({ navigation }) {
           setShowSuccessModal={setShowSuccessModal}
           setLastOrderType={setLastOrderType}
           fetchUser={fetchUser}
-          isWatchlisted={false}
-          onToggleWatchlist={() => { }}
         />
       )}
 
