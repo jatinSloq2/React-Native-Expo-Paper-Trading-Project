@@ -10,31 +10,32 @@ export default function AuthProvider({ children }) {
   const [apiKey, setApiKey] = useState("");
   const [loading, setLoading] = useState(true);
 
-  // -------------------------------
-  // Load token on first app load
-  // -------------------------------
+  // Load stored token & user on app start
   useEffect(() => {
     const loadStoredAuth = async () => {
-      const storedToken = await AsyncStorage.getItem("token");
-      const storedApiKey = await AsyncStorage.getItem("api_key");
+      try {
+        const storedToken = await AsyncStorage.getItem("token");
+        const storedApiKey = await AsyncStorage.getItem("api_key");
 
-      if (storedToken) {
-        setToken(storedToken);
-        setApiKey(storedApiKey || "");
-        await fetchUser(storedToken);
+        if (storedToken) {
+          setToken(storedToken);
+          setApiKey(storedApiKey || "");
+          await fetchUser(storedToken); // this is enough
+        }
+      } catch (e) {
+        console.log("Auth load error:", e);
       }
 
       setLoading(false);
     };
+
     loadStoredAuth();
   }, []);
 
-  // ---------------------------------------------------------
-  // AXIOS INTERCEPTOR — Attaches token to every API request
-  // ---------------------------------------------------------
+  // Axios interceptor attaches token
   useEffect(() => {
     const interceptor = axiosInstance.interceptors.request.use(
-      async (config) => {
+      (config) => {
         if (token) {
           config.headers.Authorization = `Bearer ${token}`;
         }
@@ -43,24 +44,27 @@ export default function AuthProvider({ children }) {
       (error) => Promise.reject(error)
     );
 
-    // Cleanup when provider unmounts or token changes
     return () => {
       axiosInstance.interceptors.request.eject(interceptor);
     };
   }, [token]);
 
-  // Fetch user
+  // Fetch user data
   const fetchUser = async (jwt) => {
     try {
-      const res = await axiosInstance.get("/auth/me");
+      const res = await axiosInstance.get("/auth/me", {
+        headers: { Authorization: `Bearer ${jwt}` }
+      });
       setUser(res.data.user);
     } catch (err) {
-      console.log("Failed to fetch user:", err.response?.data);
-      logout();
+      console.log("Fetch user error:", err.response?.data);
+
+      // Only logout on 401 unauthorized
+      if (err.response?.status === 401) logout();
     }
   };
 
-  // Login
+  // Login function
   const login = async (jwt, key, fetchedUser) => {
     setToken(jwt);
     setApiKey(key);
@@ -70,11 +74,11 @@ export default function AuthProvider({ children }) {
     await AsyncStorage.setItem("api_key", key || "");
   };
 
-  // Logout
+  // Logout function
   const logout = async () => {
     try {
-      setToken("");
       setUser(null);
+      setToken("");
       setApiKey("");
 
       await AsyncStorage.removeItem("token");

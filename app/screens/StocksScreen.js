@@ -16,6 +16,7 @@ import {
   TouchableOpacity,
   View
 } from 'react-native';
+import { SYMBOL_INFO } from '../../constants/symbols';
 
 const { width } = Dimensions.get('window');
 const CARD_WIDTH = (width - 60) / 2;
@@ -26,69 +27,69 @@ const STOCK_SYMBOLS = [
   'ADAUSDT', 'DOGEUSDT', 'MATICUSDT', 'DOTUSDT', 'LTCUSDT'
 ];
 
-// Symbol display names and icons with image URLs
-const SYMBOL_INFO = {
-  BTCUSDT: {
-    name: 'Bitcoin',
-    color: '#F7931A',
-    icon: '₿',
-    image: 'https://cryptologos.cc/logos/bitcoin-btc-logo.png'
-  },
-  ETHUSDT: {
-    name: 'Ethereum',
-    color: '#627EEA',
-    icon: 'Ξ',
-    image: 'https://cryptologos.cc/logos/ethereum-eth-logo.png'
-  },
-  BNBUSDT: {
-    name: 'Binance',
-    color: '#F3BA2F',
-    icon: 'B',
-    image: 'https://cryptologos.cc/logos/bnb-bnb-logo.png'
-  },
-  SOLUSDT: {
-    name: 'Solana',
-    color: '#14F195',
-    icon: 'S',
-    image: 'https://cryptologos.cc/logos/solana-sol-logo.png'
-  },
-  XRPUSDT: {
-    name: 'Ripple',
-    color: '#23292F',
-    icon: 'X',
-    image: 'https://cryptologos.cc/logos/xrp-xrp-logo.png'
-  },
-  ADAUSDT: {
-    name: 'Cardano',
-    color: '#0033AD',
-    icon: 'A',
-    image: 'https://cryptologos.cc/logos/cardano-ada-logo.png'
-  },
-  DOGEUSDT: {
-    name: 'Dogecoin',
-    color: '#C2A633',
-    icon: 'Ð',
-    image: 'https://cryptologos.cc/logos/dogecoin-doge-logo.png'
-  },
-  MATICUSDT: {
-    name: 'Polygon',
-    color: '#8247E5',
-    icon: 'M',
-    image: 'https://cryptologos.cc/logos/polygon-matic-logo.png'
-  },
-  DOTUSDT: {
-    name: 'Polkadot',
-    color: '#E6007A',
-    icon: 'D',
-    image: 'https://cryptologos.cc/logos/polkadot-new-dot-logo.png'
-  },
-  LTCUSDT: {
-    name: 'Litecoin',
-    color: '#345D9D',
-    icon: 'Ł',
-    image: 'https://cryptologos.cc/logos/litecoin-ltc-logo.png'
-  }
-};
+// // Symbol display names and icons with image URLs
+// const SYMBOL_INFO = {
+//   BTCUSDT: {
+//     name: 'Bitcoin',
+//     color: '#F7931A',
+//     icon: '₿',
+//     image: 'https://cryptologos.cc/logos/bitcoin-btc-logo.png'
+//   },
+//   ETHUSDT: {
+//     name: 'Ethereum',
+//     color: '#627EEA',
+//     icon: 'Ξ',
+//     image: 'https://cryptologos.cc/logos/ethereum-eth-logo.png'
+//   },
+//   BNBUSDT: {
+//     name: 'Binance',
+//     color: '#F3BA2F',
+//     icon: 'B',
+//     image: 'https://cryptologos.cc/logos/bnb-bnb-logo.png'
+//   },
+//   SOLUSDT: {
+//     name: 'Solana',
+//     color: '#14F195',
+//     icon: 'S',
+//     image: 'https://cryptologos.cc/logos/solana-sol-logo.png'
+//   },
+//   XRPUSDT: {
+//     name: 'Ripple',
+//     color: '#23292F',
+//     icon: 'X',
+//     image: 'https://cryptologos.cc/logos/xrp-xrp-logo.png'
+//   },
+//   ADAUSDT: {
+//     name: 'Cardano',
+//     color: '#0033AD',
+//     icon: 'A',
+//     image: 'https://cryptologos.cc/logos/cardano-ada-logo.png'
+//   },
+//   DOGEUSDT: {
+//     name: 'Dogecoin',
+//     color: '#C2A633',
+//     icon: 'Ð',
+//     image: 'https://cryptologos.cc/logos/dogecoin-doge-logo.png'
+//   },
+//   MATICUSDT: {
+//     name: 'Polygon',
+//     color: '#8247E5',
+//     icon: 'M',
+//     image: 'https://cryptologos.cc/logos/polygon-matic-logo.png'
+//   },
+//   DOTUSDT: {
+//     name: 'Polkadot',
+//     color: '#E6007A',
+//     icon: 'D',
+//     image: 'https://cryptologos.cc/logos/polkadot-new-dot-logo.png'
+//   },
+//   LTCUSDT: {
+//     name: 'Litecoin',
+//     color: '#345D9D',
+//     icon: 'Ł',
+//     image: 'https://cryptologos.cc/logos/litecoin-ltc-logo.png'
+//   }
+// };
 
 export default function StocksScreen() {
   const navigation = useNavigation();
@@ -102,7 +103,7 @@ export default function StocksScreen() {
   const [showSearchDropdown, setShowSearchDropdown] = useState(false);
   const [searchLoading, setSearchLoading] = useState(false);
 
-  
+
   const updateIntervalRef = useRef(null);
 
   // Debounce search query
@@ -420,14 +421,20 @@ export default function StocksScreen() {
               <Text style={styles.emptySubtext}>Try a different search term</Text>
             </View>
           ) : (
-            filteredStocks.map((stock, index) => (
-              <StockCard
-                key={stock.symbol}
-                stock={stock}
-                info={SYMBOL_INFO[stock.symbol]}
-                onPress={() => handleStockPress(stock)}
-              />
-            ))
+            filteredStocks.map((stock, index) => {
+              const info = SYMBOL_INFO[stock.symbol] || {
+                name: stock.symbol.replace('USDT', ''),
+                image: 'https://via.placeholder.com/40'
+              };
+              return (
+                <StockCard
+                  key={stock.symbol}
+                  stock={stock}
+                  info={info}
+                  onPress={() => handleStockPress(stock)}
+                />
+              );
+            })
           )}
         </View>
 
