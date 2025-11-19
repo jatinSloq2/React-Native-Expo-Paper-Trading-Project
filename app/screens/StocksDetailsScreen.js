@@ -282,9 +282,9 @@ const TradingModal = ({
                         )}
 
                         {orderType === 'SELL' && existingPosition && (
-                            <View style={styles.positionInfoCard}>
-                                <Text style={styles.positionInfoLabel}>Available Quantity</Text>
-                                <Text style={styles.positionInfoValue}>
+                            <View style={styles.currentPriceCard}>
+                                <Text style={styles.currentPriceLabel}>Available Quantity</Text>
+                                <Text style={styles.currentPriceValue}>
                                     {existingPosition.totalQuantity} {stock.symbol.replace('USDT', '')}
                                 </Text>
                                 <Text style={styles.positionInfoSubtext}>

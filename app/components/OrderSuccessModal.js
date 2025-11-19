@@ -67,18 +67,6 @@ const OrderSuccessModal = ({ visible, onClose, orderData, orderType }) => {
                         }
                     ]}
                 >
-                    {/* Success Icon */}
-                    <View style={[
-                        styles.iconContainer,
-                        { backgroundColor: isBuy ? '#DCFCE7' : '#FEE2E2' }
-                    ]}>
-                        <Feather
-                            name="check-circle"
-                            size={56}
-                            color={isBuy ? '#10B981' : '#EF4444'}
-                        />
-                    </View>
-
                     {/* Title */}
                     <Text style={styles.title}>Order Placed Successfully</Text>
                     <Text style={styles.subtitle}>
