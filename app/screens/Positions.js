@@ -1,9 +1,9 @@
 import { View, Text } from 'react-native';
 
-export default function Portfolio() {
+export default function Positions() {
   return (
     <View className="flex-1 items-center justify-center bg-white">
-      <Text className="text-xl">Portfolio Placeholder</Text>
+      <Text className="text-xl">Positions Placeholder</Text>
     </View>
   );
 }

@@ -1,9 +1,8 @@
-import { Feather } from '@expo/vector-icons';
 import { createBottomTabNavigator } from "@react-navigation/bottom-tabs";
 import { createNativeStackNavigator } from "@react-navigation/native-stack";
 import { useContext } from "react";
 import { AuthContext } from "../context/AuthContext";
-
+import { Feather, MaterialIcons, Ionicons } from '@expo/vector-icons';
 // Existing screens
 import AccountScreen from "./screens/AccountScreen";
 import BalanceHistoryScreen from "./screens/AccountsScreens/BalanceHistory";
@@ -25,6 +24,7 @@ import MutualFundsScreen from "./screens/MutualFundsScreen";
 import RegisterScreen from "./screens/RegisterScreen";
 import StocksDetailsScreen from "./screens/StocksDetailsScreen";
 import StocksScreen from "./screens/StocksScreen";
+import Positions from './screens/Positions';
 
 
 const Tab = createBottomTabNavigator();
@@ -35,6 +35,11 @@ const AuthStack = () => (
     <Stack.Navigator screenOptions={{ headerShown: false }}>
         <Stack.Screen name="Login" component={LoginScreen} />
         <Stack.Screen name="Register" component={RegisterScreen} />
+        <Stack.Screen name="LearningHub" component={LearningHubScreen} />
+        <Stack.Screen name="PrivacySecurity" component={PrivacySecurityScreen} />
+        <Stack.Screen name="HelpCenter" component={HelpCenterScreen} />
+        <Stack.Screen name="TermsConditions" component={TermsConditionsScreen} />
+        <Stack.Screen name="PrivacyPolicy" component={PrivacyPolicyScreen} />
     </Stack.Navigator>
 );
 
@@ -62,7 +67,7 @@ const AccountStack = () => (
         <Stack.Screen name="TermsConditions" component={TermsConditionsScreen} />
         <Stack.Screen name="PrivacyPolicy" component={PrivacyPolicyScreen} />
         <Stack.Screen name="YourTickets" component={SeeYourTickets} />
-         <Stack.Screen name="CryptoDetails" component={StocksDetailsScreen} />
+        <Stack.Screen name="CryptoDetails" component={StocksDetailsScreen} />
         <Stack.Screen name="NotificationPreferences" component={NotificationPreferencesScreen} />
     </Stack.Navigator>
 );
@@ -75,26 +80,27 @@ export default function MainNavigator() {
             screenOptions={({ route }) => ({
                 headerShown: false,
                 tabBarIcon: ({ focused, color, size }) => {
-                    let iconName;
+                    switch (route.name) {
+                        case 'Home':
+                            return <Feather name="trending-up" size={size} color={color} />;
 
-                    if (route.name === 'Home') {
-                        iconName = 'trending-up';
-                    } else if (route.name === 'MutualFunds') {
-                        iconName = 'pie-chart';
-                    } else if (route.name === 'F&O') {
-                        iconName = 'bar-chart-2';
-                    } else if (route.name === 'Portfolio') {
-                        iconName = 'briefcase';
-                    } else if (route.name === 'Account') {
-                        iconName = 'user';
+                        case 'F&O':
+                            return <MaterialIcons name="stacked-line-chart" size={size} color={color} />;
+
+                        case 'Position':
+                            return <MaterialIcons name="list-alt" size={size} color={color} />;
+
+                        case 'Account':
+                            return <Feather name="user" size={size} color={color} />;
+
+                        default:
+                            return <Feather name="circle" size={size} color={color} />;
                     }
-
-                    return <Feather name={iconName} size={size} color={color} />;
                 },
                 tabBarActiveTintColor: '#2E5CFF',
                 tabBarInactiveTintColor: '#9CA3AF',
                 tabBarStyle: {
-                    height: 70,
+                    height: 75,
                     paddingTop: 6,
                     borderTopWidth: 1,
                     borderTopColor: '#E5E7EB',
@@ -112,14 +118,14 @@ export default function MainNavigator() {
                 options={{ title: 'Crypto' }}
             />
             <Tab.Screen
-                name="MutualFunds"
-                component={MutualFundsScreen}
-                options={{ title: 'Mutual Funds' }}
-            />
-            <Tab.Screen
                 name="F&O"
                 component={FnoScreen}
                 options={{ title: 'F&O' }}
+            />
+            <Tab.Screen
+                name="Position"
+                component={Positions}
+                options={{ title: 'Positions' }}
             />
             <Tab.Screen
                 name="Account"
