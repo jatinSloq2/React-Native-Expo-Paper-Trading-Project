@@ -10,6 +10,9 @@ export default function AuthProvider({ children }) {
   const [apiKey, setApiKey] = useState("");
   const [loading, setLoading] = useState(true);
 
+  // -------------------------------
+  // Load token on first app load
+  // -------------------------------
   useEffect(() => {
     const loadStoredAuth = async () => {
       const storedToken = await AsyncStorage.getItem("token");
@@ -18,28 +21,38 @@ export default function AuthProvider({ children }) {
       if (storedToken) {
         setToken(storedToken);
         setApiKey(storedApiKey || "");
-        await fetchUser(storedToken, storedApiKey);
+        await fetchUser(storedToken);
       }
 
       setLoading(false);
     };
-
     loadStoredAuth();
   }, []);
 
+  // ---------------------------------------------------------
+  // AXIOS INTERCEPTOR — Attaches token to every API request
+  // ---------------------------------------------------------
+  useEffect(() => {
+    const interceptor = axiosInstance.interceptors.request.use(
+      async (config) => {
+        if (token) {
+          config.headers.Authorization = `Bearer ${token}`;
+        }
+        return config;
+      },
+      (error) => Promise.reject(error)
+    );
+
+    // Cleanup when provider unmounts or token changes
+    return () => {
+      axiosInstance.interceptors.request.eject(interceptor);
+    };
+  }, [token]);
+
+  // Fetch user
   const fetchUser = async (jwt) => {
-    let token = null
-    if(!jwt) {
-      token =  AsyncStorage.getItem("token")
-    } else {
-      token = jwt
-    }
     try {
-      const res = await axiosInstance.get("/auth/me", {
-        headers: {
-          Authorization: `Bearer ${token}`,
-        },
-      });
+      const res = await axiosInstance.get("/auth/me");
       setUser(res.data.user);
     } catch (err) {
       console.log("Failed to fetch user:", err.response?.data);
@@ -47,6 +60,7 @@ export default function AuthProvider({ children }) {
     }
   };
 
+  // Login
   const login = async (jwt, key, fetchedUser) => {
     setToken(jwt);
     setApiKey(key);
@@ -56,20 +70,16 @@ export default function AuthProvider({ children }) {
     await AsyncStorage.setItem("api_key", key || "");
   };
 
+  // Logout
   const logout = async () => {
     try {
-      console.log("Logging out...");
-
-      // Clear state first
       setToken("");
       setUser(null);
       setApiKey("");
 
-      // Then clear AsyncStorage
       await AsyncStorage.removeItem("token");
       await AsyncStorage.removeItem("api_key");
 
-      console.log("Logout successful");
       return true;
     } catch (error) {
       console.error("Logout error:", error);
@@ -77,11 +87,8 @@ export default function AuthProvider({ children }) {
     }
   };
 
-
   return (
-    <AuthContext.Provider
-      value={{ user, setUser,token, apiKey, loading, login, logout }}
-    >
+    <AuthContext.Provider value={{ user, setUser, token, apiKey, loading, login, logout }}>
       {children}
     </AuthContext.Provider>
   );

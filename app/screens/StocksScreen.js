@@ -101,6 +101,8 @@ export default function StocksScreen() {
   const [searchResults, setSearchResults] = useState([]);
   const [showSearchDropdown, setShowSearchDropdown] = useState(false);
   const [searchLoading, setSearchLoading] = useState(false);
+
+  
   const updateIntervalRef = useRef(null);
 
   // Debounce search query

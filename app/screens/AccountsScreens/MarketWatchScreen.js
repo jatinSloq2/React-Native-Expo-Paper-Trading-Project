@@ -1,31 +1,159 @@
-import React, { useState } from 'react';
-import {
-  View,
-  Text,
-  StyleSheet,
-  ScrollView,
-  TouchableOpacity,
-  TextInput,
-  RefreshControl
-} from 'react-native';
 import { Feather } from '@expo/vector-icons';
-import { LinearGradient } from 'expo-linear-gradient';
 import { useNavigation } from '@react-navigation/native';
+import { LinearGradient } from 'expo-linear-gradient';
+import { useEffect, useRef, useState } from 'react';
+import {
+  ActivityIndicator,
+  Image,
+  RefreshControl,
+  ScrollView,
+  StyleSheet,
+  Text,
+  TextInput,
+  TouchableOpacity,
+  View
+} from 'react-native';
+import axiosInstance from '../../api/axiosInstance';
+
+const SYMBOL_INFO = {
+  BTCUSDT: {
+    name: 'Bitcoin',
+    color: '#F7931A',
+    icon: '₿',
+    image: 'https://cryptologos.cc/logos/bitcoin-btc-logo.png'
+  },
+  ETHUSDT: {
+    name: 'Ethereum',
+    color: '#627EEA',
+    icon: 'Ξ',
+    image: 'https://cryptologos.cc/logos/ethereum-eth-logo.png'
+  },
+  BNBUSDT: {
+    name: 'Binance',
+    color: '#F3BA2F',
+    icon: 'B',
+    image: 'https://cryptologos.cc/logos/bnb-bnb-logo.png'
+  },
+  SOLUSDT: {
+    name: 'Solana',
+    color: '#14F195',
+    icon: 'S',
+    image: 'https://cryptologos.cc/logos/solana-sol-logo.png'
+  },
+  XRPUSDT: {
+    name: 'Ripple',
+    color: '#23292F',
+    icon: 'X',
+    image: 'https://cryptologos.cc/logos/xrp-xrp-logo.png'
+  },
+  ADAUSDT: {
+    name: 'Cardano',
+    color: '#0033AD',
+    icon: 'A',
+    image: 'https://cryptologos.cc/logos/cardano-ada-logo.png'
+  },
+  DOGEUSDT: {
+    name: 'Dogecoin',
+    color: '#C2A633',
+    icon: 'Ð',
+    image: 'https://cryptologos.cc/logos/dogecoin-doge-logo.png'
+  },
+  MATICUSDT: {
+    name: 'Polygon',
+    color: '#8247E5',
+    icon: 'M',
+    image: 'https://cryptologos.cc/logos/polygon-matic-logo.png'
+  },
+  DOTUSDT: {
+    name: 'Polkadot',
+    color: '#E6007A',
+    icon: 'D',
+    image: 'https://cryptologos.cc/logos/polkadot-new-dot-logo.png'
+  },
+  LTCUSDT: {
+    name: 'Litecoin',
+    color: '#345D9D',
+    icon: 'Ł',
+    image: 'https://cryptologos.cc/logos/litecoin-ltc-logo.png'
+  }
+};
 
 export default function MarketWatchScreen() {
   const navigation = useNavigation();
   const [searchQuery, setSearchQuery] = useState('');
   const [refreshing, setRefreshing] = useState(false);
   const [selectedTab, setSelectedTab] = useState('watchlist');
+  const [watchlist, setWatchlist] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [filteredWatchlist, setFilteredWatchlist] = useState([]);
+  const updateIntervalRef = useRef(null);
 
-  // Mock data for watchlist
-  const watchlist = [
-    { symbol: 'RELIANCE', name: 'Reliance Industries', price: 2456.75, change: 2.45, changePercent: 2.1 },
-    { symbol: 'TCS', name: 'Tata Consultancy Services', price: 3567.20, change: -15.80, changePercent: -0.44 },
-    { symbol: 'HDFCBANK', name: 'HDFC Bank', price: 1678.90, change: 23.50, changePercent: 1.42 },
-    { symbol: 'INFY', name: 'Infosys', price: 1456.30, change: 8.75, changePercent: 0.60 },
-    { symbol: 'ICICIBANK', name: 'ICICI Bank', price: 987.65, change: -5.20, changePercent: -0.52 },
-  ];
+  const fetchWatchlist = async () => {
+    try {
+      const response = await axiosInstance.get('/user/watchlist');
+      if (response.data && response.data.data) {
+        await updateWatchlistData(response.data.data);
+      } else {
+        setWatchlist([]);
+        setLoading(false);
+        setRefreshing(false);
+      }
+    } catch (error) {
+      console.error('Error fetching watchlist:', error);
+      setWatchlist([]);
+      setLoading(false);
+      setRefreshing(false);
+    }
+  };
+
+  const updateWatchlistData = async (watchlistItems) => {
+    try {
+      const symbols = watchlistItems.map(item => item.symbol);
+
+      const promises = symbols.map(symbol =>
+        fetch(`https://api.binance.com/api/v3/ticker/24hr?symbol=${symbol}`)
+          .then(res => res.json())
+          .catch(err => {
+            console.error(`Error fetching ${symbol}:`, err);
+            return null;
+          })
+      );
+
+      const results = await Promise.all(promises);
+
+      const formatted = results
+        .filter(item => item !== null)
+        .map((item, index) => ({
+          symbol: item.symbol,
+          name: watchlistItems[index].name || item.symbol.replace('USDT', ''),
+          price: parseFloat(item.lastPrice) || 0,
+          change: parseFloat(item.priceChange) || 0,
+          changePercent: parseFloat(item.priceChangePercent) || 0,
+          high: parseFloat(item.highPrice) || 0,
+          low: parseFloat(item.lowPrice) || 0,
+          volume: parseFloat(item.volume) || 0,
+          openPrice: parseFloat(item.openPrice) || 0
+        }));
+
+      setWatchlist(formatted);
+      setFilteredWatchlist(formatted);
+    } catch (error) {
+      console.error('Error updating watchlist data:', error);
+      setWatchlist([]);
+      setFilteredWatchlist([]);
+    } finally {
+      setLoading(false);
+      setRefreshing(false);
+    }
+  };
+
+  const handleStockPress = (stock) => {
+    navigation.navigate('CryptoDetails', { stock });
+  };
+
+  const handleAddStocks = () => {
+    navigation.navigate('Home');
+  };
 
   // Mock data for indices
   const indices = [
@@ -37,8 +165,45 @@ export default function MarketWatchScreen() {
 
   const onRefresh = () => {
     setRefreshing(true);
-    setTimeout(() => setRefreshing(false), 2000);
+    fetchWatchlist();
   };
+
+  useEffect(() => {
+    if (searchQuery.trim() === '') {
+      setFilteredWatchlist(watchlist);
+    } else {
+      const filtered = watchlist.filter(stock =>
+        stock.symbol.toLowerCase().includes(searchQuery.toLowerCase()) ||
+        stock.name.toLowerCase().includes(searchQuery.toLowerCase())
+      );
+      setFilteredWatchlist(filtered);
+    }
+  }, [searchQuery, watchlist]);
+
+  useEffect(() => {
+    if (watchlist.length > 0 && selectedTab === 'watchlist') {
+      updateIntervalRef.current = setInterval(async () => {
+        try {
+          const response = await axiosInstance.get('/user/watchlist');
+          if (response.data && response.data.data) {
+            await updateWatchlistData(response.data.data);
+          }
+        } catch (error) {
+          console.error('Auto-update error:', error);
+        }
+      }, 4000);
+    }
+
+    return () => {
+      if (updateIntervalRef.current) {
+        clearInterval(updateIntervalRef.current);
+      }
+    };
+  }, [watchlist.length, selectedTab]);
+
+  useEffect(() => {
+    fetchWatchlist();
+  }, []);
 
   return (
     <View style={styles.container}>
@@ -64,17 +229,17 @@ export default function MarketWatchScreen() {
 
         {/* Search Bar */}
         <View style={styles.searchContainer}>
-          <Feather name="search" size={20} color="#9CA3AF" />
+          <Feather name="search" size={20} color="#fff" />
           <TextInput
             style={styles.searchInput}
             placeholder="Search stocks, indices..."
-            placeholderTextColor="#9CA3AF"
+            placeholderTextColor="#fff"
             value={searchQuery}
             onChangeText={setSearchQuery}
           />
           {searchQuery.length > 0 && (
             <TouchableOpacity onPress={() => setSearchQuery('')}>
-              <Feather name="x" size={20} color="#9CA3AF" />
+              <Feather name="x" size={20} color="#fff" />
             </TouchableOpacity>
           )}
         </View>
@@ -116,18 +281,41 @@ export default function MarketWatchScreen() {
       >
         {selectedTab === 'watchlist' ? (
           <>
-            <View style={styles.listHeader}>
-              <Text style={styles.listHeaderText}>Your Watchlist</Text>
-              <Text style={styles.listHeaderCount}>{watchlist.length} stocks</Text>
-            </View>
-            {watchlist.map((stock, index) => (
-              <StockCard key={index} stock={stock} />
-            ))}
+            <>
+              <View style={styles.listHeader}>
+                <Text style={styles.listHeaderText}>Your Watchlist</Text>
+                <Text style={styles.listHeaderCount}>{watchlist.length} stocks</Text>
+              </View>
 
-            <TouchableOpacity style={styles.addMoreButton}>
-              <Feather name="plus-circle" size={20} color="#2E5CFF" />
-              <Text style={styles.addMoreText}>Add more stocks to watchlist</Text>
-            </TouchableOpacity>
+              {loading ? (
+                <View style={styles.loadingContainer}>
+                  <ActivityIndicator size="small" color="#2E5CFF" />
+                </View>
+              ) : watchlist.length === 0 ? (
+                <View style={styles.emptyContainer}>
+                  <Feather name="bar-chart-2" size={48} color="#9CA3AF" />
+                  <Text style={styles.emptyText}>No stocks in watchlist</Text>
+                  <TouchableOpacity onPress={() => handleAddStocks()}>
+                    <Text style={styles.emptySubText}>Add to Watchlist</Text>
+                  </TouchableOpacity>
+                </View>
+              ) : (
+                watchlist.map((stock, index) => (
+                  <StockCard
+                    key={index}
+                    stock={stock}
+                    onPress={() => handleStockPress(stock)}
+                  />
+                ))
+              )}
+
+              <TouchableOpacity style={styles.addMoreButton}>
+                <Feather name="plus-circle" size={20} color="#2E5CFF" />
+                <TouchableOpacity onPress={() => handleAddStocks()}>
+                  <Text style={styles.addMoreText}>Add more stocks to watchlist</Text>
+                </TouchableOpacity>
+              </TouchableOpacity>
+            </>
           </>
         ) : (
           <>
@@ -145,23 +333,40 @@ export default function MarketWatchScreen() {
   );
 }
 
-function StockCard({ stock }) {
-  const isPositive = stock.change >= 0;
+function StockCard({ stock, onPress }) {
+  const isPositive = stock.changePercent >= 0;
+  const info = SYMBOL_INFO[stock.symbol] || { image: null };
 
   return (
-    <TouchableOpacity style={styles.stockCard} activeOpacity={0.7}>
+    <TouchableOpacity
+      style={styles.stockCard}
+      activeOpacity={0.7}
+      onPress={onPress}
+    >
       <View style={styles.stockLeft}>
-        <View style={styles.stockIcon}>
-          <Text style={styles.stockIconText}>{stock.symbol.charAt(0)}</Text>
-        </View>
+        {info.image ? (
+          <View style={styles.stockImageContainer}>
+            <Image
+              source={{ uri: info.image }}
+              style={styles.stockImage}
+              resizeMode="contain"
+            />
+          </View>
+        ) : (
+          <View style={styles.stockIcon}>
+            <Text style={styles.stockIconText}>{stock.symbol.charAt(0)}</Text>
+          </View>
+        )}
         <View>
-          <Text style={styles.stockSymbol}>{stock.symbol}</Text>
+          <Text style={styles.stockSymbol}>{stock.symbol.replace('USDT', '')}</Text>
           <Text style={styles.stockName}>{stock.name}</Text>
         </View>
       </View>
 
       <View style={styles.stockRight}>
-        <Text style={styles.stockPrice}>${stock.price.toFixed(2)}</Text>
+        <Text style={styles.stockPrice}>
+          ${stock.price >= 1 ? stock.price.toFixed(2) : stock.price.toFixed(4)}
+        </Text>
         <View style={[styles.changeBadge, isPositive ? styles.changeBadgePositive : styles.changeBadgeNegative]}>
           <Feather
             name={isPositive ? 'trending-up' : 'trending-down'}
@@ -210,6 +415,46 @@ const styles = StyleSheet.create({
   container: {
     flex: 1,
     backgroundColor: '#F5F7FA',
+  },
+  stockImageContainer: {
+    width: 44,
+    height: 44,
+    borderRadius: 12,
+    backgroundColor: '#F0F4FF',
+    alignItems: 'center',
+    justifyContent: 'center',
+    marginRight: 12,
+    padding: 8,
+  },
+  stockImage: {
+    width: 32,
+    height: 32,
+  },
+  loadingContainer: {
+    alignItems: 'center',
+    justifyContent: 'center',
+    paddingVertical: 40,
+  },
+  loadingText: {
+    fontSize: 14,
+    color: '#6B7280',
+    fontWeight: '500',
+  },
+  emptyContainer: {
+    alignItems: 'center',
+    justifyContent: 'center',
+    paddingVertical: 60,
+  },
+  emptyText: {
+    fontSize: 16,
+    fontWeight: '600',
+    color: '#1A1A1A',
+    marginTop: 16,
+  },
+  emptySubText: {
+    fontSize: 14,
+    color: '#6B7280',
+    marginTop: 4,
   },
   header: {
     paddingTop: 60,

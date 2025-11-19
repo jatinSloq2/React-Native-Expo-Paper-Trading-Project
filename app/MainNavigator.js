@@ -62,6 +62,7 @@ const AccountStack = () => (
         <Stack.Screen name="TermsConditions" component={TermsConditionsScreen} />
         <Stack.Screen name="PrivacyPolicy" component={PrivacyPolicyScreen} />
         <Stack.Screen name="YourTickets" component={SeeYourTickets} />
+         <Stack.Screen name="CryptoDetails" component={StocksDetailsScreen} />
         <Stack.Screen name="NotificationPreferences" component={NotificationPreferencesScreen} />
     </Stack.Navigator>
 );
