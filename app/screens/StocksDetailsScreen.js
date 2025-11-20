@@ -271,12 +271,14 @@ export default function CryptoDetailsScreen() {
                     </TouchableOpacity>
 
                     <View style={styles.headerCenter}>
-                        <Image
-                            source={typeof symbolInfo.image === "string" ?
-                                { uri: symbolInfo.image } : symbolInfo.image}
-                            style={styles.headerImage}
-                            resizeMode="contain"
-                        />
+                        <View style={styles.stockImageContainer}>
+                            <Image
+                                source={typeof symbolInfo.image === "string" ?
+                                    { uri: symbolInfo.image } : symbolInfo.image}
+                                style={styles.headerImage}
+                                resizeMode="contain"
+                            />
+                        </View>
                         <View>
                             <Text style={styles.headerTitle}>
                                 {stock.symbol.replace('USDT', '')}
@@ -578,6 +580,16 @@ const styles = StyleSheet.create({
     headerImage: {
         width: 32,
         height: 32,
+    },
+    stockImageContainer: {
+        width: 40,
+        height: 40,
+        borderRadius: 28,
+        backgroundColor: '#F5F7FA',
+        alignItems: 'center',
+        justifyContent: 'center',
+        // marginBottom: 12,
+        padding: 8,
     },
     headerTitle: {
         fontSize: 20,

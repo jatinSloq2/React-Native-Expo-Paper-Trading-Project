@@ -337,6 +337,7 @@ function StockCard({ stock, info, onPress }) {
         <Image
           source={typeof info.image === "string" ? { uri: info.image } : info.image}
           style={styles.stockImage}
+          
           resizeMode="contain"
         />
       </View>
