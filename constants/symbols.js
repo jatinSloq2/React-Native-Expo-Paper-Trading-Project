@@ -2883,6 +2883,10 @@ export const SYMBOL_INFO = {
     "MATICUSDT": {
       "name": "Matic Network",
       "image": "https://cryptologos.cc/logos/matic-network-matic-logo.png?v=002"
+    },
+    "MKRUSDT": {
+      "name": "Maker",
+      "image": "https://cryptologos.cc/logos/maker-mkr-logo.png?v=002"
     }
   
 }

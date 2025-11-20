@@ -1,8 +1,8 @@
+import { Feather, MaterialIcons } from '@expo/vector-icons';
 import { createBottomTabNavigator } from "@react-navigation/bottom-tabs";
 import { createNativeStackNavigator } from "@react-navigation/native-stack";
 import { useContext } from "react";
 import { AuthContext } from "../context/AuthContext";
-import { Feather, MaterialIcons, Ionicons } from '@expo/vector-icons';
 // Existing screens
 import AccountScreen from "./screens/AccountScreen";
 import BalanceHistoryScreen from "./screens/AccountsScreens/BalanceHistory";
@@ -20,11 +20,10 @@ import TermsConditionsScreen from './screens/AccountsScreens/Settings/TermsCondi
 import SettingsScreen from "./screens/AccountsScreens/SettingsScreen";
 import FnoScreen from "./screens/FnOScreen";
 import LoginScreen from "./screens/LoginScreen";
-import MutualFundsScreen from "./screens/MutualFundsScreen";
+import Positions from './screens/Positions';
 import RegisterScreen from "./screens/RegisterScreen";
 import StocksDetailsScreen from "./screens/StocksDetailsScreen";
 import StocksScreen from "./screens/StocksScreen";
-import Positions from './screens/Positions';
 
 
 const Tab = createBottomTabNavigator();

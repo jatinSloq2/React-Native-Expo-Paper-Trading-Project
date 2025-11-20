@@ -16,7 +16,7 @@ import {
     View
 } from 'react-native';
 import { LineChart } from 'react-native-chart-kit';
-import paperBullLogo from "../../assets/paperbullfinallogo.png";
+import paperBullLogo from "../../assets/defaultImage.png";
 import { SYMBOL_INFO } from '../../constants/symbols';
 import { AuthContext } from '../../context/AuthContext';
 import { CryptoContext } from '../../context/CryptoContext';

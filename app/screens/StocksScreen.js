@@ -1,5 +1,5 @@
 // screens/StocksScreen.js
-import { Feather, MaterialIcons } from '@expo/vector-icons';
+import { Feather } from '@expo/vector-icons';
 import { useNavigation } from '@react-navigation/native';
 import { LinearGradient } from 'expo-linear-gradient';
 import { useContext, useEffect, useState } from 'react';
@@ -16,9 +16,9 @@ import {
   TouchableOpacity,
   View
 } from 'react-native';
+import paperBullLogo from "../../assets/defaultImage.png";
 import { SYMBOL_INFO } from '../../constants/symbols';
 import { CryptoContext } from '../../context/CryptoContext';
-import paperBullLogo from "../../assets/paperbullfinallogo.png";
 
 
 const { width } = Dimensions.get('window');
@@ -32,7 +32,6 @@ export default function StocksScreen() {
     refreshing,
     searchCrypto,
     refresh,
-    lastUpdated,
   } = useContext(CryptoContext);
 
   const [searchQuery, setSearchQuery] = useState('');
@@ -165,7 +164,7 @@ export default function StocksScreen() {
         </View>
 
         {/* Stats Banner */}
-        <View style={styles.statsBanner}>
+        {/* <View style={styles.statsBanner}>
           <View style={styles.statItem}>
             <Feather name="trending-up" size={20} color="rgba(255,255,255,0.9)" />
             <Text style={styles.statValue}>24/7</Text>
@@ -183,7 +182,7 @@ export default function StocksScreen() {
             <Text style={styles.statValue}>Live</Text>
             <Text style={styles.statLabel}>Updates</Text>
           </View>
-        </View>
+        </View> */}
       </LinearGradient>
 
       {/* Search Dropdown */}

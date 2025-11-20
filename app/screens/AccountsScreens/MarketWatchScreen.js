@@ -3,7 +3,7 @@ import { Feather } from '@expo/vector-icons';
 import { useNavigation } from '@react-navigation/native';
 import { LinearGradient } from 'expo-linear-gradient';
 import { useContext, useEffect, useState } from 'react';
-import paperBullLogo from "../../../assets/paperbullfinallogo.png";
+import paperBullLogo from "../../../assets/defaultImage.png";
 import {
   ActivityIndicator,
   Image,

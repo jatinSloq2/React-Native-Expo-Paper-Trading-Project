@@ -14,9 +14,15 @@ export const CryptoProvider = ({ children }) => {
   const isMountedRef = useRef(true);
 
   const POPULAR_CRYPTOS = [
-    'BTCUSDT', 'ETHUSDT', 'BNBUSDT', 'SOLUSDT', 'XRPUSDT',
-    'ADAUSDT', 'DOGEUSDT', 'MATICUSDT', 'DOTUSDT', 'LTCUSDT'
-  ];
+  'BTCUSDT', 'ETHUSDT', 'BNBUSDT', 'SOLUSDT', 'XRPUSDT',
+  'ADAUSDT', 'DOGEUSDT', 'MATICUSDT', 'DOTUSDT', 'LTCUSDT',
+
+  // Additional 20 high-volume assets
+  'TRXUSDT', 'AVAXUSDT', 'SHIBUSDT', 'UNIUSDT', 'ATOMUSDT',
+  'LINKUSDT', 'XLMUSDT', 'ETCUSDT', 'APTUSDT', 'ARBUSDT',
+  'OPUSDT', 'NEARUSDT', 'FILUSDT', 'HBARUSDT', 'VETUSDT',
+  'SANDUSDT', 'AAVEUSDT', 'MKRUSDT', 'INJUSDT', 'RNDRUSDT'
+];
 
   // Fetch market data with error handling
   const fetchMarketData = useCallback(async (isRefresh = false) => {
