@@ -2,7 +2,7 @@
 import { Feather } from '@expo/vector-icons';
 import { useNavigation } from '@react-navigation/native';
 import { LinearGradient } from 'expo-linear-gradient';
-import { useContext, useEffect, useState } from 'react';
+import { useContext, useEffect, useRef, useState } from 'react';
 import {
   ActivityIndicator,
   Dimensions,
@@ -19,7 +19,6 @@ import {
 import paperBullLogo from "../../assets/defaultImage.png";
 import { SYMBOL_INFO } from '../../constants/symbols';
 import { CryptoContext } from '../../context/CryptoContext';
-
 
 const { width } = Dimensions.get('window');
 const CARD_WIDTH = (width - 60) / 2;
@@ -40,6 +39,10 @@ export default function StocksScreen() {
   const [showSearchDropdown, setShowSearchDropdown] = useState(false);
   const [searchLoading, setSearchLoading] = useState(false);
 
+  const scrollRef = useRef(null);
+  const [autoScrollIndex, setAutoScrollIndex] = useState(0);
+
+
   // Debounce search query
   useEffect(() => {
     const timer = setTimeout(() => {
@@ -58,6 +61,36 @@ export default function StocksScreen() {
       setShowSearchDropdown(false);
     }
   }, [debouncedSearch]);
+
+  useEffect(() => {
+    if (duplicatedTrending.length === 0) return;
+
+    const interval = setInterval(() => {
+      setAutoScrollIndex((prev) => {
+        const newIndex = prev + 1;
+
+        // Smooth scroll
+        scrollRef.current?.scrollToOffset({
+          offset: newIndex * CARD_WIDTH * 1.2,
+          animated: true,
+        });
+
+        // If at end → jump back smoothly
+        if (newIndex >= duplicatedTrending.length - 1) {
+          setTimeout(() => {
+            scrollRef.current?.scrollToOffset({
+              offset: 0,
+              animated: false,
+            });
+          }, 300);
+          return 0;
+        }
+        return newIndex;
+      });
+    }, 1800); // Auto scroll speed
+
+    return () => clearInterval(interval);
+  }, [duplicatedTrending]);
 
   const handleSearch = async (query) => {
     setSearchLoading(true);
@@ -104,6 +137,14 @@ export default function StocksScreen() {
   const navigateToLearningHub = () => {
     navigation.navigate('Account', { screen: 'LearningHub' });
   };
+
+  // Split marketData into three parts
+  const first10Stocks = marketData.slice(0, 10);
+  const next10Stocks = marketData.slice(10, 20);
+  const last10Stocks = marketData.slice(20, 32);
+
+  const duplicatedTrending = [...next10Stocks, ...next10Stocks];
+
 
   // Show loading view initially
   if (loading && marketData.length === 0) {
@@ -162,27 +203,6 @@ export default function StocksScreen() {
             )}
           </View>
         </View>
-
-        {/* Stats Banner */}
-        {/* <View style={styles.statsBanner}>
-          <View style={styles.statItem}>
-            <Feather name="trending-up" size={20} color="rgba(255,255,255,0.9)" />
-            <Text style={styles.statValue}>24/7</Text>
-            <Text style={styles.statLabel}>Trading</Text>
-          </View>
-          <View style={styles.statDivider} />
-          <View style={styles.statItem}>
-            <MaterialIcons name="currency-bitcoin" size={20} color="rgba(255,255,255,0.9)" />
-            <Text style={styles.statValue}>{marketData.length}</Text>
-            <Text style={styles.statLabel}>Assets</Text>
-          </View>
-          <View style={styles.statDivider} />
-          <View style={styles.statItem}>
-            <View style={styles.liveDot} />
-            <Text style={styles.statValue}>Live</Text>
-            <Text style={styles.statLabel}>Updates</Text>
-          </View>
-        </View> */}
       </LinearGradient>
 
       {/* Search Dropdown */}
@@ -253,32 +273,118 @@ export default function StocksScreen() {
           </Text>
         </View>
 
-        {/* Stocks Grid - 2 per row */}
-        <View style={styles.stocksGrid}>
-          {marketData.length === 0 ? (
-            <View style={styles.emptyContainer}>
-              <Feather name="search" size={48} color="#E5E7EB" />
-              <Text style={styles.emptyText}>No assets found</Text>
-              <Text style={styles.emptySubtext}>Pull to refresh</Text>
+        {/* First 10 Stocks - Grid Cards (2 per row) */}
+        {first10Stocks.length > 0 && (
+          <>
+            <View style={styles.section}>
+              <Text style={styles.sectionSubtitle}>Top Performers</Text>
             </View>
-          ) : (
-            marketData.map((stock) => {
-              // console.log(stock)
-              const info = SYMBOL_INFO[stock.symbol] || {
-                name: stock.symbol.replace('USDT', ''),
-                image: paperBullLogo
-              };
-              return (
-                <StockCard
-                  key={stock.symbol}
-                  stock={stock}
-                  info={info}
-                  onPress={() => handleStockPress(stock)}
-                />
-              );
-            })
-          )}
-        </View>
+            <View style={styles.stocksGrid}>
+              {first10Stocks.map((stock) => {
+                const info = SYMBOL_INFO[stock.symbol] || {
+                  name: stock.symbol.replace('USDT', ''),
+                  image: paperBullLogo
+                };
+                return (
+                  <StockCard
+                    key={stock.symbol}
+                    stock={stock}
+                    info={info}
+                    onPress={() => handleStockPress(stock)}
+                  />
+                );
+              })}
+            </View>
+          </>
+        )}
+
+        {/* Next 10 Stocks - Horizontal Cards */}
+        {next10Stocks.length > 0 && (
+          <>
+            <View style={styles.section}>
+              <Text style={styles.sectionSubtitle}>Trending Assets</Text>
+            </View>
+            {/* <ScrollView
+              horizontal
+              showsHorizontalScrollIndicator={false}
+              style={styles.horizontalScroll}
+              contentContainerStyle={styles.horizontalScrollContent}
+            >
+              {next10Stocks.map((stock) => {
+                const info = SYMBOL_INFO[stock.symbol] || {
+                  name: stock.symbol.replace('USDT', ''),
+                  image: paperBullLogo
+                };
+                return (
+                  <HorizontalStockCard
+                    key={stock.symbol}
+                    stock={stock}
+                    info={info}
+                    onPress={() => handleStockPress(stock)}
+                  />
+                );
+              })}
+            </ScrollView> */}
+            <FlatList
+              ref={scrollRef}
+              data={duplicatedTrending}
+              keyExtractor={(item, index) => item.symbol + index}
+              horizontal
+              showsHorizontalScrollIndicator={false}
+              renderItem={({ item }) => {
+                const info = SYMBOL_INFO[item.symbol] || {
+                  name: item.symbol.replace('USDT', ''),
+                  image: paperBullLogo,
+                };
+                return (
+                  <HorizontalStockCard
+                    stock={item}
+                    info={info}
+                    onPress={() => handleStockPress(item)}
+                  />
+                );
+              }}
+              getItemLayout={(data, index) => ({
+                length: CARD_WIDTH * 1.2,
+                offset: (CARD_WIDTH * 1.2) * index,
+                index,
+              })}
+            />
+          </>
+        )}
+
+        {/* Last 10 Stocks - Icons with Names */}
+        {last10Stocks.length > 0 && (
+          <>
+            <View style={styles.section}>
+              <Text style={styles.sectionSubtitle}>Other Assets</Text>
+            </View>
+            <View style={styles.iconsGrid}>
+              {last10Stocks.map((stock) => {
+                const info = SYMBOL_INFO[stock.symbol] || {
+                  name: stock.symbol.replace('USDT', ''),
+                  image: paperBullLogo
+                };
+                return (
+                  <StockIcon
+                    key={stock.symbol}
+                    stock={stock}
+                    info={info}
+                    onPress={() => handleStockPress(stock)}
+                  />
+                );
+              })}
+            </View>
+          </>
+        )}
+
+        {marketData.length === 0 && (
+          <View style={styles.emptyContainer}>
+            <Feather name="search" size={48} color="#E5E7EB" />
+            <Text style={styles.emptyText}>No assets found</Text>
+            <Text style={styles.emptySubtext}>Pull to refresh</Text>
+          </View>
+        )}
 
         {/* Quick Actions Section */}
         <View style={styles.section}>
@@ -321,12 +427,12 @@ export default function StocksScreen() {
   );
 }
 
-// Stock Card Component
+// Original Stock Card Component (for first 10)
 function StockCard({ stock, info, onPress }) {
   const isPositive = stock.change >= 0;
   const changeValue = !isNaN(stock.change) ? stock.change : 0;
   const priceValue = !isNaN(stock.price) ? stock.price : 0;
-  // console.log(info)
+
   return (
     <TouchableOpacity
       style={styles.stockCard}
@@ -337,7 +443,6 @@ function StockCard({ stock, info, onPress }) {
         <Image
           source={typeof info.image === "string" ? { uri: info.image } : info.image}
           style={styles.stockImage}
-          
           resizeMode="contain"
         />
       </View>
@@ -376,6 +481,94 @@ function StockCard({ stock, info, onPress }) {
   );
 }
 
+// Horizontal Stock Card Component (for next 10)
+function HorizontalStockCard({ stock, info, onPress }) {
+  const isPositive = stock.change >= 0;
+  const changeValue = !isNaN(stock.change) ? stock.change : 0;
+  const priceValue = !isNaN(stock.price) ? stock.price : 0;
+
+  return (
+    <TouchableOpacity
+      style={styles.horizontalCard}
+      onPress={onPress}
+      activeOpacity={0.7}
+    >
+      <View style={styles.horizontalCardContent}>
+        <View style={styles.horizontalImageContainer}>
+          <Image
+            source={typeof info.image === "string" ? { uri: info.image } : info.image}
+            style={styles.horizontalImage}
+            resizeMode="contain"
+          />
+        </View>
+
+        <View style={styles.horizontalInfo}>
+          <Text style={styles.horizontalSymbol}>
+            {stock.symbol.replace('USDT', '')}
+          </Text>
+          <Text style={styles.horizontalName} numberOfLines={1}>
+            {info.name}
+          </Text>
+        </View>
+
+        <View style={styles.horizontalPriceContainer}>
+          <Text style={styles.horizontalPrice}>
+            ${priceValue >= 1 ? priceValue.toFixed(2) : priceValue.toFixed(4)}
+          </Text>
+          <View style={[
+            styles.changeChip,
+            isPositive ? styles.changePositive : styles.changeNegative
+          ]}>
+            <Feather
+              name={isPositive ? 'trending-up' : 'trending-down'}
+              size={10}
+              color={isPositive ? '#10B981' : '#EF4444'}
+            />
+            <Text style={[
+              styles.changeText,
+              isPositive ? styles.changeTextPositive : styles.changeTextNegative
+            ]}>
+              {Math.abs(changeValue).toFixed(2)}%
+            </Text>
+          </View>
+        </View>
+      </View>
+    </TouchableOpacity>
+  );
+}
+
+// Stock Icon Component (for last 10)
+function StockIcon({ stock, info, onPress }) {
+  const isPositive = stock.change >= 0;
+
+  return (
+    <TouchableOpacity
+      style={styles.iconCard}
+      onPress={onPress}
+      activeOpacity={0.7}
+    >
+      <View style={styles.iconImageContainer}>
+        <Image
+          source={typeof info.image === "string" ? { uri: info.image } : info.image}
+          style={styles.iconImage}
+          resizeMode="contain"
+        />
+        <View style={[
+          styles.iconStatusDot,
+          isPositive ? styles.statusPositive : styles.statusNegative
+        ]} />
+      </View>
+
+      <Text style={styles.iconSymbol} numberOfLines={1}>
+        {stock.symbol.replace('USDT', '')}
+      </Text>
+      <Text style={styles.iconName} numberOfLines={1}>
+        {info.name}
+      </Text>
+    </TouchableOpacity>
+  );
+}
+
 const styles = StyleSheet.create({
   container: {
     flex: 1,
@@ -401,13 +594,6 @@ const styles = StyleSheet.create({
     fontSize: 20,
     fontWeight: '700',
     color: '#FFFFFF',
-  },
-  lastUpdated: {
-    position: 'absolute',
-    right: 0,
-    fontSize: 11,
-    color: 'rgba(255,255,255,0.8)',
-    fontWeight: '600',
   },
   searchWrapper: {
     marginTop: 16,
@@ -499,38 +685,6 @@ const styles = StyleSheet.create({
     fontSize: 14,
     color: '#6B7280',
   },
-  statsBanner: {
-    flexDirection: 'row',
-    justifyContent: 'space-around',
-    alignItems: 'center',
-    backgroundColor: 'rgba(255, 255, 255, 0.1)',
-    borderRadius: 16,
-    padding: 10,
-  },
-  statItem: {
-    alignItems: 'center',
-    gap: 1,
-  },
-  statValue: {
-    fontSize: 18,
-    fontWeight: '700',
-    color: '#FFFFFF',
-  },
-  statLabel: {
-    fontSize: 11,
-    color: 'rgba(255, 255, 255, 0.9)',
-  },
-  statDivider: {
-    width: 1,
-    height: 20,
-    backgroundColor: 'rgba(255, 255, 255, 0.2)',
-  },
-  liveDot: {
-    width: 8,
-    height: 8,
-    borderRadius: 4,
-    backgroundColor: '#10B981',
-  },
   content: {
     flex: 1,
   },
@@ -552,6 +706,8 @@ const styles = StyleSheet.create({
     fontSize: 14,
     color: '#6B7280',
   },
+
+  // Original Grid Styles
   stocksGrid: {
     flexDirection: 'row',
     flexWrap: 'wrap',
@@ -607,6 +763,118 @@ const styles = StyleSheet.create({
     color: '#1A1A1A',
     marginBottom: 6,
   },
+
+  // Horizontal Card Styles
+  horizontalScroll: {
+    marginBottom: 16,
+  },
+  horizontalScrollContent: {
+    paddingHorizontal: 20,
+    gap: 12,
+  },
+  horizontalCard: {
+    backgroundColor: '#FFFFFF',
+    borderRadius: 16,
+    padding: 16,
+    borderWidth: 1,
+    borderColor: '#E5E7EB',
+    marginRight: 12,
+    width: 220,
+  },
+  horizontalCardContent: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+  },
+  horizontalImageContainer: {
+    width: 44,
+    height: 44,
+    borderRadius: 22,
+    backgroundColor: '#F5F7FA',
+    alignItems: 'center',
+    justifyContent: 'center',
+    marginRight: 12,
+  },
+  horizontalImage: {
+    width: 28,
+    height: 28,
+  },
+  horizontalInfo: {
+    flex: 1,
+    marginRight: 12,
+  },
+  horizontalSymbol: {
+    fontSize: 16,
+    fontWeight: '700',
+    color: '#1A1A1A',
+    marginBottom: 2,
+  },
+  horizontalName: {
+    fontSize: 12,
+    color: '#6B7280',
+  },
+  horizontalPriceContainer: {
+    alignItems: 'flex-end',
+  },
+  horizontalPrice: {
+    fontSize: 15,
+    fontWeight: '700',
+    color: '#1A1A1A',
+    marginBottom: 6,
+  },
+
+  // Icon Grid Styles
+  iconsGrid: {
+    flexDirection: 'row',
+    flexWrap: 'wrap',
+    paddingHorizontal: 16,
+    gap: 16,
+    justifyContent: 'flex-start',
+  },
+  iconCard: {
+    width: (width - 80) / 4, // 4 per row with padding
+    alignItems: 'center',
+    marginBottom: 16,
+  },
+  iconImageContainer: {
+    position: 'relative',
+    marginBottom: 8,
+  },
+  iconImage: {
+    width: 48,
+    height: 48,
+    borderRadius: 24,
+  },
+  iconStatusDot: {
+    position: 'absolute',
+    bottom: 2,
+    right: 2,
+    width: 12,
+    height: 12,
+    borderRadius: 6,
+    borderWidth: 2,
+    borderColor: '#FFFFFF',
+  },
+  statusPositive: {
+    backgroundColor: '#10B981',
+  },
+  statusNegative: {
+    backgroundColor: '#EF4444',
+  },
+  iconSymbol: {
+    fontSize: 12,
+    fontWeight: '600',
+    color: '#1A1A1A',
+    textAlign: 'center',
+    marginBottom: 2,
+  },
+  iconName: {
+    fontSize: 10,
+    color: '#6B7280',
+    textAlign: 'center',
+  },
+
+  // Common Styles
   changeChip: {
     flexDirection: 'row',
     alignItems: 'center',
@@ -631,6 +899,7 @@ const styles = StyleSheet.create({
   changeTextNegative: {
     color: '#EF4444',
   },
+
   emptyContainer: {
     flex: 1,
     alignItems: 'center',

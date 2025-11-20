@@ -62,6 +62,11 @@ export default function CryptoDetailsScreen() {
     const symbolInfo = getSymbolInfo(stock.symbol);
     const isPositive = stock.change >= 0;
 
+    // Get other assets (excluding current one)
+    const otherAssets = marketData
+        .filter(item => item.symbol !== stock.symbol)
+        .slice(0, 6); // Show 6 other assets
+
     // Update local stock data from context when marketData changes
     useEffect(() => {
         const contextStock = getCryptoData(stock.symbol);
@@ -225,6 +230,11 @@ export default function CryptoDetailsScreen() {
             checkWatchlistStatus()
         ]);
         setLocalRefreshing(false);
+    };
+
+    // Handle navigation to other asset
+    const handleOtherAssetPress = (asset) => {
+        navigation.replace('CryptoDetails', { stock: asset });
     };
 
     // Initial setup
@@ -409,6 +419,39 @@ export default function CryptoDetailsScreen() {
                     )}
                 </View>
 
+                {/* Action Buttons */}
+                <View style={styles.actionButtons}>
+                    <TouchableOpacity
+                        style={styles.buyButtonMain}
+                        onPress={() => openTradingModal('BUY')}
+                    >
+                        <LinearGradient
+                            colors={['#10B981', '#059669']}
+                            style={styles.buttonGradient}
+                            start={{ x: 0, y: 0 }}
+                            end={{ x: 1, y: 0 }}
+                        >
+                            <Feather name="trending-up" size={20} color="#FFFFFF" />
+                            <Text style={styles.buttonText}>Buy</Text>
+                        </LinearGradient>
+                    </TouchableOpacity>
+
+                    <TouchableOpacity
+                        style={styles.sellButtonMain}
+                        onPress={() => openTradingModal('SELL')}
+                    >
+                        <LinearGradient
+                            colors={['#EF4444', '#DC2626']}
+                            style={styles.buttonGradient}
+                            start={{ x: 0, y: 0 }}
+                            end={{ x: 1, y: 0 }}
+                        >
+                            <Feather name="trending-down" size={20} color="#FFFFFF" />
+                            <Text style={styles.buttonText}>Sell</Text>
+                        </LinearGradient>
+                    </TouchableOpacity>
+                </View>
+
                 {/* Stats Grid */}
                 <View style={styles.statsSection}>
                     <Text style={styles.statsTitle}>Market Stats</Text>
@@ -477,38 +520,75 @@ export default function CryptoDetailsScreen() {
                     </View>
                 </View>
 
-                {/* Action Buttons */}
-                <View style={styles.actionButtons}>
-                    <TouchableOpacity
-                        style={styles.buyButtonMain}
-                        onPress={() => openTradingModal('BUY')}
-                    >
-                        <LinearGradient
-                            colors={['#10B981', '#059669']}
-                            style={styles.buttonGradient}
-                            start={{ x: 0, y: 0 }}
-                            end={{ x: 1, y: 0 }}
-                        >
-                            <Feather name="trending-up" size={20} color="#FFFFFF" />
-                            <Text style={styles.buttonText}>Buy</Text>
-                        </LinearGradient>
-                    </TouchableOpacity>
 
-                    <TouchableOpacity
-                        style={styles.sellButtonMain}
-                        onPress={() => openTradingModal('SELL')}
-                    >
-                        <LinearGradient
-                            colors={['#EF4444', '#DC2626']}
-                            style={styles.buttonGradient}
-                            start={{ x: 0, y: 0 }}
-                            end={{ x: 1, y: 0 }}
-                        >
-                            <Feather name="trending-down" size={20} color="#FFFFFF" />
-                            <Text style={styles.buttonText}>Sell</Text>
-                        </LinearGradient>
-                    </TouchableOpacity>
-                </View>
+
+                {/* Other Assets Section */}
+                {otherAssets.length > 0 && (
+                    <View style={styles.otherAssetsSection}>
+                        <Text style={styles.otherAssetsTitle}>Other Assets</Text>
+                        <Text style={styles.otherAssetsSubtitle}>
+                            Explore more cryptocurrencies
+                        </Text>
+
+                        <View style={styles.otherAssetsGrid}>
+                            {otherAssets.map((asset) => {
+                                const assetInfo = getSymbolInfo(asset.symbol);
+                                const assetIsPositive = asset.change >= 0;
+                                const priceValue = !isNaN(asset.price) ? asset.price : 0;
+
+                                return (
+                                    <TouchableOpacity
+                                        key={asset.symbol}
+                                        style={styles.otherAssetCard}
+                                        onPress={() => handleOtherAssetPress(asset)}
+                                        activeOpacity={0.7}
+                                    >
+                                        <View style={styles.otherAssetHeader}>
+                                            <View style={styles.otherAssetImageContainer}>
+                                                <Image
+                                                    source={typeof assetInfo.image === "string" ?
+                                                        { uri: assetInfo.image } : assetInfo.image}
+                                                    style={styles.otherAssetImage}
+                                                    resizeMode="contain"
+                                                />
+                                            </View>
+                                            <View style={styles.otherAssetInfo}>
+                                                <Text style={styles.otherAssetSymbol}>
+                                                    {asset.symbol.replace('USDT', '')}
+                                                </Text>
+                                                <Text style={styles.otherAssetName} numberOfLines={1}>
+                                                    {assetInfo.name}
+                                                </Text>
+                                            </View>
+                                        </View>
+
+                                        <View style={styles.otherAssetPriceContainer}>
+                                            <Text style={styles.otherAssetPrice}>
+                                                ${priceValue >= 1 ? priceValue.toFixed(2) : priceValue.toFixed(4)}
+                                            </Text>
+                                            <View style={[
+                                                styles.otherAssetChangeChip,
+                                                assetIsPositive ? styles.changePositive : styles.changeNegative
+                                            ]}>
+                                                <Feather
+                                                    name={assetIsPositive ? 'trending-up' : 'trending-down'}
+                                                    size={10}
+                                                    color={assetIsPositive ? '#10B981' : '#EF4444'}
+                                                />
+                                                <Text style={[
+                                                    styles.otherAssetChangeText,
+                                                    assetIsPositive ? styles.changeTextPositive : styles.changeTextNegative
+                                                ]}>
+                                                    {Math.abs(asset.change).toFixed(2)}%
+                                                </Text>
+                                            </View>
+                                        </View>
+                                    </TouchableOpacity>
+                                );
+                            })}
+                        </View>
+                    </View>
+                )}
             </ScrollView>
 
             {/* Trading Modal */}
@@ -588,7 +668,6 @@ const styles = StyleSheet.create({
         backgroundColor: '#F5F7FA',
         alignItems: 'center',
         justifyContent: 'center',
-        // marginBottom: 12,
         padding: 8,
     },
     headerTitle: {
@@ -751,8 +830,6 @@ const styles = StyleSheet.create({
     actionButtons: {
         flexDirection: 'row',
         justifyContent: 'space-between',
-        marginTop: 20,
-        marginBottom: 30,
         paddingHorizontal: 20,
         gap: 12,
     },
@@ -778,5 +855,93 @@ const styles = StyleSheet.create({
         color: '#FFFFFF',
         fontSize: 16,
         fontWeight: '700',
+    },
+    // Other Assets Styles
+    otherAssetsSection: {
+        paddingHorizontal: 20,
+        marginTop: 20,
+        marginBottom: 30,
+    },
+    otherAssetsTitle: {
+        fontSize: 18,
+        fontWeight: '700',
+        color: '#1A1A1A',
+        marginBottom: 4,
+    },
+    otherAssetsSubtitle: {
+        fontSize: 14,
+        color: '#6B7280',
+        marginBottom: 16,
+    },
+    otherAssetsGrid: {
+        gap: 12,
+    },
+    otherAssetCard: {
+        backgroundColor: '#FFFFFF',
+        borderRadius: 16,
+        padding: 16,
+        borderWidth: 1,
+        borderColor: '#E5E7EB',
+        flexDirection: 'row',
+        justifyContent: 'space-between',
+        alignItems: 'center',
+    },
+    otherAssetHeader: {
+        flexDirection: 'row',
+        alignItems: 'center',
+        flex: 1,
+    },
+    otherAssetImageContainer: {
+        width: 40,
+        height: 40,
+        borderRadius: 20,
+        backgroundColor: '#F5F7FA',
+        alignItems: 'center',
+        justifyContent: 'center',
+        marginRight: 12,
+    },
+    otherAssetImage: {
+        width: 24,
+        height: 24,
+    },
+    otherAssetInfo: {
+        flex: 1,
+    },
+    otherAssetSymbol: {
+        fontSize: 16,
+        fontWeight: '700',
+        color: '#1A1A1A',
+        marginBottom: 2,
+    },
+    otherAssetName: {
+        fontSize: 12,
+        color: '#6B7280',
+    },
+    otherAssetPriceContainer: {
+        alignItems: 'flex-end',
+    },
+    otherAssetPrice: {
+        fontSize: 15,
+        fontWeight: '700',
+        color: '#1A1A1A',
+        marginBottom: 6,
+    },
+    otherAssetChangeChip: {
+        flexDirection: 'row',
+        alignItems: 'center',
+        paddingHorizontal: 8,
+        paddingVertical: 4,
+        borderRadius: 6,
+        gap: 4,
+    },
+    otherAssetChangeText: {
+        fontSize: 11,
+        fontWeight: '600',
+    },
+    changeTextPositive: {
+        color: '#10B981',
+    },
+    changeTextNegative: {
+        color: '#EF4444',
     },
 });

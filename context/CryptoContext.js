@@ -21,7 +21,10 @@ export const CryptoProvider = ({ children }) => {
   'TRXUSDT', 'AVAXUSDT', 'SHIBUSDT', 'UNIUSDT', 'ATOMUSDT',
   'LINKUSDT', 'XLMUSDT', 'ETCUSDT', 'APTUSDT', 'ARBUSDT',
   'OPUSDT', 'NEARUSDT', 'FILUSDT', 'HBARUSDT', 'VETUSDT',
-  'SANDUSDT', 'AAVEUSDT', 'MKRUSDT', 'INJUSDT', 'RNDRUSDT'
+  'SANDUSDT', 'AAVEUSDT', 'MKRUSDT', 'INJUSDT', 'RNDRUSDT',
+
+  'ALGOUSDT', 'EGLDUSDT'
+
 ];
 
   // Fetch market data with error handling
