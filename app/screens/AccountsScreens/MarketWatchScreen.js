@@ -1,7 +1,9 @@
+// screens/MarketWatchScreen.js
 import { Feather } from '@expo/vector-icons';
 import { useNavigation } from '@react-navigation/native';
 import { LinearGradient } from 'expo-linear-gradient';
-import { useEffect, useRef, useState } from 'react';
+import { useContext, useEffect, useState } from 'react';
+import paperBullLogo from "../../../assets/paperbullfinallogo.png";
 import {
   ActivityIndicator,
   Image,
@@ -15,76 +17,87 @@ import {
 } from 'react-native';
 import axiosInstance from '../../api/axiosInstance';
 import { SYMBOL_INFO } from '../../../constants/symbols';
-
+import { CryptoContext } from '../../../context/CryptoContext';
 
 export default function MarketWatchScreen() {
   const navigation = useNavigation();
+  const { marketData, getCryptoData, refreshing: contextRefreshing, refresh: contextRefresh } = useContext(CryptoContext);
+
   const [searchQuery, setSearchQuery] = useState('');
-  const [refreshing, setRefreshing] = useState(false);
+  const [localRefreshing, setLocalRefreshing] = useState(false);
   const [selectedTab, setSelectedTab] = useState('watchlist');
-  const [watchlist, setWatchlist] = useState([]);
+  const [watchlistItems, setWatchlistItems] = useState([]);
+  const [watchlistData, setWatchlistData] = useState([]);
   const [loading, setLoading] = useState(true);
   const [filteredWatchlist, setFilteredWatchlist] = useState([]);
-  const updateIntervalRef = useRef(null);
 
+  // Fetch watchlist items from backend
   const fetchWatchlist = async () => {
     try {
       const response = await axiosInstance.get('/user/watchlist');
       if (response.data && response.data.data) {
-        await updateWatchlistData(response.data.data);
+        setWatchlistItems(response.data.data);
       } else {
-        setWatchlist([]);
-        setLoading(false);
-        setRefreshing(false);
+        setWatchlistItems([]);
       }
     } catch (error) {
       console.error('Error fetching watchlist:', error);
-      setWatchlist([]);
-      setLoading(false);
-      setRefreshing(false);
-    }
-  };
-
-  const updateWatchlistData = async (watchlistItems) => {
-    try {
-      const symbols = watchlistItems.map(item => item.symbol);
-
-      const promises = symbols.map(symbol =>
-        fetch(`https://api.binance.com/api/v3/ticker/24hr?symbol=${symbol}`)
-          .then(res => res.json())
-          .catch(err => {
-            console.error(`Error fetching ${symbol}:`, err);
-            return null;
-          })
-      );
-
-      const results = await Promise.all(promises);
-
-      const formatted = results
-        .filter(item => item !== null)
-        .map((item, index) => ({
-          symbol: item.symbol,
-          name: watchlistItems[index].name || item.symbol.replace('USDT', ''),
-          price: parseFloat(item.lastPrice) || 0,
-          change: parseFloat(item.priceChange) || 0,
-          changePercent: parseFloat(item.priceChangePercent) || 0,
-          high: parseFloat(item.highPrice) || 0,
-          low: parseFloat(item.lowPrice) || 0,
-          volume: parseFloat(item.volume) || 0,
-          openPrice: parseFloat(item.openPrice) || 0
-        }));
-
-      setWatchlist(formatted);
-      setFilteredWatchlist(formatted);
-    } catch (error) {
-      console.error('Error updating watchlist data:', error);
-      setWatchlist([]);
-      setFilteredWatchlist([]);
+      setWatchlistItems([]);
     } finally {
       setLoading(false);
-      setRefreshing(false);
     }
   };
+
+  // Update watchlist data with live prices from context
+  useEffect(() => {
+    if (watchlistItems.length === 0) {
+      setWatchlistData([]);
+      setFilteredWatchlist([]);
+      return;
+    }
+
+    const updatedWatchlist = watchlistItems.map(item => {
+      const liveData = getCryptoData(item.symbol);
+
+      if (liveData) {
+        return {
+          ...item,
+          price: liveData.price,
+          change: liveData.change,
+          changePercent: liveData.change,
+          high: liveData.high,
+          low: liveData.low,
+          volume: liveData.volume,
+          openPrice: liveData.openPrice,
+        };
+      }
+
+      // Fallback if symbol not in context
+      return {
+        ...item,
+        price: 0,
+        change: 0,
+        changePercent: 0,
+        high: 0,
+        low: 0,
+        volume: 0,
+        openPrice: 0,
+      };
+    });
+
+    setWatchlistData(updatedWatchlist);
+
+    // Apply search filter
+    if (searchQuery.trim() === '') {
+      setFilteredWatchlist(updatedWatchlist);
+    } else {
+      const filtered = updatedWatchlist.filter(stock =>
+        stock.symbol.toLowerCase().includes(searchQuery.toLowerCase()) ||
+        (stock.name && stock.name.toLowerCase().includes(searchQuery.toLowerCase()))
+      );
+      setFilteredWatchlist(filtered);
+    }
+  }, [watchlistItems, marketData, searchQuery]);
 
   const handleStockPress = (stock) => {
     navigation.navigate('CryptoDetails', { stock });
@@ -102,47 +115,20 @@ export default function MarketWatchScreen() {
     { name: 'NIFTY IT', value: 32456.78, change: 234.56, changePercent: 0.73 },
   ];
 
-  const onRefresh = () => {
-    setRefreshing(true);
-    fetchWatchlist();
+  const onRefresh = async () => {
+    setLocalRefreshing(true);
+    await Promise.all([
+      contextRefresh(), // Refresh market data
+      fetchWatchlist() // Refresh watchlist items
+    ]);
+    setLocalRefreshing(false);
   };
-
-  useEffect(() => {
-    if (searchQuery.trim() === '') {
-      setFilteredWatchlist(watchlist);
-    } else {
-      const filtered = watchlist.filter(stock =>
-        stock.symbol.toLowerCase().includes(searchQuery.toLowerCase()) ||
-        stock.name.toLowerCase().includes(searchQuery.toLowerCase())
-      );
-      setFilteredWatchlist(filtered);
-    }
-  }, [searchQuery, watchlist]);
-
-  useEffect(() => {
-    if (watchlist.length > 0 && selectedTab === 'watchlist') {
-      updateIntervalRef.current = setInterval(async () => {
-        try {
-          const response = await axiosInstance.get('/user/watchlist');
-          if (response.data && response.data.data) {
-            await updateWatchlistData(response.data.data);
-          }
-        } catch (error) {
-          console.error('Auto-update error:', error);
-        }
-      }, 4000);
-    }
-
-    return () => {
-      if (updateIntervalRef.current) {
-        clearInterval(updateIntervalRef.current);
-      }
-    };
-  }, [watchlist.length, selectedTab]);
 
   useEffect(() => {
     fetchWatchlist();
   }, []);
+
+  const refreshing = localRefreshing || contextRefreshing;
 
   return (
     <View style={styles.container}>
@@ -161,7 +147,10 @@ export default function MarketWatchScreen() {
             <Feather name="arrow-left" size={24} color="#FFFFFF" />
           </TouchableOpacity>
           <Text style={styles.headerTitle}>Market Watch</Text>
-          <TouchableOpacity style={styles.backButton}>
+          <TouchableOpacity
+            style={styles.backButton}
+            onPress={handleAddStocks}
+          >
             <Feather name="plus" size={24} color="#FFFFFF" />
           </TouchableOpacity>
         </View>
@@ -172,7 +161,7 @@ export default function MarketWatchScreen() {
           <TextInput
             style={styles.searchInput}
             placeholder="Search stocks, indices..."
-            placeholderTextColor="#fff"
+            placeholderTextColor="rgba(255,255,255,0.7)"
             value={searchQuery}
             onChangeText={setSearchQuery}
           />
@@ -215,46 +204,65 @@ export default function MarketWatchScreen() {
         style={styles.content}
         showsVerticalScrollIndicator={false}
         refreshControl={
-          <RefreshControl refreshing={refreshing} onRefresh={onRefresh} />
+          <RefreshControl
+            refreshing={refreshing}
+            onRefresh={onRefresh}
+            tintColor="#2E5CFF"
+          />
         }
       >
         {selectedTab === 'watchlist' ? (
           <>
-            <>
-              <View style={styles.listHeader}>
-                <Text style={styles.listHeaderText}>Your Watchlist</Text>
-                <Text style={styles.listHeaderCount}>{watchlist.length} stocks</Text>
-              </View>
+            <View style={styles.listHeader}>
+              <Text style={styles.listHeaderText}>Your Watchlist</Text>
+              <Text style={styles.listHeaderCount}>{watchlistData.length} stocks</Text>
+            </View>
 
-              {loading ? (
-                <View style={styles.loadingContainer}>
-                  <ActivityIndicator size="small" color="#2E5CFF" />
-                </View>
-              ) : watchlist.length === 0 ? (
-                <View style={styles.emptyContainer}>
-                  <Feather name="bar-chart-2" size={48} color="#9CA3AF" />
-                  <Text style={styles.emptyText}>No stocks in watchlist</Text>
-                  <TouchableOpacity onPress={() => handleAddStocks()}>
-                    <Text style={styles.emptySubText}>Add to Watchlist</Text>
-                  </TouchableOpacity>
-                </View>
-              ) : (
-                watchlist.map((stock, index) => (
+            {loading ? (
+              <View style={styles.loadingContainer}>
+                <ActivityIndicator size="large" color="#2E5CFF" />
+                <Text style={styles.loadingText}>Loading watchlist...</Text>
+              </View>
+            ) : watchlistData.length === 0 ? (
+              <View style={styles.emptyContainer}>
+                <Feather name="bar-chart-2" size={48} color="#9CA3AF" />
+                <Text style={styles.emptyText}>No stocks in watchlist</Text>
+                <TouchableOpacity
+                  onPress={handleAddStocks}
+                  style={styles.emptyButton}
+                >
+                  <Text style={styles.emptyButtonText}>Add Stocks to Watchlist</Text>
+                </TouchableOpacity>
+              </View>
+            ) : (
+              <>
+                {filteredWatchlist.map((stock, index) => (
                   <StockCard
                     key={index}
                     stock={stock}
                     onPress={() => handleStockPress(stock)}
                   />
-                ))
-              )}
+                ))}
 
-              <TouchableOpacity style={styles.addMoreButton}>
-                <Feather name="plus-circle" size={20} color="#2E5CFF" />
-                <TouchableOpacity onPress={() => handleAddStocks()}>
-                  <Text style={styles.addMoreText}>Add more stocks to watchlist</Text>
-                </TouchableOpacity>
-              </TouchableOpacity>
-            </>
+                {filteredWatchlist.length === 0 && searchQuery.trim() !== '' && (
+                  <View style={styles.emptyContainer}>
+                    <Feather name="search" size={48} color="#9CA3AF" />
+                    <Text style={styles.emptyText}>No results found</Text>
+                    <Text style={styles.emptySubText}>Try a different search term</Text>
+                  </View>
+                )}
+
+                {filteredWatchlist.length > 0 && (
+                  <TouchableOpacity
+                    style={styles.addMoreButton}
+                    onPress={handleAddStocks}
+                  >
+                    <Feather name="plus-circle" size={20} color="#2E5CFF" />
+                    <Text style={styles.addMoreText}>Add more stocks to watchlist</Text>
+                  </TouchableOpacity>
+                )}
+              </>
+            )}
           </>
         ) : (
           <>
@@ -274,7 +282,11 @@ export default function MarketWatchScreen() {
 
 function StockCard({ stock, onPress }) {
   const isPositive = stock.changePercent >= 0;
-  const info = SYMBOL_INFO[stock.symbol] || { image: null };
+  const info = SYMBOL_INFO[stock.symbol] || {
+    name: stock.symbol.replace('USDT', ''),
+    color: '#2E5CFF',
+    image: paperBullLogo
+  };
 
   return (
     <TouchableOpacity
@@ -285,8 +297,10 @@ function StockCard({ stock, onPress }) {
       <View style={styles.stockLeft}>
         {info.image ? (
           <View style={styles.stockImageContainer}>
+
             <Image
-              source={{ uri: info.image }}
+              source={typeof info.image === "string" ?
+                { uri: info.image } : info.image}
               style={styles.stockImage}
               resizeMode="contain"
             />
@@ -298,7 +312,9 @@ function StockCard({ stock, onPress }) {
         )}
         <View>
           <Text style={styles.stockSymbol}>{stock.symbol.replace('USDT', '')}</Text>
-          <Text style={styles.stockName}>{stock.name}</Text>
+          <Text style={styles.stockName}>
+            {stock.name || stock.symbol.replace('USDT', '')}
+          </Text>
         </View>
       </View>
 
@@ -306,13 +322,19 @@ function StockCard({ stock, onPress }) {
         <Text style={styles.stockPrice}>
           ${stock.price >= 1 ? stock.price.toFixed(2) : stock.price.toFixed(4)}
         </Text>
-        <View style={[styles.changeBadge, isPositive ? styles.changeBadgePositive : styles.changeBadgeNegative]}>
+        <View style={[
+          styles.changeBadge,
+          isPositive ? styles.changeBadgePositive : styles.changeBadgeNegative
+        ]}>
           <Feather
             name={isPositive ? 'trending-up' : 'trending-down'}
             size={12}
             color={isPositive ? '#10B981' : '#DC2626'}
           />
-          <Text style={[styles.changeText, isPositive ? styles.changeTextPositive : styles.changeTextNegative]}>
+          <Text style={[
+            styles.changeText,
+            isPositive ? styles.changeTextPositive : styles.changeTextNegative
+          ]}>
             {isPositive ? '+' : ''}{stock.changePercent.toFixed(2)}%
           </Text>
         </View>
@@ -328,20 +350,31 @@ function IndexCard({ index }) {
     <View style={styles.indexCard}>
       <View>
         <Text style={styles.indexName}>{index.name}</Text>
-        <Text style={styles.indexValue}>{index.value.toLocaleString('en-IN', { minimumFractionDigits: 2 })}</Text>
+        <Text style={styles.indexValue}>
+          {index.value.toLocaleString('en-IN', { minimumFractionDigits: 2 })}
+        </Text>
       </View>
 
       <View style={styles.indexRight}>
-        <Text style={[styles.indexChange, isPositive ? styles.changeTextPositive : styles.changeTextNegative]}>
+        <Text style={[
+          styles.indexChange,
+          isPositive ? styles.changeTextPositive : styles.changeTextNegative
+        ]}>
           {isPositive ? '+' : ''}{index.change.toFixed(2)}
         </Text>
-        <View style={[styles.changeBadge, isPositive ? styles.changeBadgePositive : styles.changeBadgeNegative]}>
+        <View style={[
+          styles.changeBadge,
+          isPositive ? styles.changeBadgePositive : styles.changeBadgeNegative
+        ]}>
           <Feather
             name={isPositive ? 'trending-up' : 'trending-down'}
             size={12}
             color={isPositive ? '#10B981' : '#DC2626'}
           />
-          <Text style={[styles.changeText, isPositive ? styles.changeTextPositive : styles.changeTextNegative]}>
+          <Text style={[
+            styles.changeText,
+            isPositive ? styles.changeTextPositive : styles.changeTextNegative
+          ]}>
             {isPositive ? '+' : ''}{index.changePercent.toFixed(2)}%
           </Text>
         </View>
@@ -372,7 +405,8 @@ const styles = StyleSheet.create({
   loadingContainer: {
     alignItems: 'center',
     justifyContent: 'center',
-    paddingVertical: 40,
+    paddingVertical: 60,
+    gap: 12,
   },
   loadingText: {
     fontSize: 14,
@@ -395,6 +429,18 @@ const styles = StyleSheet.create({
     color: '#6B7280',
     marginTop: 4,
   },
+  emptyButton: {
+    marginTop: 16,
+    paddingVertical: 12,
+    paddingHorizontal: 24,
+    backgroundColor: '#2E5CFF',
+    borderRadius: 12,
+  },
+  emptyButtonText: {
+    fontSize: 14,
+    fontWeight: '600',
+    color: '#FFFFFF',
+  },
   header: {
     paddingTop: 60,
     paddingBottom: 20,
@@ -407,13 +453,6 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'space-between',
     marginBottom: 20,
-  },
-  headerGradient: {
-    paddingTop: 60,
-    paddingBottom: 32,
-    paddingHorizontal: 20,
-    borderBottomLeftRadius: 28,
-    borderBottomRightRadius: 28,
   },
   backButton: {
     width: 40,

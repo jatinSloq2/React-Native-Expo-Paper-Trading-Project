@@ -1,10 +1,10 @@
+// screens/StocksScreen.js
 import { Feather, MaterialIcons } from '@expo/vector-icons';
 import { useNavigation } from '@react-navigation/native';
 import { LinearGradient } from 'expo-linear-gradient';
-import { useEffect, useRef, useState } from 'react';
+import { useContext, useEffect, useState } from 'react';
 import {
   ActivityIndicator,
-  // SafeAreaView,
   Dimensions,
   FlatList,
   Image,
@@ -17,94 +17,29 @@ import {
   View
 } from 'react-native';
 import { SYMBOL_INFO } from '../../constants/symbols';
+import { CryptoContext } from '../../context/CryptoContext';
+import paperBullLogo from "../../assets/paperbullfinallogo.png";
+
 
 const { width } = Dimensions.get('window');
 const CARD_WIDTH = (width - 60) / 2;
 
-// 10 Popular crypto symbols
-const STOCK_SYMBOLS = [
-  'BTCUSDT', 'ETHUSDT', 'BNBUSDT', 'SOLUSDT', 'XRPUSDT',
-  'ADAUSDT', 'DOGEUSDT', 'MATICUSDT', 'DOTUSDT', 'LTCUSDT'
-];
-
-// // Symbol display names and icons with image URLs
-// const SYMBOL_INFO = {
-//   BTCUSDT: {
-//     name: 'Bitcoin',
-//     color: '#F7931A',
-//     icon: '₿',
-//     image: 'https://cryptologos.cc/logos/bitcoin-btc-logo.png'
-//   },
-//   ETHUSDT: {
-//     name: 'Ethereum',
-//     color: '#627EEA',
-//     icon: 'Ξ',
-//     image: 'https://cryptologos.cc/logos/ethereum-eth-logo.png'
-//   },
-//   BNBUSDT: {
-//     name: 'Binance',
-//     color: '#F3BA2F',
-//     icon: 'B',
-//     image: 'https://cryptologos.cc/logos/bnb-bnb-logo.png'
-//   },
-//   SOLUSDT: {
-//     name: 'Solana',
-//     color: '#14F195',
-//     icon: 'S',
-//     image: 'https://cryptologos.cc/logos/solana-sol-logo.png'
-//   },
-//   XRPUSDT: {
-//     name: 'Ripple',
-//     color: '#23292F',
-//     icon: 'X',
-//     image: 'https://cryptologos.cc/logos/xrp-xrp-logo.png'
-//   },
-//   ADAUSDT: {
-//     name: 'Cardano',
-//     color: '#0033AD',
-//     icon: 'A',
-//     image: 'https://cryptologos.cc/logos/cardano-ada-logo.png'
-//   },
-//   DOGEUSDT: {
-//     name: 'Dogecoin',
-//     color: '#C2A633',
-//     icon: 'Ð',
-//     image: 'https://cryptologos.cc/logos/dogecoin-doge-logo.png'
-//   },
-//   MATICUSDT: {
-//     name: 'Polygon',
-//     color: '#8247E5',
-//     icon: 'M',
-//     image: 'https://cryptologos.cc/logos/polygon-matic-logo.png'
-//   },
-//   DOTUSDT: {
-//     name: 'Polkadot',
-//     color: '#E6007A',
-//     icon: 'D',
-//     image: 'https://cryptologos.cc/logos/polkadot-new-dot-logo.png'
-//   },
-//   LTCUSDT: {
-//     name: 'Litecoin',
-//     color: '#345D9D',
-//     icon: 'Ł',
-//     image: 'https://cryptologos.cc/logos/litecoin-ltc-logo.png'
-//   }
-// };
-
 export default function StocksScreen() {
   const navigation = useNavigation();
+  const {
+    marketData,
+    loading,
+    refreshing,
+    searchCrypto,
+    refresh,
+    lastUpdated,
+  } = useContext(CryptoContext);
+
   const [searchQuery, setSearchQuery] = useState('');
   const [debouncedSearch, setDebouncedSearch] = useState('');
-  const [stocksData, setStocksData] = useState([]);
-  const [filteredStocks, setFilteredStocks] = useState([]);
-  const [loading, setLoading] = useState(true);
-  const [refreshing, setRefreshing] = useState(false);
   const [searchResults, setSearchResults] = useState([]);
   const [showSearchDropdown, setShowSearchDropdown] = useState(false);
   const [searchLoading, setSearchLoading] = useState(false);
-
-
-  const updateIntervalRef = useRef(null);
 
   // Debounce search query
   useEffect(() => {
@@ -115,119 +50,29 @@ export default function StocksScreen() {
     return () => clearTimeout(timer);
   }, [searchQuery]);
 
-  // Search for cryptocurrencies
+  // Search for cryptocurrencies using context
   useEffect(() => {
     if (debouncedSearch.trim().length > 0) {
-      searchCryptocurrencies(debouncedSearch);
+      handleSearch(debouncedSearch);
     } else {
       setSearchResults([]);
       setShowSearchDropdown(false);
     }
   }, [debouncedSearch]);
 
-  const searchCryptocurrencies = async (query) => {
+  const handleSearch = async (query) => {
     setSearchLoading(true);
     setShowSearchDropdown(true);
     try {
-      const response = await fetch('https://api.binance.com/api/v3/exchangeInfo');
-      const data = await response.json();
-
-      const usdtPairs = data.symbols
-        .filter(s => s.symbol.endsWith('USDT') && s.status === 'TRADING')
-        .map(s => ({
-          symbol: s.symbol,
-          baseAsset: s.baseAsset,
-          name: s.baseAsset
-        }))
-        .filter(s =>
-          s.baseAsset.toLowerCase().includes(query.toLowerCase()) ||
-          s.symbol.toLowerCase().includes(query.toLowerCase())
-        )
-        .slice(0, 10);
-
-      // Fetch prices for search results
-      const pricesPromises = usdtPairs.map(pair =>
-        fetch(`https://api.binance.com/api/v3/ticker/24hr?symbol=${pair.symbol}`)
-          .then(res => res.json())
-          .catch(() => null)
-      );
-
-      const prices = await Promise.all(pricesPromises);
-
-      const resultsWithPrices = usdtPairs.map((pair, idx) => {
-        const priceData = prices[idx];
-        return {
-          ...pair,
-          price: priceData ? parseFloat(priceData.lastPrice) : 0,
-          change: priceData ? parseFloat(priceData.priceChangePercent) : 0
-        };
-      });
-
-      setSearchResults(resultsWithPrices);
-      setSearchLoading(false);
+      const results = await searchCrypto(query);
+      setSearchResults(results);
     } catch (error) {
       console.error('Search error:', error);
+      setSearchResults([]);
+    } finally {
       setSearchLoading(false);
     }
   };
-
-  // Fetch and update stock data every 4 seconds
-  const updateStocksData = async () => {
-    try {
-      const promises = STOCK_SYMBOLS.map(symbol =>
-        fetch(`https://api.binance.com/api/v3/ticker/24hr?symbol=${symbol}`)
-          .then(res => res.json())
-          .catch(err => {
-            console.error(`Error fetching ${symbol}:`, err);
-            return null;
-          })
-      );
-
-      const results = await Promise.all(promises);
-      const formatted = results
-        .filter(item => item !== null)
-        .map(item => ({
-          symbol: item.symbol,
-          price: parseFloat(item.lastPrice) || 0,
-          change: parseFloat(item.priceChangePercent) || 0,
-          high: parseFloat(item.highPrice) || 0,
-          low: parseFloat(item.lowPrice) || 0,
-          volume: parseFloat(item.volume) || 0,
-          openPrice: parseFloat(item.openPrice) || 0
-        }));
-
-      setStocksData(formatted);
-      setLoading(false);
-      setRefreshing(false);
-    } catch (error) {
-      console.error('Error fetching stocks:', error);
-      setLoading(false);
-      setRefreshing(false);
-    }
-  };
-
-  // Initial fetch and setup interval
-  useEffect(() => {
-    updateStocksData();
-
-    // Update every 4 seconds
-    updateIntervalRef.current = setInterval(() => {
-      updateStocksData();
-    }, 4000);
-
-    return () => {
-      if (updateIntervalRef.current) {
-        clearInterval(updateIntervalRef.current);
-      }
-    };
-  }, []);
-
-  // Filter stocks based on debounced search
-  useEffect(() => {
-    if (debouncedSearch.trim() === '') {
-      setFilteredStocks(stocksData);
-    }
-  }, [debouncedSearch, stocksData]);
 
   const handleStockPress = (stock) => {
     navigation.navigate('CryptoDetails', { stock });
@@ -241,17 +86,16 @@ export default function StocksScreen() {
         symbol: result.symbol,
         price: result.price,
         change: result.change,
-        high: result.price,
-        low: result.price,
-        volume: 0,
+        high: result.high || result.price,
+        low: result.low || result.price,
+        volume: result.volume || 0,
         openPrice: result.price
       }
     });
   };
 
   const onRefresh = () => {
-    setRefreshing(true);
-    updateStocksData();
+    refresh();
   };
 
   const navigateToMarketWatch = () => {
@@ -262,12 +106,8 @@ export default function StocksScreen() {
     navigation.navigate('Account', { screen: 'LearningHub' });
   };
 
-  const navigateToAddFunds = () => {
-    navigation.navigate('Account', { screen: 'AccountMain' });
-  };
-
-  // Show empty view while loading initially
-  if (loading && stocksData.length === 0) {
+  // Show loading view initially
+  if (loading && marketData.length === 0) {
     return (
       <View style={styles.container}>
         <LinearGradient
@@ -300,7 +140,6 @@ export default function StocksScreen() {
       >
         <View style={styles.headerTop}>
           <Text style={styles.headerTitle}>Crypto Markets</Text>
-          <View style={styles.headerRight} />
         </View>
 
         {/* Search Bar */}
@@ -309,8 +148,8 @@ export default function StocksScreen() {
             <Feather name="search" size={20} color="#fff" />
             <TextInput
               style={styles.searchInput}
-              placeholder="Search crypto currencies..."
-              placeholderTextColor="#fff"
+              placeholder="Search cryptocurrencies..."
+              placeholderTextColor="rgba(255,255,255,0.7)"
               value={searchQuery}
               onChangeText={setSearchQuery}
             />
@@ -335,7 +174,7 @@ export default function StocksScreen() {
           <View style={styles.statDivider} />
           <View style={styles.statItem}>
             <MaterialIcons name="currency-bitcoin" size={20} color="rgba(255,255,255,0.9)" />
-            <Text style={styles.statValue}>{STOCK_SYMBOLS.length}</Text>
+            <Text style={styles.statValue}>{marketData.length}</Text>
             <Text style={styles.statLabel}>Assets</Text>
           </View>
           <View style={styles.statDivider} />
@@ -387,7 +226,6 @@ export default function StocksScreen() {
                 </TouchableOpacity>
               )}
             />
-
           ) : (
             <View style={styles.searchEmptyContainer}>
               <Text style={styles.searchEmptyText}>No results found</Text>
@@ -401,7 +239,11 @@ export default function StocksScreen() {
         showsVerticalScrollIndicator={false}
         contentContainerStyle={styles.contentContainer}
         refreshControl={
-          <RefreshControl refreshing={refreshing} onRefresh={onRefresh} />
+          <RefreshControl
+            refreshing={refreshing}
+            onRefresh={onRefresh}
+            tintColor="#2E5CFF"
+          />
         }
       >
         {/* Market Overview */}
@@ -414,17 +256,18 @@ export default function StocksScreen() {
 
         {/* Stocks Grid - 2 per row */}
         <View style={styles.stocksGrid}>
-          {filteredStocks.length === 0 ? (
+          {marketData.length === 0 ? (
             <View style={styles.emptyContainer}>
               <Feather name="search" size={48} color="#E5E7EB" />
               <Text style={styles.emptyText}>No assets found</Text>
-              <Text style={styles.emptySubtext}>Try a different search term</Text>
+              <Text style={styles.emptySubtext}>Pull to refresh</Text>
             </View>
           ) : (
-            filteredStocks.map((stock, index) => {
+            marketData.map((stock) => {
+              // console.log(stock)
               const info = SYMBOL_INFO[stock.symbol] || {
                 name: stock.symbol.replace('USDT', ''),
-                image: 'https://via.placeholder.com/40'
+                image: paperBullLogo
               };
               return (
                 <StockCard
@@ -484,7 +327,7 @@ function StockCard({ stock, info, onPress }) {
   const isPositive = stock.change >= 0;
   const changeValue = !isNaN(stock.change) ? stock.change : 0;
   const priceValue = !isNaN(stock.price) ? stock.price : 0;
-
+  // console.log(info)
   return (
     <TouchableOpacity
       style={styles.stockCard}
@@ -493,7 +336,7 @@ function StockCard({ stock, info, onPress }) {
     >
       <View style={styles.stockImageContainer}>
         <Image
-          source={{ uri: info.image }}
+          source={typeof info.image === "string" ? { uri: info.image } : info.image}
           style={styles.stockImage}
           resizeMode="contain"
         />
@@ -538,7 +381,6 @@ const styles = StyleSheet.create({
     flex: 1,
     backgroundColor: '#F5F7FA',
     position: 'relative',
-
   },
   header: {
     paddingTop: 60,
@@ -552,19 +394,25 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'center',
+    marginBottom: 4,
   },
   headerTitle: {
-    textAlign: "center",
+    textAlign: 'center',
     fontSize: 20,
     fontWeight: '700',
     color: '#FFFFFF',
   },
-
+  lastUpdated: {
+    position: 'absolute',
+    right: 0,
+    fontSize: 11,
+    color: 'rgba(255,255,255,0.8)',
+    fontWeight: '600',
+  },
   searchWrapper: {
-    marginTop: 20,
+    marginTop: 16,
     zIndex: 1000,
   },
-
   searchContainer: {
     flexDirection: 'row',
     alignItems: 'center',
@@ -572,7 +420,8 @@ const styles = StyleSheet.create({
     borderRadius: 12,
     paddingHorizontal: 16,
     paddingVertical: 12,
-    gap: 10, marginBottom: 10,
+    gap: 10,
+    marginBottom: 10,
   },
   searchInput: {
     flex: 1,
@@ -583,7 +432,7 @@ const styles = StyleSheet.create({
     position: 'absolute',
     top: 180,
     left: 20,
-    right: 0,
+    right: 20,
     backgroundColor: '#FFFFFF',
     borderRadius: 12,
     paddingVertical: 8,
@@ -593,20 +442,11 @@ const styles = StyleSheet.create({
     shadowOffset: { width: 0, height: 4 },
     elevation: 12,
     zIndex: 9999,
-    maxWidth: 370,
-  },
-
-  searchDropdownContainer: {
-    position: 'absolute',
-    top: 170, // below search bar
-    left: 20,
-    right: 20,
-    zIndex: 999,
   },
   searchLoadingContainer: {
     padding: 20,
     alignItems: 'center',
-    justifyContent: "center"
+    justifyContent: 'center'
   },
   searchResultsList: {
     maxHeight: 300,
@@ -835,7 +675,7 @@ const styles = StyleSheet.create({
   loadingContainer: {
     flex: 1,
     alignItems: 'center',
-    justifyContent: "center"
+    justifyContent: 'center'
   },
   loadingText: {
     fontSize: 16,

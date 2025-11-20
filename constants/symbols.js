@@ -20,7 +20,7 @@ export const SYMBOL_INFO = {
     "image": "https://coin-images.coingecko.com/coins/images/825/large/bnb-icon2_2x.png?1696501970"
   },
   "SOLUSDT": {
-    "name": "Binance-Peg SOL",
+    "name": "SOL",
     "image": "https://coin-images.coingecko.com/coins/images/54582/large/wsol.png?1740542147"
   },
   "USDCUSDT": {
@@ -36,7 +36,7 @@ export const SYMBOL_INFO = {
     "image": "https://coin-images.coingecko.com/coins/images/13442/large/steth_logo.png?1696513206"
   },
   "DOGEUSDT": {
-    "name": "Binance-Peg Dogecoin",
+    "name": "Dogecoin",
     "image": "https://coin-images.coingecko.com/coins/images/15768/large/dogecoin.png?1696515392"
   },
   "ADAUSDT": {
@@ -820,7 +820,7 @@ export const SYMBOL_INFO = {
     "image": "https://coin-images.coingecko.com/coins/images/13928/large/PSigc4ie_400x400.jpg?1696513668"
   },
   "BUSDUSDT": {
-    "name": "Binance-Peg BUSD",
+    "name": "BUSD",
     "image": "https://coin-images.coingecko.com/coins/images/31273/large/new_binance-peg-busd.png?1696530096"
   },
   "COMPUSDT": {
@@ -1895,7 +1895,7 @@ export const SYMBOL_INFO = {
     "name": "Niza Global",
     "image": "https://coin-images.coingecko.com/coins/images/69149/large/2x2.png?1758439357"
   },
-  "page4USDT": {
+
     "TETHUSDT": {
       "name": "Treehouse ETH",
       "image": "https://coin-images.coingecko.com/coins/images/40155/large/tETH_Logo_%28Color__No_Background%29.png?1748368386"
@@ -2257,7 +2257,7 @@ export const SYMBOL_INFO = {
       "image": "https://coin-images.coingecko.com/coins/images/12785/large/akash-logo.png?1696512580"
     },
     "SOLUSDT": {
-      "name": "Binance-Peg SOL",
+      "name": "SOL",
       "image": "https://coin-images.coingecko.com/coins/images/54582/large/wsol.png?1740542147"
     },
     "ATONEUSDT": {
@@ -2879,6 +2879,10 @@ export const SYMBOL_INFO = {
     "FRAXUSDT": {
       "name": "Frax (prev. FXS)",
       "image": "https://coin-images.coingecko.com/coins/images/13423/large/frax.png?1745921071"
+    },
+    "MATICUSDT": {
+      "name": "Matic Network",
+      "image": "https://cryptologos.cc/logos/matic-network-matic-logo.png?v=002"
     }
-  }
+  
 }

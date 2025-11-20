@@ -1,7 +1,8 @@
+// screens/CryptoDetailsScreen.js
 import { Feather } from '@expo/vector-icons';
 import { useNavigation, useRoute } from '@react-navigation/native';
 import { LinearGradient } from 'expo-linear-gradient';
-import { useContext, useEffect, useRef, useState } from 'react';
+import { useContext, useEffect, useState } from 'react';
 import {
     ActivityIndicator,
     Alert,
@@ -15,11 +16,14 @@ import {
     View
 } from 'react-native';
 import { LineChart } from 'react-native-chart-kit';
+import paperBullLogo from "../../assets/paperbullfinallogo.png";
+import { SYMBOL_INFO } from '../../constants/symbols';
 import { AuthContext } from '../../context/AuthContext';
+import { CryptoContext } from '../../context/CryptoContext';
 import axiosInstance from '../api/axiosInstance';
 import OrderSuccessModal from '../components/OrderSuccessModal';
 import TradingModal from "../components/TradingModel";
-import { SYMBOL_INFO } from '../../constants/symbols';
+
 
 const { width } = Dimensions.get('window');
 
@@ -27,21 +31,20 @@ const getSymbolInfo = (symbol) => {
     const info = SYMBOL_INFO[symbol] || {
         name: symbol.replace('USDT', ''),
         color: '#2E5CFF',
-        image: 'https://via.placeholder.com/40'
+        image: paperBullLogo
     };
-    return info
-
+    return info;
 };
 
-// Main Component
 export default function CryptoDetailsScreen() {
     const navigation = useNavigation();
     const route = useRoute();
     const { stock: initialStock } = route.params;
     const { user, token, apiKey, fetchUser } = useContext(AuthContext);
+    const { marketData, getCryptoData, refreshing: contextRefreshing, refresh: contextRefresh } = useContext(CryptoContext);
 
     const [stock, setStock] = useState(initialStock);
-    const [refreshing, setRefreshing] = useState(false);
+    const [localRefreshing, setLocalRefreshing] = useState(false);
     const [isWatchlisted, setIsWatchlisted] = useState(false);
     const [watchlistLoading, setWatchlistLoading] = useState(false);
     const [watchlistItemId, setWatchlistItemId] = useState(null);
@@ -51,7 +54,6 @@ export default function CryptoDetailsScreen() {
     const [showTradingModal, setShowTradingModal] = useState(false);
     const [tradeType, setTradeType] = useState('BUY');
     const [userBalance, setUserBalance] = useState(0);
-    const updateIntervalRef = useRef(null);
 
     const [lastOrderType, setLastOrderType] = useState('BUY');
     const [showSuccessModal, setShowSuccessModal] = useState(false);
@@ -59,6 +61,14 @@ export default function CryptoDetailsScreen() {
 
     const symbolInfo = getSymbolInfo(stock.symbol);
     const isPositive = stock.change >= 0;
+
+    // Update local stock data from context when marketData changes
+    useEffect(() => {
+        const contextStock = getCryptoData(stock.symbol);
+        if (contextStock) {
+            setStock(contextStock);
+        }
+    }, [marketData, stock.symbol]);
 
     // Check if item is in watchlist
     const checkWatchlistStatus = async () => {
@@ -148,6 +158,8 @@ export default function CryptoDetailsScreen() {
 
     // Fetch user balance
     const fetchUserBalance = async () => {
+        if (!user || !token) return;
+
         try {
             const response = await axiosInstance.get('/auth/me', {
                 headers: {
@@ -203,60 +215,28 @@ export default function CryptoDetailsScreen() {
         }
     };
 
-    // Update stock data
-    const updateStockData = async () => {
-        try {
-            const response = await fetch(
-                `https://api.binance.com/api/v3/ticker/24hr?symbol=${stock.symbol}`
-            );
-            const data = await response.json();
-
-            setStock({
-                symbol: data.symbol,
-                price: parseFloat(data.lastPrice) || 0,
-                change: parseFloat(data.priceChangePercent) || 0,
-                high: parseFloat(data.highPrice) || 0,
-                low: parseFloat(data.lowPrice) || 0,
-                volume: parseFloat(data.volume) || 0,
-                openPrice: parseFloat(data.openPrice) || 0,
-                quoteVolume: parseFloat(data.quoteVolume) || 0,
-                trades: data.count || 0,
-            });
-        } catch (error) {
-            console.error('Error updating stock:', error);
-        }
-    };
-
+    // Refresh handler - combines context refresh with local data
     const onRefresh = async () => {
-        setRefreshing(true);
+        setLocalRefreshing(true);
         await Promise.all([
-            updateStockData(),
+            contextRefresh(), // Refresh market data from context
             fetchChartData(selectedTimeframe),
             fetchUserBalance(),
             checkWatchlistStatus()
         ]);
-        setRefreshing(false);
+        setLocalRefreshing(false);
     };
 
+    // Initial setup
     useEffect(() => {
         if (user && token) {
             fetchUserBalance();
             checkWatchlistStatus();
         }
-        updateStockData();
         fetchChartData(selectedTimeframe);
+    }, []);
 
-        updateIntervalRef.current = setInterval(() => {
-            updateStockData();
-        }, 4000);
-
-        return () => {
-            if (updateIntervalRef.current) {
-                clearInterval(updateIntervalRef.current);
-            }
-        };
-    }, [stock.symbol]);
-
+    // Refetch chart when timeframe changes
     useEffect(() => {
         fetchChartData(selectedTimeframe);
     }, [selectedTimeframe]);
@@ -270,11 +250,8 @@ export default function CryptoDetailsScreen() {
         setShowTradingModal(true);
     };
 
-    const handleOrderSuccess = () => {
-        fetchUserBalance();
-    };
-
     const timeframes = ['1H', '24H', '7D', '1M', '1Y'];
+    const refreshing = localRefreshing || contextRefreshing;
 
     return (
         <View style={styles.container}>
@@ -295,7 +272,8 @@ export default function CryptoDetailsScreen() {
 
                     <View style={styles.headerCenter}>
                         <Image
-                            source={{ uri: symbolInfo.image }}
+                            source={typeof symbolInfo.image === "string" ?
+                                { uri: symbolInfo.image } : symbolInfo.image}
                             style={styles.headerImage}
                             resizeMode="contain"
                         />
@@ -313,7 +291,12 @@ export default function CryptoDetailsScreen() {
                             onPress={onRefresh}
                             disabled={refreshing}
                         >
-                            <Feather name="refresh-cw" size={18} color="#FFFFFF" />
+                            <Feather
+                                name="refresh-cw"
+                                size={18}
+                                color="#FFFFFF"
+                                style={refreshing ? { opacity: 0.5 } : {}}
+                            />
                         </TouchableOpacity>
 
                         <TouchableOpacity
@@ -361,7 +344,11 @@ export default function CryptoDetailsScreen() {
                 style={styles.content}
                 showsVerticalScrollIndicator={false}
                 refreshControl={
-                    <RefreshControl refreshing={refreshing} onRefresh={onRefresh} />
+                    <RefreshControl
+                        refreshing={refreshing}
+                        onRefresh={onRefresh}
+                        tintColor="#2E5CFF"
+                    />
                 }
             >
                 {/* Timeframe Selector */}
@@ -390,6 +377,7 @@ export default function CryptoDetailsScreen() {
                     {chartLoading ? (
                         <View style={styles.chartLoadingContainer}>
                             <ActivityIndicator size="large" color="#2E5CFF" />
+                            <Text style={styles.chartLoadingText}>Loading chart...</Text>
                         </View>
                     ) : chartData.data.length > 0 ? (
                         <LineChart
@@ -397,7 +385,7 @@ export default function CryptoDetailsScreen() {
                                 labels: chartData.labels.filter(label => label !== ''),
                                 datasets: [{ data: chartData.data }]
                             }}
-                            width={width - 60}
+                            width={width - 40}
                             height={200}
                             chartConfig={{
                                 backgroundColor: '#FFFFFF',
@@ -412,7 +400,11 @@ export default function CryptoDetailsScreen() {
                             style={styles.chart}
                             withDots={false}
                         />
-                    ) : null}
+                    ) : (
+                        <View style={styles.chartLoadingContainer}>
+                            <Text style={styles.chartErrorText}>Unable to load chart</Text>
+                        </View>
+                    )}
                 </View>
 
                 {/* Stats Grid */}
@@ -456,6 +448,28 @@ export default function CryptoDetailsScreen() {
                             <Text style={styles.statLabel}>Quote Volume</Text>
                             <Text style={styles.statValue}>
                                 ${(stock.quoteVolume ? stock.quoteVolume / 1000000 : 0).toFixed(2)}M
+                            </Text>
+                        </View>
+
+                        {stock.trades && (
+                            <View style={styles.statCard}>
+                                <View style={[styles.statIconContainer, { backgroundColor: '#F3E8FF' }]}>
+                                    <Feather name="zap" size={20} color="#9333EA" />
+                                </View>
+                                <Text style={styles.statLabel}>24h Trades</Text>
+                                <Text style={styles.statValue}>
+                                    {(stock.trades / 1000).toFixed(1)}K
+                                </Text>
+                            </View>
+                        )}
+
+                        <View style={styles.statCard}>
+                            <View style={[styles.statIconContainer, { backgroundColor: '#E0F2FE' }]}>
+                                <Feather name="trending-up" size={20} color="#0284C7" />
+                            </View>
+                            <Text style={styles.statLabel}>Open Price</Text>
+                            <Text style={styles.statValue}>
+                                ${stock.openPrice >= 1 ? stock.openPrice.toFixed(2) : stock.openPrice.toFixed(6)}
                             </Text>
                         </View>
                     </View>
@@ -511,6 +525,7 @@ export default function CryptoDetailsScreen() {
                 isWatchlisted={isWatchlisted}
                 onToggleWatchlist={toggleWatchlist}
             />
+
             <OrderSuccessModal
                 visible={showSuccessModal}
                 onClose={() => setShowSuccessModal(false)}
@@ -668,6 +683,14 @@ const styles = StyleSheet.create({
         borderWidth: 1,
         borderColor: '#E5E7EB',
     },
+    chartLoadingText: {
+        fontSize: 14,
+        color: '#6B7280',
+    },
+    chartErrorText: {
+        fontSize: 14,
+        color: '#EF4444',
+    },
     chart: {
         borderRadius: 16,
     },
@@ -719,16 +742,15 @@ const styles = StyleSheet.create({
         marginTop: 20,
         marginBottom: 30,
         paddingHorizontal: 20,
+        gap: 12,
     },
     buyButtonMain: {
         flex: 1,
-        marginRight: 8,
         borderRadius: 12,
         overflow: 'hidden',
     },
     sellButtonMain: {
         flex: 1,
-        marginLeft: 8,
         borderRadius: 12,
         overflow: 'hidden',
     },
@@ -744,301 +766,5 @@ const styles = StyleSheet.create({
         color: '#FFFFFF',
         fontSize: 16,
         fontWeight: '700',
-    },
-
-    // Modal Styles
-    modalOverlay: {
-        flex: 1,
-        backgroundColor: 'rgba(0,0,0,0.4)',
-        justifyContent: 'flex-end',
-    },
-    modalContent: {
-        maxHeight: '90%',
-        backgroundColor: '#FFFFFF',
-        padding: 20,
-        borderTopLeftRadius: 20,
-        borderTopRightRadius: 20,
-        elevation: 10,
-    },
-    modalHeader: {
-        flexDirection: 'row',
-        justifyContent: 'space-between',
-        alignItems: 'center',
-        marginBottom: 15,
-    },
-    modalTitle: {
-        fontSize: 20,
-        fontWeight: '700',
-        color: '#1A1A1A',
-    },
-    watchlistAddButton: {
-        flexDirection: 'row',
-        alignItems: 'center',
-        justifyContent: 'center',
-        backgroundColor: '#EEF3FF',
-        paddingVertical: 12,
-        paddingHorizontal: 16,
-        borderRadius: 12,
-        marginBottom: 16,
-        gap: 8,
-        borderWidth: 1,
-        borderColor: '#DBEAFE',
-    },
-    watchlistAddText: {
-        fontSize: 14,
-        fontWeight: '600',
-        color: '#2E5CFF',
-    },
-    positionInfoCard: {
-        backgroundColor: '#FEF3C7',
-        padding: 16,
-        borderRadius: 12,
-        marginBottom: 16,
-        borderWidth: 1,
-        borderColor: '#FDE68A',
-    },
-    positionInfoLabel: {
-        fontSize: 12,
-        color: '#92400E',
-        marginBottom: 4,
-    },
-    positionInfoValue: {
-        fontSize: 18,
-        fontWeight: '700',
-        color: '#78350F',
-        marginBottom: 4,
-    },
-    positionInfoSubtext: {
-        fontSize: 12,
-        color: '#92400E',
-    },
-    currentPriceCard: {
-        backgroundColor: '#EEF3FF',
-        padding: 16,
-        borderRadius: 12,
-        marginBottom: 20,
-    },
-    currentPriceLabel: {
-        fontSize: 13,
-        color: '#6B7280',
-    },
-    currentPriceValue: {
-        fontSize: 22,
-        fontWeight: '700',
-        color: '#1A3FCC',
-        marginTop: 4,
-    },
-    inputLabel: {
-        fontSize: 14,
-        color: '#374151',
-        marginBottom: 6,
-        marginTop: 8,
-        fontWeight: '600',
-    },
-    input: {
-        backgroundColor: '#F1F5F9',
-        borderRadius: 12,
-        padding: 12,
-        fontSize: 15,
-        borderWidth: 1,
-        borderColor: '#E2E8F0',
-        marginBottom: 14,
-    },
-    executionTypeContainer: {
-        flexDirection: 'row',
-        gap: 10,
-        marginBottom: 18,
-    },
-    executionTypeButton: {
-        flex: 1,
-        paddingVertical: 10,
-        borderRadius: 10,
-        backgroundColor: '#E5E7EB',
-        alignItems: 'center',
-    },
-    executionTypeButtonActive: {
-        backgroundColor: '#2E5CFF',
-    },
-    executionTypeText: {
-        fontSize: 13,
-        fontWeight: '600',
-        color: '#374151',
-    },
-    executionTypeTextActive: {
-        color: '#FFFFFF',
-    },
-    quickAmountContainer: {
-        flexDirection: 'row',
-        gap: 10,
-        marginBottom: 20,
-    },
-    quickAmountButton: {
-        flex: 1,
-        paddingVertical: 10,
-        backgroundColor: '#F3F4F6',
-        borderRadius: 10,
-        alignItems: 'center',
-        borderWidth: 1,
-        borderColor: '#E5E7EB',
-    },
-    quickAmountText: {
-        fontSize: 14,
-        fontWeight: '600',
-        color: '#111827',
-    },
-    advancedToggle: {
-        paddingVertical: 6,
-        alignItems: 'center',
-        marginBottom: 10,
-    },
-    advancedToggleText: {
-        color: '#2563EB',
-        fontSize: 14,
-        fontWeight: '600',
-    },
-    advancedContainer: {
-        backgroundColor: '#F9FAFB',
-        padding: 14,
-        borderRadius: 12,
-        borderWidth: 1,
-        borderColor: '#E5E7EB',
-        marginBottom: 16,
-    },
-    infoBox: {
-        marginTop: 12,
-        flexDirection: 'row',
-        alignItems: 'center',
-        backgroundColor: '#EFF6FF',
-        padding: 10,
-        borderRadius: 10,
-        borderWidth: 1,
-        borderColor: '#DBEAFE',
-    },
-    infoText: {
-        marginLeft: 8,
-        color: '#2563EB',
-        fontSize: 12,
-        flex: 1,
-    },
-    summaryCard: {
-        padding: 16,
-        backgroundColor: '#FFFFFF',
-        borderRadius: 14,
-        borderWidth: 1,
-        borderColor: '#E5E7EB',
-        marginBottom: 20,
-    },
-    summaryTitle: {
-        fontSize: 17,
-        fontWeight: '700',
-        marginBottom: 12,
-        color: '#111827',
-    },
-    summaryRow: {
-        flexDirection: 'row',
-        justifyContent: 'space-between',
-        marginBottom: 10,
-    },
-    summaryLabel: {
-        color: '#6B7280',
-        fontSize: 14,
-    },
-    summaryValue: {
-        color: '#111827',
-        fontSize: 14,
-        fontWeight: '600',
-    },
-    summaryDivider: {
-        borderBottomWidth: 1,
-        borderColor: '#E5E7EB',
-        marginVertical: 10,
-    },
-    chargesContainer: {
-        marginBottom: 12,
-        marginTop: 6,
-    },
-    chargeRow: {
-        flexDirection: 'row',
-        justifyContent: 'space-between',
-        marginBottom: 6,
-    },
-    chargeLabel: {
-        fontSize: 13,
-        color: '#6B7280',
-    },
-    chargeValue: {
-        fontSize: 13,
-        color: '#111827',
-        fontWeight: '600',
-    },
-    chargeLabelBold: {
-        fontSize: 14,
-        fontWeight: '700',
-        color: '#374151',
-    },
-    chargeValueBold: {
-        fontSize: 14,
-        fontWeight: '700',
-        color: '#1F2937',
-    },
-    summaryLabelBold: {
-        fontSize: 15,
-        fontWeight: '700',
-        color: '#1F2937',
-    },
-    summaryValueBold: {
-        fontSize: 16,
-        fontWeight: '700',
-    },
-    actionButtonsContainer: {
-        flexDirection: 'row',
-        gap: 12,
-        marginTop: 10,
-    },
-    cancelButton: {
-        flex: 1,
-        padding: 14,
-        backgroundColor: '#F3F4F6',
-        borderRadius: 12,
-        alignItems: 'center',
-        borderWidth: 1,
-        borderColor: '#E5E7EB',
-    },
-    cancelButtonText: {
-        fontSize: 15,
-        fontWeight: '600',
-        color: '#374151',
-    },
-    submitButton: {
-        flex: 1,
-        padding: 14,
-        borderRadius: 12,
-        alignItems: 'center',
-    },
-    buyButton: {
-        backgroundColor: '#10B981',
-    },
-    sellButton: {
-        backgroundColor: '#EF4444',
-    },
-    submitButtonText: {
-        fontSize: 15,
-        fontWeight: '700',
-        color: '#FFFFFF',
-    },
-    submitButtonDisabled: {
-        opacity: 0.6,
-    },
-    disclaimer: {
-        flexDirection: 'row',
-        alignItems: 'center',
-        marginTop: 16,
-        paddingVertical: 4,
-    },
-    disclaimerText: {
-        marginLeft: 6,
-        fontSize: 12,
-        color: '#6B7280',
-        flex: 1,
     },
 });

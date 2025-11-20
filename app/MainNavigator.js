@@ -132,6 +132,7 @@ export default function MainNavigator() {
             }
 
             <Tab.Screen
+                key={user ? 'account-logged-in' : 'account-logged-out'}
                 name="Account"
                 component={user ? AccountStack : AuthStack}
                 options={{ title: 'Account' }}

@@ -13,16 +13,12 @@ import {
   View,
   RefreshControl,
 } from 'react-native';
-import { AuthContext } from '../../context/AuthContext';
 import axiosInstance from '../api/axiosInstance';
 import TradingModal from '../components/TradingModel';
 import OrderSuccessModal from '../components/OrderSuccessModal';
 import { SYMBOL_INFO } from '../../constants/symbols';
-
-const STOCK_SYMBOLS = [
-  'BTCUSDT', 'ETHUSDT', 'BNBUSDT', 'SOLUSDT', 'XRPUSDT',
-  'ADAUSDT', 'DOGEUSDT', 'MATICUSDT', 'DOTUSDT', 'LTCUSDT'
-];
+import { CryptoContext } from '../../context/CryptoContext';
+import { AuthContext } from '../../context/AuthContext';
 
 function formatCurrency(value) {
   if (Math.abs(value) >= 1000) {
@@ -33,12 +29,13 @@ function formatCurrency(value) {
 
 export default function Positions({ navigation }) {
   const { user, token, apiKey, fetchUser } = useContext(AuthContext);
+  const { marketData, getCryptoData, refreshing: contextRefreshing, refresh: contextRefresh } = useContext(CryptoContext);
+  
   const [selectedTab, setSelectedTab] = useState('markets');
   const [loading, setLoading] = useState(true);
   const [marketPositions, setMarketPositions] = useState([]);
   const [optionPositions] = useState([]);
-  const [stocksData, setStocksData] = useState([]);
-  const [refreshing, setRefreshing] = useState(false);
+  const [localRefreshing, setLocalRefreshing] = useState(false);
 
   // Trading Modal States
   const [showTradingModal, setShowTradingModal] = useState(false);
@@ -48,42 +45,8 @@ export default function Positions({ navigation }) {
   const [successOrderData, setSuccessOrderData] = useState(null);
   const [lastOrderType, setLastOrderType] = useState('SELL');
 
-  const [selectedSection, setSelectedSection] = useState('positions'); // 'positions' or 'orders'
+  const [selectedSection, setSelectedSection] = useState('positions');
   const [ordersData, setOrdersData] = useState([]);
-
-  const updateStocksData = async () => {
-    try {
-      const promises = STOCK_SYMBOLS.map(symbol =>
-        fetch(`https://api.binance.com/api/v3/ticker/24hr?symbol=${symbol}`)
-          .then(res => res.json())
-          .catch(err => {
-            console.error(`Error fetching ${symbol}:`, err);
-            return null;
-          })
-      );
-
-      const results = await Promise.all(promises);
-      const formatted = results
-        .filter(item => item !== null)
-        .map(item => ({
-          symbol: item.symbol,
-          price: parseFloat(item.lastPrice) || 0,
-          change: parseFloat(item.priceChangePercent) || 0,
-          high: parseFloat(item.highPrice) || 0,
-          low: parseFloat(item.lowPrice) || 0,
-          volume: parseFloat(item.volume) || 0,
-          openPrice: parseFloat(item.openPrice) || 0
-        }));
-
-      setStocksData(formatted);
-      setLoading(false);
-      setRefreshing(false);
-    } catch (error) {
-      console.error('Error fetching stocks:', error);
-      setLoading(false);
-      setRefreshing(false);
-    }
-  };
 
   const fetchMarketPositions = async () => {
     try {
@@ -142,7 +105,11 @@ export default function Positions({ navigation }) {
     });
   };
 
-  const markets = mergePricesWithPositions(marketPositions, stocksData);
+  // Merge positions with live market data from context
+  const markets = useMemo(() => {
+    return mergePricesWithPositions(marketPositions, marketData);
+  }, [marketPositions, marketData]);
+
   const options = optionPositions;
 
   const totals = useMemo(() => {
@@ -166,22 +133,6 @@ export default function Positions({ navigation }) {
     };
   }, [markets, options]);
 
-  useEffect(() => {
-    if (user && token) {
-      fetchPositions();
-      fetchOrders();
-      fetchUserBalance();
-      updateStocksData();
-
-      const interval = setInterval(() => {
-        updateStocksData();
-        fetchOrders();
-      }, 4000);
-
-      return () => clearInterval(interval);
-    }
-  }, [user, token]);
-
   const fetchPositions = async () => {
     const data = await fetchMarketPositions();
     const normalize = (item) => ({
@@ -196,12 +147,40 @@ export default function Positions({ navigation }) {
     setMarketPositions(data.map(normalize));
   };
 
-  const onRefresh = () => {
-    setRefreshing(true);
-    fetchPositions();
-    fetchUserBalance();
-    updateStocksData();
+  // Combined refresh handler
+  const onRefresh = async () => {
+    setLocalRefreshing(true);
+    await Promise.all([
+      contextRefresh(), // Refresh market data from context
+      fetchPositions(),
+      fetchUserBalance(),
+      fetchOrders()
+    ]);
+    setLocalRefreshing(false);
   };
+
+  // Initial load
+  useEffect(() => {
+    if (user && token) {
+      const loadData = async () => {
+        setLoading(true);
+        await Promise.all([
+          fetchPositions(),
+          fetchOrders(),
+          fetchUserBalance()
+        ]);
+        setLoading(false);
+      };
+      loadData();
+
+      // Update orders periodically (positions update automatically via context)
+      const interval = setInterval(() => {
+        fetchOrders();
+      }, 4000);
+
+      return () => clearInterval(interval);
+    }
+  }, [user, token]);
 
   const handlePositionClick = (pos) => {
     if (!user || !token) {
@@ -209,18 +188,18 @@ export default function Positions({ navigation }) {
       return;
     }
 
-    // Find the live stock data for this position
-    const liveStock = stocksData.find(s => s.symbol === pos.symbol + 'USDT');
+    // Get live stock data from context
+    const liveStock = getCryptoData(pos.symbol + 'USDT');
 
     // Create stock object with live data
-    const stockData = {
+    const stockData = liveStock || {
       symbol: pos.symbol + 'USDT',
-      price: liveStock ? liveStock.price : pos.currentPrice,
-      change: liveStock ? liveStock.change : 0,
-      high: liveStock ? liveStock.high : pos.currentPrice,
-      low: liveStock ? liveStock.low : pos.currentPrice,
-      volume: liveStock ? liveStock.volume : 0,
-      openPrice: liveStock ? liveStock.openPrice : pos.currentPrice,
+      price: pos.currentPrice,
+      change: pos.change || 0,
+      high: pos.high || pos.currentPrice,
+      low: pos.low || pos.currentPrice,
+      volume: 0,
+      openPrice: pos.currentPrice,
     };
 
     setSelectedStock(stockData);
@@ -301,7 +280,7 @@ export default function Positions({ navigation }) {
   };
 
   const renderOrderCard = (order) => {
-     const info = SYMBOL_INFO[order.symbol] || SYMBOL_INFO[order.symbol + 'USDT'] || {};
+    const info = SYMBOL_INFO[order.symbol] || SYMBOL_INFO[order.symbol + 'USDT'] || {};
     const isBuy = order.type === 'BUY';
     const currentPrice = order.currentPrice || order.entryPrice;
 
@@ -359,9 +338,10 @@ export default function Positions({ navigation }) {
     </View>
   );
 
-
   const displayPositions = selectedTab === 'combined' ? [...markets, ...options] :
     selectedTab === 'markets' ? markets : options;
+
+  const refreshing = localRefreshing || contextRefreshing;
 
   return (
     <View style={styles.container}>
@@ -789,9 +769,9 @@ const styles = StyleSheet.create({
     backgroundColor: '#2E5CFF'
   },
   innerTabNotActive: {
-    backgroundColor: '#F3F4F6', // same as before inactive
+    backgroundColor: '#F3F4F6',
     borderWidth: 1,
-    borderColor: '#E5E7EB',      // subtle border to differentiate
+    borderColor: '#E5E7EB',
   },
   innerTabText: {
     color: '#6B7280',
